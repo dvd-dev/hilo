@@ -48,9 +48,11 @@ from pyhilo.websocket import WebsocketEvent
 
 from .config_flow import STEP_OPTION_SCHEMA
 from .const import (
+    CONF_GENERATE_ENERGY_METERS,
     CONF_HIGH_PERIODS,
     CONF_HQ_PLAN_NAME,
     CONF_TARIFF,
+    DEFAULT_GENERATE_ENERGY_METERS,
     DEFAULT_HQ_PLAN_NAME,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
@@ -190,6 +192,9 @@ class Hilo:
             1: self.subscribe_to_attributes,
         }
         self.hq_plan_name = entry.options.get(CONF_HQ_PLAN_NAME, DEFAULT_HQ_PLAN_NAME)
+        self.generate_energy_meters = entry.options.get(
+            CONF_GENERATE_ENERGY_METERS, DEFAULT_GENERATE_ENERGY_METERS
+        )
 
         # This will get filled in by async_init:
         self.coordinator: DataUpdateCoordinator | None = None
@@ -336,7 +341,8 @@ class Hilo:
     async def async_update(self) -> None:
         """Get updated data from SimpliSafe."""
         await self.devices.update()
-        self.check_tarif()
+        if self.generate_energy_meters:
+            self.check_tarif()
 
     def set_state(self, entity, state, new_attrs={}, keep_state=False, force=False):
         params = f"entity={entity}, state={state}, new_attrs={new_attrs}, keep_state={keep_state}"
