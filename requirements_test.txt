@@ -1,0 +1,5 @@
+bandit>=1.7.1
+black>=21.12b0
+flake8>=4.0.1
+pre-commit>=2.16.0
+pyflakes>=2.4.0
