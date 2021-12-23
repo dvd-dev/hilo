@@ -3,10 +3,10 @@ from datetime import timedelta
 
 from homeassistant.components.energy.data import async_get_manager
 from homeassistant.components.utility_meter import async_setup as utility_setup
-from homeassistant.components.utility_meter.const import \
-    DOMAIN as UTILITY_DOMAIN
-from homeassistant.components.utility_meter.sensor import \
-    async_setup_platform as utility_setup_platform
+from homeassistant.components.utility_meter.const import DOMAIN as UTILITY_DOMAIN
+from homeassistant.components.utility_meter.sensor import (
+    async_setup_platform as utility_setup_platform,
+)
 
 from .const import LOG, TARIFF_LIST
 

@@ -6,37 +6,56 @@ from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Union
 
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
-from homeassistant.components.utility_meter.const import ATTR_TARIFF
-from homeassistant.components.utility_meter.const import \
-    DOMAIN as UTIL_METER_DOMAIN
-from homeassistant.components.utility_meter.const import SERVICE_SELECT_TARIFF
+from homeassistant.components.utility_meter.const import (
+    ATTR_TARIFF,
+    DOMAIN as UTIL_METER_DOMAIN,
+    SERVICE_SELECT_TARIFF,
+)
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (ATTR_DEVICE_CLASS, ATTR_UNIT_OF_MEASUREMENT,
-                                 CONF_PASSWORD, CONF_TOKEN,
-                                 CONF_USERNAME, DEVICE_CLASS_ENERGY,
-                                 EVENT_HOMEASSISTANT_STOP)
+from homeassistant.const import (
+    ATTR_DEVICE_CLASS,
+    ATTR_UNIT_OF_MEASUREMENT,
+    CONF_PASSWORD,
+    CONF_TOKEN,
+    CONF_USERNAME,
+    DEVICE_CLASS_ENERGY,
+    EVENT_HOMEASSISTANT_STOP,
+)
 from homeassistant.core import Context, Event, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
-from homeassistant.helpers import aiohttp_client
-from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers.dispatcher import (async_dispatcher_connect,
-                                              async_dispatcher_send)
+from homeassistant.helpers import aiohttp_client, device_registry as dr
+from homeassistant.helpers.dispatcher import (
+    async_dispatcher_connect,
+    async_dispatcher_send,
+)
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.event import async_call_later
-from homeassistant.helpers.service import verify_domain_control
-from homeassistant.helpers.update_coordinator import (CoordinatorEntity,
-                                                      DataUpdateCoordinator)
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+    DataUpdateCoordinator,
+)
 from pyhilo import API
 from pyhilo.device import HiloDevice
 from pyhilo.devices import Devices
-from pyhilo.exceptions import (HiloError, InvalidCredentialsError,
-                               WebsocketClosed, WebsocketError)
+from pyhilo.exceptions import (
+    HiloError,
+    InvalidCredentialsError,
+    WebsocketClosed,
+    WebsocketError,
+)
 from pyhilo.util import from_utc_timestamp, time_diff
 from pyhilo.websocket import WebsocketEvent
 
 from .config_flow import STEP_OPTION_SCHEMA
-from .const import (CONF_HIGH_PERIODS, CONF_HQ_PLAN_NAME, CONF_TARIFF,
-                    DEFAULT_HQ_PLAN_NAME, DEFAULT_SCAN_INTERVAL, DOMAIN, LOG)
+from .const import (
+    CONF_HIGH_PERIODS,
+    CONF_HQ_PLAN_NAME,
+    CONF_TARIFF,
+    DEFAULT_HQ_PLAN_NAME,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
+    LOG,
+)
 
 DISPATCHER_TOPIC_WEBSOCKET_EVENT = "pyhilo_websocket_event"
 SIGNAL_UPDATE_ENTITY = "pyhilo_device_update_{}"
