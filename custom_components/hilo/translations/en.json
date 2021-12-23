@@ -1,0 +1,33 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "description": "The Hilo integration interacts with the Hilo application. Hilo is a smart home product made by a subsidary of Hydro Quebec.",
+        "data": {
+          "username": "Hilo Username",
+          "password": "Hilo Password"
+        }
+      }
+    },
+    "error": {
+      "identifier_exists": "Account already registered",
+      "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
+      "unknown": "[%key:common::config_flow::error::unknown%]"
+    },
+    "abort": {
+      "already_configured": "This Hilo account is already in use."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Configure Hilo",
+        "data": {
+          "generate_energy_meters": "Generate energy meters",
+          "hq_plan_name": "Hydro Quebec rate plan name ('rate d' or 'flex d')",
+          "scan_interval": "Scan interval (min: 15s)"
+        }
+      }
+    }
+  }
+}

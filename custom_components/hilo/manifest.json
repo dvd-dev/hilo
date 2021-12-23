@@ -1,0 +1,10 @@
+{
+  "domain": "hilo",
+  "name": "Hilo",
+  "config_flow": true,
+  "documentation": "https://github.com/dvd-dev/hilo",
+  "requirements": ["python-hilo==2021.12.3"],
+  "codeowners": ["@valleedelisle"],
+  "iot_class": "cloud_polling",
+  "version": "2021.12.1"
+}
