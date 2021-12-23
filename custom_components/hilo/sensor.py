@@ -3,29 +3,43 @@ from __future__ import annotations
 
 from datetime import timedelta
 
-import homeassistant.util.dt as dt_util
-from homeassistant.components.integration.sensor import (TRAPEZOIDAL_METHOD,
-                                                         IntegrationSensor)
-from homeassistant.components.sensor import (STATE_CLASS_MEASUREMENT,
-                                             SensorEntity)
+from homeassistant.components.integration.sensor import (
+    TRAPEZOIDAL_METHOD,
+    IntegrationSensor,
+)
+from homeassistant.components.sensor import STATE_CLASS_MEASUREMENT, SensorEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (CONF_SCAN_INTERVAL, DEVICE_CLASS_ENERGY,
-                                 DEVICE_CLASS_POWER, DEVICE_CLASS_TEMPERATURE,
-                                 ENERGY_KILO_WATT_HOUR, ENERGY_WATT_HOUR,
-                                 POWER_WATT, TEMP_CELSIUS)
+from homeassistant.const import (
+    CONF_SCAN_INTERVAL,
+    DEVICE_CLASS_ENERGY,
+    DEVICE_CLASS_POWER,
+    DEVICE_CLASS_TEMPERATURE,
+    ENERGY_KILO_WATT_HOUR,
+    ENERGY_WATT_HOUR,
+    POWER_WATT,
+    TEMP_CELSIUS,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import Throttle, slugify
+import homeassistant.util.dt as dt_util
 from pyhilo.device import HiloDevice
 from pyhilo.util.hilo import event_parsing
 
 from . import Hilo, HiloEntity
-from .const import (CONF_ENERGY_METER_PERIOD, CONF_GENERATE_ENERGY_METERS,
-                    CONF_HQ_PLAN_NAME, CONF_TARIFF,
-                    DEFAULT_ENERGY_METER_PERIOD,
-                    DEFAULT_GENERATE_ENERGY_METERS, DEFAULT_HQ_PLAN_NAME,
-                    DEFAULT_SCAN_INTERVAL, DOMAIN, LOG)
+from .const import (
+    CONF_ENERGY_METER_PERIOD,
+    CONF_GENERATE_ENERGY_METERS,
+    CONF_HQ_PLAN_NAME,
+    CONF_TARIFF,
+    DEFAULT_ENERGY_METER_PERIOD,
+    DEFAULT_GENERATE_ENERGY_METERS,
+    DEFAULT_HQ_PLAN_NAME,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
+    LOG,
+)
 from .managers import EnergyManager, UtilityManager
 
 
@@ -310,7 +324,7 @@ class HiloCostSensor(RestoreEntity):
         return "$/kWh"
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         return {"last_update": self._last_update, "Cost": self.state}
 
     async def async_added_to_hass(self):

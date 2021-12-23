@@ -1,5 +1,5 @@
-import logging
 from datetime import time
+import logging
 
 from homeassistant.components.utility_meter.const import DAILY
 
