@@ -3,6 +3,7 @@
   "name": "Hilo",
   "config_flow": true,
   "documentation": "https://github.com/dvd-dev/hilo",
+  "issue_tracker": "https://github.com/dvd-dev/hilo/issues",
   "requirements": ["python-hilo==2021.12.3"],
   "codeowners": ["@valleedelisle"],
   "iot_class": "cloud_polling",
