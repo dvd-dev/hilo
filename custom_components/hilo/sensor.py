@@ -97,7 +97,7 @@ async def async_setup_entry(
         if d.has_attribute("current_temperature"):
             d._temperature_entity = TemperatureSensor(hilo, d)
             temperature_entities.append(d._temperature_entity)
-        if d.type == "SmokeDetector":
+        if d.type in ["SmokeDetector", "IndoorWeatherStation"]:
             d._device_sensor_entity = DeviceSensor(hilo, d)
             misc_entities.append(d._device_sensor_entity)
 
