@@ -65,6 +65,12 @@ class HiloClimate(HiloEntity, ClimateEntity):
     def hvac_mode(self):
         return self._device.hvac_mode
 
+    @property
+    def icon(self):
+        if self._device.hvac_mode == HVAC_MODE_HEAT:
+            return "mdi:radiator"
+        return "mdi:radiator-disabled"
+
     async def async_set_temperature(self, **kwargs):
         if ATTR_TEMPERATURE in kwargs:
             LOG.info(
