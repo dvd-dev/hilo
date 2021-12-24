@@ -1,4 +1,4 @@
-"""Support for SimpliSafe alarm systems."""
+"""Support for Hilo automation systems."""
 from __future__ import annotations
 
 import asyncio
@@ -245,7 +245,7 @@ class Hilo:
             await inv_cb(inv_id)
 
     async def async_init(self) -> None:
-        """Initialize the SimpliSafe "manager" class."""
+        """Initialize the Hilo "manager" class."""
         if TYPE_CHECKING:
             assert self._api.refresh_token
             assert self._api.websocket
@@ -339,7 +339,7 @@ class Hilo:
         await self._api.websocket.async_disconnect()
 
     async def async_update(self) -> None:
-        """Get updated data from SimpliSafe."""
+        """Get updated data from Hilo API."""
         await self.devices.update()
         if self.generate_energy_meters:
             self.check_tarif()
@@ -446,7 +446,7 @@ class Hilo:
 
 
 class HiloEntity(CoordinatorEntity):
-    """Define a base SimpliSafe entity."""
+    """Define a base Hilo base entity."""
 
     def __init__(
         self,
