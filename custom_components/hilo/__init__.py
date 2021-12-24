@@ -91,7 +91,7 @@ def _async_standardize_config_entry(hass: HomeAssistant, entry: ConfigEntry) -> 
 
 
 @callback
-def _async_register_base_station(
+def _async_register_gateway(
     hass: HomeAssistant, entry: ConfigEntry, gateway: HiloDevice
 ) -> None:
     """Register a new bridge."""
@@ -252,9 +252,7 @@ class Hilo:
 
         await self.devices.async_init()
 
-        _async_register_base_station(
-            self._hass, self.entry, self.devices.find_device(1)
-        )
+        _async_register_gateway(self._hass, self.entry, self.devices.find_device(1))
 
         self._api.websocket.add_connect_callback(self.request_status_update)
         self._api.websocket.add_event_callback(self.on_websocket_event)
