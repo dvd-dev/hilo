@@ -1,4 +1,6 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/dvd-dev/hilo.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/dvd-dev/hilo/alerts/)
+[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/dvd-dev/hilo.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/dvd-dev/hilo/context:python)
 
 
 **BETA** This is a beta release. There will be some bugs, issues, etc. Please bear with us and open issues in the repo.
