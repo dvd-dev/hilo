@@ -1,4 +1,4 @@
-"""Config flow to configure the SimpliSafe component."""
+"""Config flow to configure the Hilo component."""
 from __future__ import annotations
 
 from typing import Any
@@ -42,9 +42,6 @@ STEP_OPTION_SCHEMA = vol.Schema(
             CONF_GENERATE_ENERGY_METERS, default=DEFAULT_GENERATE_ENERGY_METERS
         ): cv.boolean,
         vol.Optional(CONF_HQ_PLAN_NAME, default=DEFAULT_HQ_PLAN_NAME): cv.string,
-        #        vol.Optional(
-        #            CONF_ENERGY_METER_PERIOD, default=DEFAULT_ENERGY_METER_PERIOD
-        #        ): cv.string,
         vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): (
             vol.All(cv.positive_int, vol.Range(min=MIN_SCAN_INTERVAL))
         ),
@@ -124,8 +121,6 @@ class HiloOptionsFlowHandler(config_entries.OptionsFlow):
     def __init__(self, config_entry: ConfigEntry) -> None:
         """Initialize."""
         self.config_entry = config_entry
-        self._reauth: bool = False
-        self._username: str | None = None
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -134,4 +129,34 @@ class HiloOptionsFlowHandler(config_entries.OptionsFlow):
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 
-        return self.async_show_form(step_id="init", data_schema=STEP_OPTION_SCHEMA)
+        return self.async_show_form(
+            step_id="init",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        CONF_GENERATE_ENERGY_METERS,
+                        description={
+                            "suggested_value": self.config_entry.options.get(
+                                CONF_GENERATE_ENERGY_METERS
+                            )
+                        },
+                    ): cv.boolean,
+                    vol.Optional(
+                        CONF_HQ_PLAN_NAME,
+                        description={
+                            "suggested_value": self.config_entry.options.get(
+                                CONF_HQ_PLAN_NAME
+                            )
+                        },
+                    ): cv.string,
+                    vol.Optional(
+                        CONF_SCAN_INTERVAL,
+                        description={
+                            "suggested_value": self.config_entry.options.get(
+                                CONF_SCAN_INTERVAL
+                            )
+                        },
+                    ): (vol.All(cv.positive_int, vol.Range(min=MIN_SCAN_INTERVAL))),
+                }
+            ),
+        )
