@@ -68,3 +68,7 @@ repos:
     hooks:
       - id: shellcheck
         files: ^script/.+
+  - repo: https://github.com/jorisroovers/gitlint
+    rev: v0.17.0
+    hooks:
+    - id: gitlint
