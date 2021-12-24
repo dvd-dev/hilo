@@ -387,7 +387,7 @@ class Hilo:
             LOG.warning(
                 f"Unable to restore a valid state of {base_sensor}: {energy_used.state}"
             )
-            pass
+
         if tarif_config.get("high") > 0 and self.high_times:
             tarif = "high"
         target_cost = self._hass.states.get(f"sensor.hilo_rate_{tarif}")
