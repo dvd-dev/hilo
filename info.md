@@ -71,9 +71,9 @@ Credits to to [Francis Poisson](https://github.com/francispoisson/) who's the or
 [releases-shield]: https://img.shields.io/github/release/dvd-dev/hilo.svg?style=for-the-badge
 [releases]: https://github.com/dvd-dev/hilo/releases
 [user_profile]: https://github.com/dvd-dev
-[pre-commit-shield]: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white
+[pre-commit-shield]: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white&style=for-the-badge
 [pre-commit]: https://github.com/pre-commit/pre-commit
-[calver-shield]: https://img.shields.io/badge/calver-YYYY.MM.Micro-22bfda.svg
+[calver-shield]: https://img.shields.io/badge/calver-YYYY.MM.Micro-22bfda.svg?style=for-the-badge
 [calver]: http://calver.org/
-[black-shield]: https://img.shields.io/badge/code%20style-black-000000.svg
+[black-shield]: https://img.shields.io/badge/code%20style-black-000000.svg?style=for-the-badge
 [black]: https://github.com/psf/black
