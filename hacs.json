@@ -1,7 +1,7 @@
 {
   "name": "Hilo",
   "hacs": "1.6.0",
-  "domains": ["binary_sensor", "sensor", "switch"],
-  "iot_class": "Cloud Polling",
-  "homeassistant": "0.118.0"
+  "domains": ["climate", "sensor", "light", "utility_meter"],
+  "country": "CA",
+  "homeassistant": "2021.12.1"
 }
