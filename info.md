@@ -67,7 +67,7 @@ Credits to to [Francis Poisson](https://github.com/francispoisson/) who's the or
 [hacsbadge]: https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge
 [license]: https://github.com/dvd-dev/hilo/blob/main/LICENSE
 [license-shield]: https://img.shields.io/github/license/dvd-dev/hilo.svg?style=for-the-badge
-[maintenance-shield]: https://img.shields.io/badge/maintainer-%40dvd-dev-blue.svg?style=for-the-badge
+[maintenance-shield]: https://img.shields.io/badge/maintainer-%40dvd--dev-blue.svg?style=for-the-badge
 [releases-shield]: https://img.shields.io/github/release/dvd-dev/hilo.svg?style=for-the-badge
 [releases]: https://github.com/dvd-dev/hilo/releases
 [user_profile]: https://github.com/dvd-dev
