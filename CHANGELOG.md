@@ -1,0 +1,10 @@
+## v2021.12.2
+[Relying on device type instead of name for finding SmartMeter](https://github.com/dvd-dev/hilo/commit/3cf83c3)
+[Clarifying function name](https://github.com/dvd-dev/hilo/commit/935fbab)
+[Adding gitlint](https://github.com/dvd-dev/hilo/commit/b35f46f)
+[Adding radiator icon](https://github.com/dvd-dev/hilo/commit/3870e18)
+[Use suggested_value instead of default for the config flow options](https://github.com/dvd-dev/hilo/commit/8d2b481)
+[Fixing some typos](https://github.com/dvd-dev/hilo/commit/4006700)
+[Adding IndoorWeatherStation as basic sensor](https://github.com/dvd-dev/hilo/commit/127fff1)
+[Limit check_tarif for when energy meters automation is enabled](https://github.com/dvd-dev/hilo/commit/b6fd3fe)
+[Fixing device_state_attribute](https://github.com/dvd-dev/hilo/commit/20b6692)
