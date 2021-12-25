@@ -44,18 +44,156 @@ developers.
 
 The configuration is done in the UI. When you add the integration, you will be prompted with your
 Hilo username and password. After this, you will be prompted with assigning a room for each one of
-your devices. Finally, if you want to enable the automatic generation of the energy sensors, you
-need to make sure that the `utility_meter` platform is loaded in your `configuration.yaml` file from
+your devices.
+
+### Energy meters
+
+Energy meters are a new feature of this integration. We used to manually generate them with template sensors and automation
+but they now have been fully integrated into the Hilo integration.
+
+#### Warning
+
+When enabling Hilo generated energy meters, it's recommended to remove the manually generated ones to have the most accurate
+statistics, otherwise we might end up with duplicated data.
+
+This wasn't tested with already active data and energy entities (ie: Battery, Gaz, Solar, or even other individual devices).
+It's possible that enabling this will break or delete these original sensors. We can't be held responsible for any data loss
+service downtime, or any kind as it's described in the license.
+
+If you're facing an issue and you want to collaborate, please enable `debug` log level for this integration and provide a copy
+of the `home-assistant.log` file. Details on how to enable `debug` are below.
+
+#### Procedure
+
+If you want to enable the automatic generation of the energy sensors, follow these steps:
+
+* Make sure that the `utility_meter` platform is loaded in your `configuration.yaml` file from
 home assistant. You simply need to add a line like this in your `configuration.yaml`:
 
-```
-utility_meter:
-```
+    ```
+    utility_meter:
+    ```
 
-After this, you can click on `Configure` in the integration UI and check the `Generate energy meters`
-box, followed by a home assistant restart.
+* Click `Configure` in the integration UI and check the `Generate energy meters` box.
 
-<!---->
+* Restart home assistant and wait 5 minutes until you see the `sensor.hilo_energy_total_low` entity getting created and populated
+  with data:
+  * The `status` should be in `collecting`
+  * The `state` should be a number higher than 0.
+
+* All generated entities and sensors will be prefixed with `hilo_energy_` or `hilo_rate_`.
+
+* If you see the following error in your logs, this is a bug in Home Assistant and it's because the power meter in question has 0 w/h
+  usage so far. This will disappear once usage has been calculated. There's a PR upstream [here](https://github.com/home-assistant/core/pull/60678) to address this.
+
+    ```
+    2021-11-29 22:03:46 ERROR (MainThread) [homeassistant] Error doing job: Task exception was never retrieved
+    Traceback (most recent call last):
+    [...]
+    ValueError: could not convert string to float: 'None'
+    ```
+
+### Other configuration
+
+Other options are available under the `Configure` button in Home Assistant:
+
+- `hq_plan_name`: String
+  Define the Hydro Quebec rate plan name.
+  Only 2 values are supported at this time:
+  - `rate d`
+  - `flex d`
+
+- `scan_interval`: Integer
+  Number of seconds between each device update. Defaults to 60 and it's not recommended to go below 30 as it might
+  result in a suspension from Hilo.
+
+## Lovelace sample integration
+
+Here's an example on how to add the energy data to Lovelace.
+<details>
+  <summary>Click to expand</summary>
+
+```
+     - type: vertical-stack
+        cards:
+          - type: "custom:paper-buttons-row"
+            buttons:
+              - type: entity
+                entity: sensor.hilo_gateway
+                name: false
+                action: none
+                state: false
+                state_styles:
+                  "on":
+                    button:
+                      color: green
+                  "off":
+                    button:
+                      color: red
+
+              - type: entity
+                entity: sensor.defi_hilo
+                state: false
+                action: none
+                state_styles:
+                  "on":
+                    button:
+                      color: red
+                  "scheduled":
+                    button:
+                      color: yellow
+                  "pre_heat":
+                    button:
+                      color: red
+                  "recovery":
+                    button:
+                      color: blue
+                  "off":
+                    button:
+                      color: green
+              - type: entity
+                entity: sensor.smartenergymeter_power
+                name: false
+                layout: icon|state
+                action: none
+                state: "{{ states(config.entity) }}"
+                icon: mdi:speedometer
+                style:
+                  button:
+                    color: >-
+                      {% if states(config.entity) | int > 1000 %}
+                        yellow
+                      {% elif states(config.entity) | int > 1500 %}
+                        orange
+                      {% elif states(config.entity) | int > 2000 %}
+                        red
+                      {% else%}
+                        green
+                      {% endif %}
+              - type: entity
+                entity: sensor.hilo_rate_current
+                name: false
+                layout: icon|state
+                action: none
+                state: "{{ states(config.entity) }}"
+                style:
+                  button:
+                    color: >-
+                      {% if states(config.entity) | float > 0.07 %}
+                        yellow
+                      {% elif states(config.entity) | float > 0.1 %}
+                        red
+                      {% else%}
+                        green
+                      {% endif %}
+
+          - type: energy-date-selection
+          - type: energy-sources-table
+          - type: energy-usage-graph
+          - type: energy-distribution
+            link_dashboard: true
+```
+</details>
 
 ## Credits
 

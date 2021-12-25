@@ -17,11 +17,15 @@
 
 ## Introduction
 
-This is a custom component to allow control of Hilo devices from Home Assistant. This is an unofficial integration and unsupported
-by Hilo.
+This is the unofficial HACS Hilo integration for Home Assistant. [Hilo](https://www.hiloenergie.com/en-ca/) is a smart home platform developed
+by an [Hydro Quebec](https://www.hydroquebec.com/hilo/en/) subsidiary.
+This integration has no direct tie with Hilo or Hydro Quebec. This is a community initiative. Please don't contact
+Hilo or Hydro-Quebec with issues with this Home Assistant integration, you can open an issue in the github repository
+instead.
 
-We are not employees of, or paid by, Hilo. We can't be held responsible if your account is getting suspended because of the use of
-this integration. Hilo might change their API any time and this might break this integration.
+If you want to help with the development of this integration, you can always submit a feedback form from the Hilo
+application and requesting that they open their API publicly and that they provide a testing environment to the
+developers.
 
 ### Shout out
 
@@ -60,17 +64,60 @@ Follow standard HACS procedure to install.
 
 ## Configuration
 
-Just add the integration in the Integrations GUI.
+The configuration is done in the UI. When you add the integration, you will be prompted with your
+Hilo username and password. After this, you will be prompted with assigning a room for each one of
+your devices.
 
-If you want to use the energy meters, make sure you have a `utility_meter` section in your `configuration.yaml` file, even if it's empty.
+### Energy meters
 
-### Advanced configuration
+Energy meters are a new feature of this integration. We used to manually generate them with template sensors and automation
+but they now have been fully integrated into the Hilo integration.
 
-Some options are available under the `Configure` button in Home Assistant:
+#### Warning
 
-- `generate_energy_meters`: Boolean (beta)
-  Will generate all the entities and sensors required to feed the `Energy` dashboard.
-  For details, see the [note below](#energy-meters).
+When enabling Hilo generated energy meters, it's recommended to remove the manually generated ones to have the most accurate
+statistics, otherwise we might end up with duplicated data.
+
+This wasn't tested with already active data and energy entities (ie: Battery, Gaz, Solar, or even other individual devices).
+It's possible that enabling this will break or delete these original sensors. We can't be held responsible for any data loss
+service downtime, or any kind as it's described in the license.
+
+If you're facing an issue and you want to collaborate, please enable `debug` log level for this integration and provide a copy
+of the `home-assistant.log` file. Details on how to enable `debug` are below.
+
+#### Procedure
+
+If you want to enable the automatic generation of the energy sensors, follow these steps:
+
+* Make sure that the `utility_meter` platform is loaded in your `configuration.yaml` file from
+home assistant. You simply need to add a line like this in your `configuration.yaml`:
+
+    ```
+    utility_meter:
+    ```
+
+* Click `Configure` in the integration UI and check the `Generate energy meters` box.
+
+* Restart home assistant and wait 5 minutes until you see the `sensor.hilo_energy_total_low` entity getting created and populated
+  with data:
+  * The `status` should be in `collecting`
+  * The `state` should be a number higher than 0.
+
+* All generated entities and sensors will be prefixed with `hilo_energy_` or `hilo_rate_`.
+
+* If you see the following error in your logs, this is a bug in Home Assistant and it's because the power meter in question has 0 w/h
+  usage so far. This will disappear once usage has been calculated. There's a PR upstream [here](https://github.com/home-assistant/core/pull/60678) to address this.
+
+    ```
+    2021-11-29 22:03:46 ERROR (MainThread) [homeassistant] Error doing job: Task exception was never retrieved
+    Traceback (most recent call last):
+    [...]
+    ValueError: could not convert string to float: 'None'
+    ```
+
+### Other configuration
+
+Other options are available under the `Configure` button in Home Assistant:
 
 - `hq_plan_name`: String
   Define the Hydro Quebec rate plan name.
@@ -82,69 +129,95 @@ Some options are available under the `Configure` button in Home Assistant:
   Number of seconds between each device update. Defaults to 60 and it's not recommended to go below 30 as it might
   result in a suspension from Hilo.
 
-## Energy meters
-Energy meters are a new feature of this integration. We used to manually generate them with template sensors and automation
-but they now have been fully integrated into the Hilo integration.
+## Lovelace sample integration
 
-All generated entities and sensors will be prefixed with `hilo_energy_` or `hilo_rate_`.
+Here's an example on how to add the energy data to Lovelace.
+<details>
+  <summary>Click to expand</summary>
 
-### How to enable them
-
-* If you never configured any utility meter, you will need to add an empty `utility_meter` block in your `configuration.yaml`.
-  The reason why we do this is because there's no official API to integrate the meters.
-
-* Restart home assistant and wait 5 minutes until you see the `sensor.hilo_energy_total_low` entity gettin created and populated
-  with data:
-  * The `status` should be in `collecting`
-  * The `state` should be a number higher than 0.
-
-* If you see the following error in your logs, this is a bug in Home Assist and it's because the power meter in question has 0 w/h
-  usage so far. This will disappear once usage has been calculated. There's a PR upstream [here](https://github.com/home-assistant/core/pull/60678) to address this.
-
-    ```
-    2021-11-29 22:03:46 ERROR (MainThread) [homeassistant] Error doing job: Task exception was never retrieved
-    Traceback (most recent call last):
-    [...]
-    ValueError: could not convert string to float: 'None'
-    ```
-
-### Lovelace sample integration
-
-Here's an example on how to add the energy data to Lovelace:
 ```
-      - type: vertical-stack
+     - type: vertical-stack
         cards:
-          - type: horizontal-stack
-            cards:
+          - type: "custom:paper-buttons-row"
+            buttons:
               - type: entity
-                entity: binary_sensor.defi_hilo
-                icon: mdi:fire
+                entity: sensor.hilo_gateway
+                name: false
+                action: none
+                state: false
+                state_styles:
+                  "on":
+                    button:
+                      color: green
+                  "off":
+                    button:
+                      color: red
+
               - type: entity
-                entity: sensor.smartenergymeter
-                name: Hydro
+                entity: sensor.defi_hilo
+                state: false
+                action: none
+                state_styles:
+                  "on":
+                    button:
+                      color: red
+                  "scheduled":
+                    button:
+                      color: yellow
+                  "pre_heat":
+                    button:
+                      color: red
+                  "recovery":
+                    button:
+                      color: blue
+                  "off":
+                    button:
+                      color: green
+              - type: entity
+                entity: sensor.smartenergymeter_power
+                name: false
+                layout: icon|state
+                action: none
+                state: "{{ states(config.entity) }}"
                 icon: mdi:speedometer
+                style:
+                  button:
+                    color: >-
+                      {% if states(config.entity) | int > 1000 %}
+                        yellow
+                      {% elif states(config.entity) | int > 1500 %}
+                        orange
+                      {% elif states(config.entity) | int > 2000 %}
+                        red
+                      {% else%}
+                        green
+                      {% endif %}
               - type: entity
                 entity: sensor.hilo_rate_current
-                name: Cout Actuel
+                name: false
+                layout: icon|state
+                action: none
+                state: "{{ states(config.entity) }}"
+                style:
+                  button:
+                    color: >-
+                      {% if states(config.entity) | float > 0.07 %}
+                        yellow
+                      {% elif states(config.entity) | float > 0.1 %}
+                        red
+                      {% else%}
+                        green
+                      {% endif %}
+
           - type: energy-date-selection
           - type: energy-sources-table
           - type: energy-usage-graph
           - type: energy-distribution
             link_dashboard: true
 ```
+</details>
 
 
-### Warning
-
-When enabling Hilo generated energy meters, it's recommended to remove the manually generated ones to have the most accurate
-statistics, otherwise we might end up with duplicate data.
-
-This wasn't tested with already active data and energy entities (ie: Battery, Gaz, Solar, or even other individual devices).
-It's possible that enabling this will break or delete these original sensors. We can't be held responsible for any data loss
-service downtime, or any kind as it's described in the license.
-
-If you're facing an issue and you want to collaborate, please enable `debug` log level for this integration and provide a copy
-of the `home-assistant.log` file. Details on how to enable `debug` are below.
 
 ## References
 
@@ -156,7 +229,7 @@ For now, these are the swagger links we've found:
 * https://wapphqcdev01-notification.azurewebsites.net/swagger/index.html
 * https://wapphqcdev01-clientele.azurewebsites.net/swagger/index.html
 
-# FAQ
+## FAQ
 
 Q: I see no data or receive no readings?
 A: Try to reboot your Hilo gateway, it's been known to solve issues like this. If that doesn't work, open an issue.
@@ -168,7 +241,7 @@ Q: There's a naming conflict in my entities.
 A: We need to rely on unique names for entities. This is how we generate their unique ids. You can't have 2 lights
    named Light. See issue #11
 
-# Contributing
+## Contributing
 
 Reporting any kind of issue is a good way of contributing to the project and it's available to anyone.
 
@@ -186,7 +259,7 @@ logger:
 If you have any kind of python/home-assistant experience and want to contribute to the code, feel free to submit a merge request.
 
 
-## Collaborators
+### Collaborators
 
 * [Francis Poisson](https://github.com/francispoisson/)
 * [David Vallee Delisle](https://github.com/valleedelisle/)
