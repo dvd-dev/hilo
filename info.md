@@ -1,3 +1,4 @@
+[![hacs][hacsbadge]][hacs]
 [![GitHub Release][releases-shield]][releases]
 [![GitHub Activity][commits-shield]][commits]
 [![Project Maintenance][maintenance-shield]][user_profile]
@@ -5,7 +6,9 @@
 [![pre-commit][pre-commit-shield]][pre-commit]
 [![black][black-shield]][black]
 [![calver][calver-shield]][calver]
-[![hacs][hacsbadge]][hacs]
+[![lgtm-alert][lgtm-alert-shield]][lgtm-alert]
+[![lgtm-grade][lgtm-grade-shield]][lgtm-grade]
+
 
 This is the unofficial Hilo integration. [Hilo](https://www.hiloenergie.com/en-ca/) is a smart home platform developed
 by an [Hydro Quebec](https://www.hydroquebec.com/hilo/en/) subsidiary.
@@ -77,3 +80,7 @@ Credits to to [Francis Poisson](https://github.com/francispoisson/) who's the or
 [calver]: http://calver.org/
 [black-shield]: https://img.shields.io/badge/code%20style-black-000000.svg?style=for-the-badge
 [black]: https://github.com/psf/black
+[lgtm-alert]: https://lgtm.com/projects/g/dvd-dev/hilo/alerts/
+[lgtm-alert-shield]: https://img.shields.io/lgtm/alerts/g/dvd-dev/hilo.svg?logo=lgtm&style=for-the-badge
+[lgtm-grade]: https://lgtm.com/projects/g/dvd-dev/hilo/context:python
+[lgtm-grade-shield]: https://img.shields.io/lgtm/grade/python/g/dvd-dev/hilo.svg?logo=lgtm&style=for-the-badge
