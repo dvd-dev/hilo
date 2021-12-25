@@ -152,7 +152,6 @@ Here's an example on how to add the energy data to Lovelace.
                   "off":
                     button:
                       color: red
-
               - type: entity
                 entity: sensor.defi_hilo
                 state: false
