@@ -117,7 +117,7 @@ Here's an example on how to add the energy data to Lovelace:
           - type: horizontal-stack
             cards:
               - type: entity
-                entity: binary_sensor.defi_hilo
+                entity: sensor.defi_hilo
                 icon: mdi:fire
               - type: entity
                 entity: sensor.smartenergymeter
