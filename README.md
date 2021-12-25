@@ -149,6 +149,17 @@ For now, these are the swagger links we've found:
 * https://wapphqcdev01-notification.azurewebsites.net/swagger/index.html
 * https://wapphqcdev01-clientele.azurewebsites.net/swagger/index.html
 
+# FAQ
+
+Q: I see no data or receive no readings?
+A: Try to reboot your Hilo gateway, it's been known to solve issues like this. If that doesn't work, open an issue.
+
+Q: When there's a challenge, Hilo can't read my power usage.
+A: Contact Hilo, this looks like it's a problem on their side, see issue #15
+
+Q: There's a naming conflict in my entities.
+A: We need to rely on unique names for entities. This is how we generate their unique ids. You can't have 2 lights
+   named Light. See issue #11
 
 # Contributing
 
@@ -166,6 +177,7 @@ logger:
 ```
 
 If you have any kind of python/home-assistant experience and want to contribute to the code, feel free to submit a merge request.
+
 
 ## Collaborators
 
