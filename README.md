@@ -1,6 +1,13 @@
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
-[![Total alerts](https://img.shields.io/lgtm/alerts/g/dvd-dev/hilo.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/dvd-dev/hilo/alerts/)
-[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/dvd-dev/hilo.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/dvd-dev/hilo/context:python)
+[![hacs][hacsbadge]][hacs]
+[![GitHub Release][releases-shield]][releases]
+[![GitHub Activity][commits-shield]][commits]
+[![Project Maintenance][maintenance-shield]][user_profile]
+[![License][license-shield]][license]
+[![pre-commit][pre-commit-shield]][pre-commit]
+[![black][black-shield]][black]
+[![calver][calver-shield]][calver]
+[![lgtm-alert][lgtm-alert-shield]][lgtm-alert]
+[![lgtm-grade][lgtm-grade-shield]][lgtm-grade]
 
 
 **BETA** This is a beta release. There will be some bugs, issues, etc. Please bear with us and open issues in the repo.
@@ -183,3 +190,28 @@ If you have any kind of python/home-assistant experience and want to contribute 
 
 * [Francis Poisson](https://github.com/francispoisson/)
 * [David Vallee Delisle](https://github.com/valleedelisle/)
+
+
+---
+
+[integration_blueprint]: https://github.com/custom-components/integration_blueprint
+[commits-shield]: https://img.shields.io/github/commit-activity/y/dvd-dev/hilo.svg?style=for-the-badge
+[commits]: https://github.com/dvd-dev/hilo/commits/main
+[hacs]: https://hacs.xyz
+[hacsbadge]: https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge
+[license]: https://github.com/dvd-dev/hilo/blob/main/LICENSE
+[license-shield]: https://img.shields.io/github/license/dvd-dev/hilo.svg?style=for-the-badge
+[maintenance-shield]: https://img.shields.io/badge/maintainer-%40dvd--dev-blue.svg?style=for-the-badge
+[releases-shield]: https://img.shields.io/github/release/dvd-dev/hilo.svg?style=for-the-badge
+[releases]: https://github.com/dvd-dev/hilo/releases
+[user_profile]: https://github.com/dvd-dev
+[pre-commit-shield]: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white&style=for-the-badge
+[pre-commit]: https://github.com/pre-commit/pre-commit
+[calver-shield]: https://img.shields.io/badge/calver-YYYY.MM.Micro-22bfda.svg?style=for-the-badge
+[calver]: http://calver.org/
+[black-shield]: https://img.shields.io/badge/code%20style-black-000000.svg?style=for-the-badge
+[black]: https://github.com/psf/black
+[lgtm-alert]: https://lgtm.com/projects/g/dvd-dev/hilo/alerts/
+[lgtm-alert-shield]: https://img.shields.io/lgtm/alerts/g/dvd-dev/hilo.svg?logo=lgtm&style=for-the-badge
+[lgtm-grade]: https://lgtm.com/projects/g/dvd-dev/hilo/context:python
+[lgtm-grade-shield]: https://img.shields.io/lgtm/grade/python/g/dvd-dev/hilo.svg?logo=lgtm&style=for-the-badge
