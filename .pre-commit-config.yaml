@@ -81,5 +81,4 @@ repos:
     rev: v4.1.0
     hooks:
       - id: check-yaml
-      - id: end-of-file-fixer
       - id: trailing-whitespace
