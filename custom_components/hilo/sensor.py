@@ -38,6 +38,7 @@ from .const import (
     DEFAULT_HQ_PLAN_NAME,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
+    HILO_ENERGY_TOTAL,
     LOG,
 )
 from .managers import EnergyManager, UtilityManager
@@ -46,12 +47,9 @@ from .managers import EnergyManager, UtilityManager
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
-    """Set up Hilo power sensors based on a config entry."""
+    """Set up Hilo sensors based on a config entry."""
     hilo = hass.data[DOMAIN][entry.entry_id]
-    power_entities = []
-    temperature_entities = []
-    misc_entities = []
-    energy_entities = []
+    new_entities = []
     cost_entities = []
     hq_plan_name = entry.options.get(CONF_HQ_PLAN_NAME, DEFAULT_HQ_PLAN_NAME)
     energy_meter_period = entry.options.get(
@@ -65,45 +63,44 @@ async def async_setup_entry(
         energy_manager = await EnergyManager().init(hass, energy_meter_period)
         utility_manager = UtilityManager(energy_meter_period)
 
-    def create_energy_entity(d):
-        d._energy_entity = EnergySensor(d)
-        energy_entities.append(d._energy_entity)
-        energy_entity = f"hilo_energy_{slugify(d.name)}"
-        if energy_entity == "hilo_energy_total":
+    def create_energy_entity(device):
+        device._energy_entity = EnergySensor(device)
+        new_entities.append(device._energy_entity)
+        energy_entity = f"hilo_energy_{slugify(device.name)}"
+        if energy_entity == HILO_ENERGY_TOTAL:
             LOG.error(
-                "An hilo entity can't be named 'total' because it conflicts with the generate name for the smart energy meter"
+                "An hilo entity can't be named 'total' because it conflicts "
+                "with the generated name for the smart energy meter"
             )
             return
-        if d.name == "SmartEnergyMeter":
-            energy_entity = "hilo_energy_total"
+        if device.type == "Meter":
+            energy_entity = HILO_ENERGY_TOTAL
         utility_manager.add_meter(energy_entity)
         energy_manager.add_to_dashboard(energy_entity)
 
     for d in hilo.devices.all:
         LOG.debug(f"Adding device {d}")
-        if d.name == "Hilo Gateway":
-            misc_entities.extend(
+        if d.type == "Gateway":
+            new_entities.extend(
                 [
                     HiloChallengeSensor(hilo, d, scan_interval),
                     DeviceSensor(hilo, d),
                 ]
             )
+        elif d.type == "Thermostat":
+            d._temperature_entity = TemperatureSensor(hilo, d)
+            new_entities.append(d._temperature_entity)
+        elif d.type in ["SmokeDetector", "IndoorWeatherStation"]:
+            d._device_sensor_entity = DeviceSensor(hilo, d)
+            new_entities.append(d._device_sensor_entity)
         if d.has_attribute("power"):
             d._power_entity = PowerSensor(hilo, d)
-            power_entities.append(d._power_entity)
+            new_entities.append(d._power_entity)
             # If we opt out the geneneration of meters we just create the power sensors
             if generate_energy_meters:
                 create_energy_entity(d)
-        if d.has_attribute("current_temperature"):
-            d._temperature_entity = TemperatureSensor(hilo, d)
-            temperature_entities.append(d._temperature_entity)
-        if d.type in ["SmokeDetector", "IndoorWeatherStation"]:
-            d._device_sensor_entity = DeviceSensor(hilo, d)
-            misc_entities.append(d._device_sensor_entity)
 
-    async_add_entities(
-        power_entities + energy_entities + temperature_entities + misc_entities
-    )
+    async_add_entities(new_entities)
     if not generate_energy_meters:
         return
     # Creating cost sensors based on plan
@@ -252,8 +249,8 @@ class EnergySensor(IntegrationSensor):
         self._attr_name = f"hilo_energy_{slugify(device.name)}"
         self._unit_of_measurement = ENERGY_WATT_HOUR
         self._unit_prefix = None
-        if device.name == "SmartEnergyMeter":
-            self._attr_name = "hilo_energy_total"
+        if device.type == "Meter":
+            self._attr_name = HILO_ENERGY_TOTAL
             self._unit_of_measurement = ENERGY_KILO_WATT_HOUR
             self._unit_prefix = "k"
         if device.type == "Thermostat":
@@ -272,7 +269,9 @@ class EnergySensor(IntegrationSensor):
         )
         self._state = 0
         self._last_period = 0
-        LOG.debug(f"Setting up EnergySensor entity: {self._attr_name}")
+        LOG.debug(
+            f"Setting up EnergySensor entity: {self._attr_name} with source {self._source}"
+        )
 
     @property
     def unit_of_measurement(self):

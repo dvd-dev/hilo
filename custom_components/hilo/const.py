@@ -15,6 +15,8 @@ CONF_ENERGY_METER_PERIOD = "energy_meter_period"
 DEFAULT_ENERGY_METER_PERIOD = DAILY
 TARIFF_LIST = ["high", "medium", "low"]
 
+HILO_ENERGY_TOTAL = "hilo_energy_total"
+
 DEFAULT_SCAN_INTERVAL = 60
 MIN_SCAN_INTERVAL = 15
 

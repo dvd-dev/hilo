@@ -8,7 +8,7 @@ from homeassistant.components.utility_meter.sensor import (
     async_setup_platform as utility_setup_platform,
 )
 
-from .const import LOG, TARIFF_LIST
+from .const import HILO_ENERGY_TOTAL, LOG, TARIFF_LIST
 
 
 class UtilityManager:
@@ -116,7 +116,7 @@ class EnergyManager:
     def add_to_dashboard(self, entity):
         for tarif in TARIFF_LIST:
             name = f"{entity}_{self.period}"
-            if entity == "hilo_energy_total":
+            if entity == HILO_ENERGY_TOTAL:
                 self.add_flow_from(f"{name}_{tarif}", f"hilo_rate_{tarif}")
             else:
                 self.add_device(f"{name}_{tarif}")

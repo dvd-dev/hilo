@@ -56,6 +56,7 @@ from .const import (
     DEFAULT_HQ_PLAN_NAME,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
+    HILO_ENERGY_TOTAL,
     LOG,
 )
 
@@ -370,7 +371,7 @@ class Hilo:
 
     def check_tarif(self):
         tarif = "low"
-        base_sensor = "sensor.hilo_energy_total_daily_low"
+        base_sensor = f"sensor.{HILO_ENERGY_TOTAL}_daily_low"
         energy_used = self._hass.states.get(base_sensor)
         if not energy_used:
             LOG.warning(f"check_tarif: Unable to find state for {base_sensor}")
