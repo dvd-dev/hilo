@@ -12,5 +12,5 @@
   ],
   "codeowners": ["@valleedelisle"],
   "iot_class": "cloud_polling",
-  "version": "2021.12.2"
+  "version": "2021.12.3"
 }

@@ -270,7 +270,7 @@ If you have any kind of python/home-assistant experience and want to contribute 
 [commits-shield]: https://img.shields.io/github/commit-activity/y/dvd-dev/hilo.svg?style=for-the-badge
 [commits]: https://github.com/dvd-dev/hilo/commits/main
 [hacs]: https://hacs.xyz
-[hacsbadge]: https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge
+[hacsbadge]: https://img.shields.io/badge/HACS-Default-41BDF5.svg?style=for-the-badge
 [license]: https://github.com/dvd-dev/hilo/blob/main/LICENSE
 [license-shield]: https://img.shields.io/github/license/dvd-dev/hilo.svg?style=for-the-badge
 [maintenance-shield]: https://img.shields.io/badge/maintainer-%40dvd--dev-blue.svg?style=for-the-badge
