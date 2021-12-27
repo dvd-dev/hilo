@@ -39,6 +39,7 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     HILO_ENERGY_TOTAL,
+    HILO_SENSOR_CLASSES,
     LOG,
 )
 from .managers import EnergyManager, UtilityManager
@@ -81,16 +82,13 @@ async def async_setup_entry(
     for d in hilo.devices.all:
         LOG.debug(f"Adding device {d}")
         if d.type == "Gateway":
-            new_entities.extend(
-                [
-                    HiloChallengeSensor(hilo, d, scan_interval),
-                    DeviceSensor(hilo, d),
-                ]
+            new_entities.append(
+                HiloChallengeSensor(hilo, d, scan_interval),
             )
-        elif d.type == "Thermostat":
+        if d.type == "Thermostat":
             d._temperature_entity = TemperatureSensor(hilo, d)
             new_entities.append(d._temperature_entity)
-        elif d.type in ["SmokeDetector", "IndoorWeatherStation"]:
+        elif d.type in HILO_SENSOR_CLASSES:
             d._device_sensor_entity = DeviceSensor(hilo, d)
             new_entities.append(d._device_sensor_entity)
         if d.has_attribute("power"):
