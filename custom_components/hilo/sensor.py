@@ -33,10 +33,12 @@ from .const import (
     CONF_GENERATE_ENERGY_METERS,
     CONF_HQ_PLAN_NAME,
     CONF_TARIFF,
+    CONF_UNTARIFICATED_DEVICES,
     DEFAULT_ENERGY_METER_PERIOD,
     DEFAULT_GENERATE_ENERGY_METERS,
     DEFAULT_HQ_PLAN_NAME,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_UNTARIFICATED_DEVICES,
     DOMAIN,
     HILO_ENERGY_TOTAL,
     HILO_SENSOR_CLASSES,
@@ -62,6 +64,9 @@ async def async_setup_entry(
     new_entities = []
     cost_entities = []
     hq_plan_name = entry.options.get(CONF_HQ_PLAN_NAME, DEFAULT_HQ_PLAN_NAME)
+    untarificated_devices = entry.options.get(
+        CONF_UNTARIFICATED_DEVICES, DEFAULT_UNTARIFICATED_DEVICES
+    )
     energy_meter_period = entry.options.get(
         CONF_ENERGY_METER_PERIOD, DEFAULT_ENERGY_METER_PERIOD
     )
@@ -70,12 +75,13 @@ async def async_setup_entry(
         CONF_GENERATE_ENERGY_METERS, DEFAULT_GENERATE_ENERGY_METERS
     )
     tariff_config = CONF_TARIFF.get(hq_plan_name)
-    tariff_list = validate_tariff_list(tariff_config)
+    if untarificated_devices:
+        default_tariff_list = ["total"]
+    else:
+        default_tariff_list = validate_tariff_list(tariff_config)
     if generate_energy_meters:
-        energy_manager = await EnergyManager().init(
-            hass, energy_meter_period, tariff_list
-        )
-        utility_manager = UtilityManager(energy_meter_period, tariff_list)
+        energy_manager = await EnergyManager().init(hass, energy_meter_period)
+        utility_manager = UtilityManager(energy_meter_period)
 
     def create_energy_entity(device):
         device._energy_entity = EnergySensor(device)
@@ -87,10 +93,12 @@ async def async_setup_entry(
                 "with the generated name for the smart energy meter"
             )
             return
+        tariff_list = default_tariff_list
         if device.type == "Meter":
             energy_entity = HILO_ENERGY_TOTAL
-        utility_manager.add_meter(energy_entity)
-        energy_manager.add_to_dashboard(energy_entity)
+            tariff_list = validate_tariff_list(tariff_config)
+        utility_manager.add_meter(energy_entity, tariff_list)
+        energy_manager.add_to_dashboard(energy_entity, tariff_list)
 
     for d in hilo.devices.all:
         LOG.debug(f"Adding device {d}")
@@ -118,8 +126,9 @@ async def async_setup_entry(
     # This will generate hilo_cost_(low|medium|high) sensors which can be
     # referred later in the energy dashboard based on the tarif selected
     for tarif, amount in tariff_config.items():
-        sensor_name = f"hilo_rate_{tarif}"
-        cost_entities.append(HiloCostSensor(sensor_name, hq_plan_name, amount))
+        if amount > 0:
+            sensor_name = f"hilo_rate_{tarif}"
+            cost_entities.append(HiloCostSensor(sensor_name, hq_plan_name, amount))
     cost_entities.append(HiloCostSensor("hilo_rate_current", hq_plan_name))
     async_add_entities(cost_entities)
     # This setups the utility_meter platform

@@ -24,6 +24,7 @@
         "title": "Configure Hilo",
         "data": {
           "generate_energy_meters": "Generate energy meters",
+          "untarificated_devices": "Generate only total meters for each devices",
           "hq_plan_name": "Hydro Quebec rate plan name ('rate d' or 'flex d')",
           "scan_interval": "Scan interval (min: 15s)"
         }

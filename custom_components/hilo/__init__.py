@@ -47,9 +47,11 @@ from .const import (
     CONF_HIGH_PERIODS,
     CONF_HQ_PLAN_NAME,
     CONF_TARIFF,
+    CONF_UNTARIFICATED_DEVICES,
     DEFAULT_GENERATE_ENERGY_METERS,
     DEFAULT_HQ_PLAN_NAME,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_UNTARIFICATED_DEVICES,
     DOMAIN,
     HILO_ENERGY_TOTAL,
     LOG,
@@ -188,6 +190,9 @@ class Hilo:
             1: self.subscribe_to_attributes,
         }
         self.hq_plan_name = entry.options.get(CONF_HQ_PLAN_NAME, DEFAULT_HQ_PLAN_NAME)
+        self.untarificated_devices = entry.options.get(
+            CONF_UNTARIFICATED_DEVICES, DEFAULT_UNTARIFICATED_DEVICES
+        )
         self.generate_energy_meters = entry.options.get(
             CONF_GENERATE_ENERGY_METERS, DEFAULT_GENERATE_ENERGY_METERS
         )
@@ -382,7 +387,7 @@ class Hilo:
                 f"Unable to restore a valid state of {base_sensor}: {energy_used.state}"
             )
 
-        if tarif_config.get("high") > 0 and self.high_times:
+        if tarif_config.get("high", 0) > 0 and self.high_times:
             tarif = "high"
         target_cost = self._hass.states.get(f"sensor.hilo_rate_{tarif}")
         if target_cost.state != current_cost.state:
@@ -426,6 +431,11 @@ class Hilo:
 
     @callback
     def set_tarif(self, entity, current, new):
+        if (
+            self.untarificated_devices
+            and entity != f"utility_meter.{HILO_ENERGY_TOTAL}"
+        ):
+            return
         if entity.startswith("utility_meter.hilo_energy") and current != new:
             LOG.debug(
                 f"check_tarif: Changing tarif of {entity} from {current} to {new}"

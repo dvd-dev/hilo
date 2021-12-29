@@ -14,33 +14,32 @@ from .const import HILO_ENERGY_TOTAL, LOG
 class UtilityManager:
     """Class that maps to the utility_meters"""
 
-    def __init__(self, period, tariff_list):
+    def __init__(self, period):
         self.period = period
         self.meter_configs = OrderedDict()
         self.meter_entities = []
-        self.tariff_list = tariff_list
 
-    def add_meter(self, entity):
-        self.add_meter_entity(entity)
-        self.add_meter_config(entity)
+    def add_meter(self, entity, tariff_list):
+        self.add_meter_entity(entity, tariff_list)
+        self.add_meter_config(entity, tariff_list)
 
-    def add_meter_entity(self, entity):
-        for tarif in self.tariff_list:
+    def add_meter_entity(self, entity, tariff_list):
+        for tarif in tariff_list:
             name = f"{entity}_{self.period}"
             LOG.debug(f"Creating UtilityMeter entity: {name} {tarif}")
             self.meter_entities.append(
                 {"meter": entity, "name": f"{name} {tarif}", "tariff": tarif}
             )
 
-    def add_meter_config(self, entity):
+    def add_meter_config(self, entity, tariff_list):
         name = f"{entity}_{self.period}"
-        LOG.debug(f"Creating UtilityMeter config: {name}")
+        LOG.debug(f"Creating UtilityMeter config: {name} {tariff_list}")
         self.meter_configs[entity] = OrderedDict(
             {
                 "source": f"sensor.{entity}",
                 "name": name,
                 "cycle": self.period,
-                "tariffs": self.tariff_list,
+                "tariffs": tariff_list,
                 "net_consumption": False,
                 "utility_meter_sensors": [],
                 "offset": timedelta(0),
@@ -80,9 +79,8 @@ class EnergyManager:
             "cost_adjustment_day": 0.0,
         }
 
-    async def init(self, hass, period, tariff_list):
+    async def init(self, hass, period):
         self.period = period
-        self.tariff_list = tariff_list
         self._manager = await async_get_manager(hass)
         data = self._manager.data or self._manager.default_preferences()
         self.prefs = data.copy()
@@ -115,8 +113,8 @@ class EnergyManager:
         self.updated = True
         self.dev.append({"stat_consumption": sensor})
 
-    def add_to_dashboard(self, entity):
-        for tarif in self.tariff_list:
+    def add_to_dashboard(self, entity, tariff_list):
+        for tarif in tariff_list:
             name = f"{entity}_{self.period}"
             if entity == HILO_ENERGY_TOTAL:
                 self.add_flow_from(f"{name}_{tarif}", f"hilo_rate_{tarif}")

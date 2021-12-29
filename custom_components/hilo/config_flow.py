@@ -22,9 +22,11 @@ import voluptuous as vol
 from .const import (
     CONF_GENERATE_ENERGY_METERS,
     CONF_HQ_PLAN_NAME,
+    CONF_UNTARIFICATED_DEVICES,
     DEFAULT_GENERATE_ENERGY_METERS,
     DEFAULT_HQ_PLAN_NAME,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_UNTARIFICATED_DEVICES,
     DOMAIN,
     LOG,
     MIN_SCAN_INTERVAL,
@@ -40,6 +42,10 @@ STEP_OPTION_SCHEMA = vol.Schema(
     {
         vol.Optional(
             CONF_GENERATE_ENERGY_METERS, default=DEFAULT_GENERATE_ENERGY_METERS
+        ): cv.boolean,
+        vol.Optional(
+            CONF_UNTARIFICATED_DEVICES,
+            default=DEFAULT_UNTARIFICATED_DEVICES,
         ): cv.boolean,
         vol.Optional(CONF_HQ_PLAN_NAME, default=DEFAULT_HQ_PLAN_NAME): cv.string,
         vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): (
@@ -138,6 +144,14 @@ class HiloOptionsFlowHandler(config_entries.OptionsFlow):
                         description={
                             "suggested_value": self.config_entry.options.get(
                                 CONF_GENERATE_ENERGY_METERS
+                            )
+                        },
+                    ): cv.boolean,
+                    vol.Optional(
+                        CONF_UNTARIFICATED_DEVICES,
+                        description={
+                            "suggested_value": self.config_entry.options.get(
+                                CONF_UNTARIFICATED_DEVICES
                             )
                         },
                     ): cv.boolean,
