@@ -37,12 +37,7 @@ from homeassistant.helpers.update_coordinator import (
 from pyhilo import API
 from pyhilo.device import HiloDevice
 from pyhilo.devices import Devices
-from pyhilo.exceptions import (
-    HiloError,
-    InvalidCredentialsError,
-    WebsocketClosed,
-    WebsocketError,
-)
+from pyhilo.exceptions import HiloError, InvalidCredentialsError, WebsocketError
 from pyhilo.util import from_utc_timestamp, time_diff
 from pyhilo.websocket import WebsocketEvent
 
@@ -299,10 +294,10 @@ class Hilo:
         except WebsocketError as err:
             LOG.error(f"Failed to connect to websocket: {err}", exc_info=err)
             await self.cancel_websocket_loop()
-        except WebsocketClosed:
-            LOG.warning("Disconnecting cleanly")
-            should_reconnect = False
+        except InvalidCredentialsError:
+            LOG.warning("Invalid credentials? Refreshing websocket infos")
             await self.cancel_websocket_loop()
+            await self._api.refresh_ws_token()
         except Exception as err:  # pylint: disable=broad-except
             LOG.error(
                 f"Unknown exception while connecting to websocket: {err}", exc_info=err
