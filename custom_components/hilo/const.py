@@ -21,7 +21,6 @@ DEFAULT_SCAN_INTERVAL = 60
 MIN_SCAN_INTERVAL = 15
 
 LIGHT_CLASSES = ["LightDimmer", "WhiteBulb", "ColorBulb", "LightSwitch"]
-# Useless for now
 HILO_SENSOR_CLASSES = ["SmokeDetector", "IndoorWeatherStation", "OutdoorWeatherStation"]
 CLIMATE_CLASSES = ["Thermostat"]
 SWITCH_CLASSES = []

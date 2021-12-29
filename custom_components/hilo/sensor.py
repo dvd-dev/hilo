@@ -41,8 +41,17 @@ from .const import (
     HILO_ENERGY_TOTAL,
     HILO_SENSOR_CLASSES,
     LOG,
+    TARIFF_LIST,
 )
 from .managers import EnergyManager, UtilityManager
+
+
+def validate_tariff_list(tariff_config):
+    tariff_list = TARIFF_LIST
+    for tariff in TARIFF_LIST:
+        if not tariff_config.get(tariff, 0):
+            tariff_list.remove(tariff)
+    return tariff_list
 
 
 async def async_setup_entry(
@@ -60,9 +69,13 @@ async def async_setup_entry(
     generate_energy_meters = entry.options.get(
         CONF_GENERATE_ENERGY_METERS, DEFAULT_GENERATE_ENERGY_METERS
     )
+    tariff_config = CONF_TARIFF.get(hq_plan_name)
+    tariff_list = validate_tariff_list(tariff_config)
     if generate_energy_meters:
-        energy_manager = await EnergyManager().init(hass, energy_meter_period)
-        utility_manager = UtilityManager(energy_meter_period)
+        energy_manager = await EnergyManager().init(
+            hass, energy_meter_period, tariff_list
+        )
+        utility_manager = UtilityManager(energy_meter_period, tariff_list)
 
     def create_energy_entity(device):
         device._energy_entity = EnergySensor(device)
@@ -104,7 +117,7 @@ async def async_setup_entry(
     # Creating cost sensors based on plan
     # This will generate hilo_cost_(low|medium|high) sensors which can be
     # referred later in the energy dashboard based on the tarif selected
-    for tarif, amount in CONF_TARIFF.get(hq_plan_name).items():
+    for tarif, amount in tariff_config.items():
         sensor_name = f"hilo_rate_{tarif}"
         cost_entities.append(HiloCostSensor(sensor_name, hq_plan_name, amount))
     cost_entities.append(HiloCostSensor("hilo_rate_current", hq_plan_name))

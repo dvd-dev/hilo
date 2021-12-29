@@ -8,23 +8,24 @@ from homeassistant.components.utility_meter.sensor import (
     async_setup_platform as utility_setup_platform,
 )
 
-from .const import HILO_ENERGY_TOTAL, LOG, TARIFF_LIST
+from .const import HILO_ENERGY_TOTAL, LOG
 
 
 class UtilityManager:
     """Class that maps to the utility_meters"""
 
-    def __init__(self, period):
+    def __init__(self, period, tariff_list):
         self.period = period
         self.meter_configs = OrderedDict()
         self.meter_entities = []
+        self.tariff_list = tariff_list
 
     def add_meter(self, entity):
         self.add_meter_entity(entity)
         self.add_meter_config(entity)
 
     def add_meter_entity(self, entity):
-        for tarif in TARIFF_LIST:
+        for tarif in self.tariff_list:
             name = f"{entity}_{self.period}"
             LOG.debug(f"Creating UtilityMeter entity: {name} {tarif}")
             self.meter_entities.append(
@@ -39,7 +40,7 @@ class UtilityManager:
                 "source": f"sensor.{entity}",
                 "name": name,
                 "cycle": self.period,
-                "tariffs": TARIFF_LIST,
+                "tariffs": self.tariff_list,
                 "net_consumption": False,
                 "utility_meter_sensors": [],
                 "offset": timedelta(0),
@@ -79,8 +80,9 @@ class EnergyManager:
             "cost_adjustment_day": 0.0,
         }
 
-    async def init(self, hass, period):
+    async def init(self, hass, period, tariff_list):
         self.period = period
+        self.tariff_list = tariff_list
         self._manager = await async_get_manager(hass)
         data = self._manager.data or self._manager.default_preferences()
         self.prefs = data.copy()
@@ -114,7 +116,7 @@ class EnergyManager:
         self.dev.append({"stat_consumption": sensor})
 
     def add_to_dashboard(self, entity):
-        for tarif in TARIFF_LIST:
+        for tarif in self.tariff_list:
             name = f"{entity}_{self.period}"
             if entity == HILO_ENERGY_TOTAL:
                 self.add_flow_from(f"{name}_{tarif}", f"hilo_rate_{tarif}")
