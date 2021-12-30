@@ -49,6 +49,11 @@ TARIFF_LIST = ["high", "medium", "low"]
 
 # Class lists
 LIGHT_CLASSES = ["LightDimmer", "WhiteBulb", "ColorBulb", "LightSwitch"]
-HILO_SENSOR_CLASSES = ["SmokeDetector", "IndoorWeatherStation", "OutdoorWeatherStation"]
+HILO_SENSOR_CLASSES = [
+    "SmokeDetector",
+    "IndoorWeatherStation",
+    "OutdoorWeatherStation",
+    "Gateway",
+]
 CLIMATE_CLASSES = ["Thermostat"]
 SWITCH_CLASSES = []
