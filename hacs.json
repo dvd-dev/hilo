@@ -3,5 +3,5 @@
   "hacs": "1.6.0",
   "domains": ["climate", "sensor", "light", "utility_meter"],
   "country": "CA",
-  "homeassistant": "2021.12.4"
+  "homeassistant": "2021.12.5"
 }
