@@ -10,13 +10,20 @@ from homeassistant.components.integration.sensor import (
 from homeassistant.components.sensor import STATE_CLASS_MEASUREMENT, SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
+    CONCENTRATION_PARTS_PER_MILLION,
     CONF_SCAN_INTERVAL,
+    DEVICE_CLASS_BATTERY,
+    DEVICE_CLASS_CO2,
     DEVICE_CLASS_ENERGY,
     DEVICE_CLASS_POWER,
+    DEVICE_CLASS_SIGNAL_STRENGTH,
     DEVICE_CLASS_TEMPERATURE,
     ENERGY_KILO_WATT_HOUR,
     ENERGY_WATT_HOUR,
+    PERCENTAGE,
     POWER_WATT,
+    SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
+    SOUND_PRESSURE_DB,
     TEMP_CELSIUS,
 )
 from homeassistant.core import HomeAssistant
@@ -47,6 +54,25 @@ from .const import (
 )
 from .managers import EnergyManager, UtilityManager
 
+WIFI_STRENGTH = {
+    "Low": 1,
+    "Medium": 2,
+    "High": 3,
+    "Full": 4,
+}
+
+
+# From netatmo integration
+def process_wifi(strength: int) -> str:
+    """Process wifi signal strength and return string for display."""
+    if strength >= 86:
+        return "Low"
+    if strength >= 71:
+        return "Medium"
+    if strength >= 56:
+        return "High"
+    return "Full"
+
 
 def validate_tariff_list(tariff_config):
     tariff_list = TARIFF_LIST
@@ -54,6 +80,29 @@ def validate_tariff_list(tariff_config):
         if not tariff_config.get(tariff, 0):
             tariff_list.remove(tariff)
     return tariff_list
+
+
+def generate_entities_from_device(device, hilo, scan_interval):
+    entities = []
+    if device.type == "Gateway":
+        entities.append(
+            HiloChallengeSensor(hilo, device, scan_interval),
+        )
+    if device.has_attribute("current_temperature"):
+        entities.append(TemperatureSensor(hilo, device))
+    if device.has_attribute("co2"):
+        entities.append(Co2Sensor(hilo, device))
+    if device.has_attribute("noise"):
+        entities.append(NoiseSensor(hilo, device))
+    if device.has_attribute("wifi_status"):
+        entities.append(WifiStrengthSensor(hilo, device))
+    if device.has_attribute("battery"):
+        entities.append(BatterySensor(hilo, device))
+    if device.type in HILO_SENSOR_CLASSES:
+        entities.append(DeviceSensor(hilo, device))
+    if device.has_attribute("power"):
+        entities.append(PowerSensor(hilo, device))
+    return entities
 
 
 async def async_setup_entry(
@@ -102,19 +151,8 @@ async def async_setup_entry(
 
     for d in hilo.devices.all:
         LOG.debug(f"Adding device {d}")
-        if d.type == "Gateway":
-            new_entities.append(
-                HiloChallengeSensor(hilo, d, scan_interval),
-            )
-        if d.type == "Thermostat":
-            d._temperature_entity = TemperatureSensor(hilo, d)
-            new_entities.append(d._temperature_entity)
-        elif d.type in HILO_SENSOR_CLASSES:
-            d._device_sensor_entity = DeviceSensor(hilo, d)
-            new_entities.append(d._device_sensor_entity)
+        new_entities.extend(generate_entities_from_device(d, hilo, scan_interval))
         if d.has_attribute("power"):
-            d._power_entity = PowerSensor(hilo, d)
-            new_entities.append(d._power_entity)
             # If we opt out the geneneration of meters we just create the power sensors
             if generate_energy_meters:
                 create_energy_entity(d)
@@ -137,123 +175,55 @@ async def async_setup_entry(
     await energy_manager.update()
 
 
-class TemperatureSensor(HiloEntity, SensorEntity):
-    """Define a Hilo temperature sensor entity."""
+class BatterySensor(HiloEntity, SensorEntity):
+    """Define a Battery sensor entity."""
 
-    _attr_device_class = DEVICE_CLASS_TEMPERATURE
-    _attr_native_unit_of_measurement = TEMP_CELSIUS
+    _attr_device_class = DEVICE_CLASS_BATTERY
+    _attr_native_unit_of_measurement = PERCENTAGE
     _attr_state_class = STATE_CLASS_MEASUREMENT
 
     def __init__(self, hilo, device):
-        self._attr_name = f"{device.name} Temperature"
+        self._attr_name = f"{device.name} Battery"
         super().__init__(hilo, name=self._attr_name, device=device)
-        self._attr_unique_id = f"{slugify(device.name)}-temperature"
-        LOG.debug(f"Setting up TemperatureSensor entity: {self._attr_name}")
+        self._attr_unique_id = f"{slugify(device.name)}-battery"
+        LOG.debug(f"Setting up BatterySensor entity: {self._attr_name}")
 
     @property
     def state(self):
-        return str(int(self._device.current_temperature))
-
-
-class HiloChallengeSensor(HiloEntity, SensorEntity):
-
-    _attr_device_class = None
-    _attr_native_unit_of_measurement = None
-    _attr_state_class = None
-
-    def __init__(self, hilo, device, scan_interval):
-        self._attr_name = "Defi Hilo"
-        super().__init__(hilo, name=self._attr_name, device=device)
-        self._attr_unique_id = slugify(self._attr_name)
-        LOG.debug(f"Setting up ChallengeSensor entity: {self._attr_name}")
-        self.scan_interval = timedelta(seconds=scan_interval)
-        self._state = "off"
-        self._next_events = []
-        self.async_update = Throttle(self.scan_interval)(self._async_update)
-
-    @property
-    def state(self):
-        return self._state
+        return str(int(self._device.get_value("battery", 0)))
 
     @property
     def icon(self):
-        if self.state == "off":
-            return "mdi:lightning-bolt"
-        elif self.state == "scheduled":
-            return "mdi:progress-clock"
-        elif self.state == "pre_heat":
-            return "mdi:radiator"
-        elif self.state in ["reduction", "on"]:
-            return "mdi:power-plug-off"
-        elif self.state == "recovery":
-            return "mdi:calendar-check"
-        return "mdi:battery-alert"
-
-    @property
-    def should_poll(self):
-        return True
-
-    @property
-    def extra_state_attributes(self):
-        return {"next_events": self._next_events}
-
-    async def _async_update(self):
-        self._next_events = []
-        events = await self._hilo._api.get_events(self._hilo.devices.location_id)
-        for raw_event in events:
-            event = event_parsing(raw_event)
-            if not event:
-                continue
-            self._next_events.append(event)
-        self._state = "off"
-        if len(self._next_events):
-            self._state = self._next_events[0]["current"]
+        if not self._device.available:
+            return "mdi:lan-disconnect"
+        level = round(int(self._device.get_value("battery", 0)) / 10) * 10
+        if level < 10:
+            return "mdi:battery-alert"
+        return f"mdi:battery-{level}"
 
 
-class DeviceSensor(HiloEntity, SensorEntity):
-    """Devices like the gateway or Smoke Detectors don't have much attributes,
-    except for the "disonnected" attributes. These entities are monitoring
-    this state.
-    """
+class Co2Sensor(HiloEntity, SensorEntity):
+    """Define a Co2 sensor entity."""
 
-    _attr_device_class = None
-    _attr_native_unit_of_measurement = None
-    _attr_state_class = None
-
-    def __init__(self, hilo, device):
-        self._attr_name = device.name
-        super().__init__(hilo, name=self._attr_name, device=device)
-        self._attr_unique_id = slugify(device.name)
-        LOG.debug(f"Setting up DeviceSensor entity: {self._attr_name}")
-
-    @property
-    def state(self):
-        return "on" if self._device.available else "off"
-
-    @property
-    def icon(self):
-        if self.state == "off":
-            return "mdi:access-point-network-off"
-        return "mdi:access-point-network"
-
-
-class PowerSensor(HiloEntity, SensorEntity):
-    """Define a Hilo power sensor entity."""
-
-    _attr_device_class = DEVICE_CLASS_POWER
-    _attr_native_unit_of_measurement = POWER_WATT
+    _attr_device_class = DEVICE_CLASS_CO2
+    _attr_native_unit_of_measurement = CONCENTRATION_PARTS_PER_MILLION
     _attr_state_class = STATE_CLASS_MEASUREMENT
 
-    def __init__(self, hilo: Hilo, device: HiloDevice) -> None:
-        """Initialize."""
-        self._attr_name = f"{device.name} Power"
+    def __init__(self, hilo, device):
+        self._attr_name = f"{device.name} WifiStrength"
         super().__init__(hilo, name=self._attr_name, device=device)
-        self._attr_unique_id = f"{slugify(device.name)}-power"
-        LOG.debug(f"Setting up PowerSensor entity: {self._attr_name}")
+        self._attr_unique_id = f"{slugify(device.name)}-wifistrength"
+        LOG.debug(f"Setting up WifiStrengthSensor entity: {self._attr_name}")
 
     @property
     def state(self):
-        return str(int(self._device.get_value("power", 0)))
+        return str(int(self._device.get_value("co2", 0)))
+
+    @property
+    def icon(self):
+        if not self._device.available:
+            return "mdi:lan-disconnect"
+        return "mdi:molecule-co2"
 
 
 class EnergySensor(IntegrationSensor):
@@ -305,6 +275,214 @@ class EnergySensor(IntegrationSensor):
             self._state = state.state
 
 
+class NoiseSensor(HiloEntity, SensorEntity):
+    """Define a Netatmo noise sensor entity."""
+
+    _attr_device_class = None
+    _attr_native_unit_of_measurement = SOUND_PRESSURE_DB
+    _attr_state_class = STATE_CLASS_MEASUREMENT
+
+    def __init__(self, hilo, device):
+        self._attr_name = f"{device.name} Noise"
+        super().__init__(hilo, name=self._attr_name, device=device)
+        self._attr_unique_id = f"{slugify(device.name)}-noise"
+        LOG.debug(f"Setting up NoiseSensor entity: {self._attr_name}")
+
+    @property
+    def state(self):
+        return str(int(self._device.get_value("noise", 0)))
+
+    @property
+    def icon(self):
+        if not self._device.available:
+            return "mdi:lan-disconnect"
+        if int(self._device.get_value("noise", 0)) > 0:
+            return "mdi:volume-vibrate"
+        return "mdi:volume-mute"
+
+
+class PowerSensor(HiloEntity, SensorEntity):
+    """Define a Hilo power sensor entity."""
+
+    _attr_device_class = DEVICE_CLASS_POWER
+    _attr_native_unit_of_measurement = POWER_WATT
+    _attr_state_class = STATE_CLASS_MEASUREMENT
+
+    def __init__(self, hilo: Hilo, device: HiloDevice) -> None:
+        """Initialize."""
+        self._attr_name = f"{device.name} Power"
+        super().__init__(hilo, name=self._attr_name, device=device)
+        self._attr_unique_id = f"{slugify(device.name)}-power"
+        LOG.debug(f"Setting up PowerSensor entity: {self._attr_name}")
+
+    @property
+    def state(self):
+        return str(int(self._device.get_value("power", 0)))
+
+    @property
+    def icon(self):
+        if not self._device.available:
+            return "mdi:lan-disconnect"
+        power = int(self._device.get_value("power", 0))
+        if power > 0:
+            return "mdi:power-plug"
+        return "mdi:power-plug-off"
+
+
+class TemperatureSensor(HiloEntity, SensorEntity):
+    """Define a Hilo temperature sensor entity."""
+
+    _attr_device_class = DEVICE_CLASS_TEMPERATURE
+    _attr_native_unit_of_measurement = TEMP_CELSIUS
+    _attr_state_class = STATE_CLASS_MEASUREMENT
+
+    def __init__(self, hilo, device):
+        self._attr_name = f"{device.name} Temperature"
+        super().__init__(hilo, name=self._attr_name, device=device)
+        self._attr_unique_id = f"{slugify(device.name)}-temperature"
+        LOG.debug(f"Setting up TemperatureSensor entity: {self._attr_name}")
+
+    @property
+    def state(self):
+        return str(int(self._device.get_value("current_temperature", 0)))
+
+    @property
+    def icon(self):
+        current_temperature = int(self._device.get_value("current_temperature", 0))
+        if not self._device.available:
+            thermometer = "off"
+        elif current_temperature >= 22:
+            thermometer = "high"
+        elif current_temperature >= 18:
+            thermometer = "low"
+        else:
+            thermometer = "alert"
+        return f"mdi:thermometer-{thermometer}"
+
+
+class WifiStrengthSensor(HiloEntity, SensorEntity):
+    """Define a Wifi strength sensor entity."""
+
+    _attr_device_class = DEVICE_CLASS_SIGNAL_STRENGTH
+    _attr_native_unit_of_measurement = SIGNAL_STRENGTH_DECIBELS_MILLIWATT
+    _attr_state_class = STATE_CLASS_MEASUREMENT
+
+    def __init__(self, hilo, device):
+        self._attr_name = f"{device.name} WifiStrength"
+        super().__init__(hilo, name=self._attr_name, device=device)
+        self._attr_unique_id = f"{slugify(device.name)}-wifistrength"
+        LOG.debug(f"Setting up WifiStrengthSensor entity: {self._attr_name}")
+
+    @property
+    def state(self):
+        return process_wifi(self._device.get_value("wifi_status", 0))
+
+    @property
+    def icon(self):
+        if not self._device.available or self._device.get_value("wifi_status", 0) == 0:
+            return "mdi:wifi-strength-off"
+        return f"mdi:wifi-strength-{WIFI_STRENGTH[self.state]}"
+
+    @property
+    def extra_state_attributes(self):
+        return {"wifi_signal": self._device.get_value("wifi_status", 0)}
+
+
+class HiloChallengeSensor(HiloEntity, SensorEntity):
+    """Hilo challenge sensor.
+    Its state will be either:
+    - off: no ongoing or scheduled challenge
+    - scheduled: A challenge is scheduled, details in the next_events
+                 extra attribute
+    - pre_heat: Currently in the pre-heat phase
+    - reduction or on: Challenge is currently active, heat is lowered
+    - recovery: Challenge is completed, we're reheating.
+    """
+
+    _attr_device_class = None
+    _attr_native_unit_of_measurement = None
+    _attr_state_class = None
+
+    def __init__(self, hilo, device, scan_interval):
+        self._attr_name = "Defi Hilo"
+        super().__init__(hilo, name=self._attr_name, device=device)
+        self._attr_unique_id = slugify(self._attr_name)
+        LOG.debug(f"Setting up ChallengeSensor entity: {self._attr_name}")
+        self.scan_interval = timedelta(seconds=scan_interval)
+        self._state = "off"
+        self._next_events = []
+        self.async_update = Throttle(self.scan_interval)(self._async_update)
+
+    @property
+    def state(self):
+        return self._state
+
+    @property
+    def icon(self):
+        if not self._device.available:
+            return "mdi:lan-disconnect"
+        if self.state == "off":
+            return "mdi:lightning-bolt"
+        if self.state == "scheduled":
+            return "mdi:progress-clock"
+        if self.state == "pre_heat":
+            return "mdi:radiator"
+        if self.state in ["reduction", "on"]:
+            return "mdi:power-plug-off"
+        if self.state == "recovery":
+            return "mdi:calendar-check"
+        return "mdi:battery-alert"
+
+    @property
+    def should_poll(self):
+        return True
+
+    @property
+    def extra_state_attributes(self):
+        return {"next_events": self._next_events}
+
+    async def _async_update(self):
+        self._next_events = []
+        events = await self._hilo._api.get_events(self._hilo.devices.location_id)
+        for raw_event in events:
+            event = event_parsing(raw_event)
+            if not event:
+                continue
+            self._next_events.append(event)
+        self._state = "off"
+        if len(self._next_events):
+            self._state = self._next_events[0]["current"]
+
+
+class DeviceSensor(HiloEntity, SensorEntity):
+    """Devices like the gateway or Smoke Detectors don't have much attributes,
+    except for the "disonnected" attributes. These entities are monitoring
+    this state.
+    """
+
+    _attr_device_class = None
+    _attr_native_unit_of_measurement = None
+    _attr_state_class = None
+
+    def __init__(self, hilo, device):
+        self._attr_name = device.name
+        super().__init__(hilo, name=self._attr_name, device=device)
+        self._attr_unique_id = slugify(device.name)
+        LOG.debug(f"Setting up DeviceSensor entity: {self._attr_name}")
+
+    @property
+    def state(self):
+        return "on" if self._device.available else "off"
+
+    @property
+    def icon(self):
+        if not self._device.available:
+            return "mdi:lan-disconnect"
+        if self.state == "off":
+            return "mdi:access-point-network-off"
+        return "mdi:access-point-network"
+
+
 class HiloCostSensor(RestoreEntity):
     def __init__(self, name, plan_name, amount=0):
         self.data = None
@@ -312,7 +490,7 @@ class HiloCostSensor(RestoreEntity):
         self.plan_name = plan_name
         self._amount = amount
         self._last_update = dt_util.utcnow()
-        LOG.info(f"Initializing energy cost sensor {name} {plan_name} ")
+        LOG.info(f"Initializing energy cost sensor {name} {plan_name} Amount: {amount}")
 
     @property
     def name(self):
