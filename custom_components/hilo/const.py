@@ -17,6 +17,9 @@ DEFAULT_HQ_PLAN_NAME = "rate d"
 CONF_UNTARIFICATED_DEVICES = "untarificated_devices"
 DEFAULT_UNTARIFICATED_DEVICES = False
 
+CONF_LOG_TRACES = "log_traces"
+DEFAULT_LOG_TRACES = False
+
 CONF_ENERGY_METER_PERIOD = "energy_meter_period"
 DEFAULT_ENERGY_METER_PERIOD = DAILY
 
@@ -48,7 +51,7 @@ CONF_HIGH_PERIODS = {
 TARIFF_LIST = ["high", "medium", "low"]
 
 # Class lists
-LIGHT_CLASSES = ["LightDimmer", "WhiteBulb", "ColorBulb", "LightSwitch"]
+LIGHT_CLASSES = ["WhiteBulb", "ColorBulb", "LightSwitch"]
 HILO_SENSOR_CLASSES = [
     "SmokeDetector",
     "IndoorWeatherStation",

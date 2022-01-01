@@ -46,10 +46,12 @@ from .const import (
     CONF_GENERATE_ENERGY_METERS,
     CONF_HIGH_PERIODS,
     CONF_HQ_PLAN_NAME,
+    CONF_LOG_TRACES,
     CONF_TARIFF,
     CONF_UNTARIFICATED_DEVICES,
     DEFAULT_GENERATE_ENERGY_METERS,
     DEFAULT_HQ_PLAN_NAME,
+    DEFAULT_LOG_TRACES,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_UNTARIFICATED_DEVICES,
     DOMAIN,
@@ -108,6 +110,8 @@ async def async_setup_entry(  # noqa: C901
 ) -> bool:
     """Set up Hilo as config entry."""
     _async_standardize_config_entry(hass, entry)
+    current_options = {**entry.options}
+    log_traces = current_options.get(CONF_LOG_TRACES, DEFAULT_LOG_TRACES)
 
     websession = aiohttp_client.async_get_clientsession(hass)
 
@@ -115,7 +119,9 @@ async def async_setup_entry(  # noqa: C901
         if entry.data[CONF_TOKEN]:
             LOG.debug("Trying auth with token")
             api = await API.async_auth_refresh_token(
-                session=websession, provided_refresh_token=entry.data[CONF_TOKEN]
+                session=websession,
+                provided_refresh_token=entry.data[CONF_TOKEN],
+                log_traces=log_traces,
             )
         else:
             raise InvalidCredentialsError
@@ -123,7 +129,10 @@ async def async_setup_entry(  # noqa: C901
         try:
             LOG.debug(f"Trying auth with username/password: {err}")
             api = await API.async_auth_password(
-                entry.data[CONF_USERNAME], entry.data[CONF_PASSWORD], session=websession
+                entry.data[CONF_USERNAME],
+                entry.data[CONF_PASSWORD],
+                session=websession,
+                log_traces=log_traces,
             )
         except InvalidCredentialsError as err:
             raise ConfigEntryAuthFailed from err
@@ -141,8 +150,6 @@ async def async_setup_entry(  # noqa: C901
     hass.data[DOMAIN][entry.entry_id] = hilo
 
     hass.config_entries.async_setup_platforms(entry, PLATFORMS)
-
-    current_options = {**entry.options}
 
     async def async_reload_entry(_: HomeAssistant, updated_entry: ConfigEntry) -> None:
         """Handle an options update.
