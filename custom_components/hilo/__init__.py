@@ -16,6 +16,7 @@ from homeassistant.const import (
     ATTR_DEVICE_CLASS,
     ATTR_UNIT_OF_MEASUREMENT,
     CONF_PASSWORD,
+    CONF_SCAN_INTERVAL,
     CONF_TOKEN,
     CONF_USERNAME,
     DEVICE_CLASS_ENERGY,
@@ -112,6 +113,7 @@ async def async_setup_entry(  # noqa: C901
     _async_standardize_config_entry(hass, entry)
     current_options = {**entry.options}
     log_traces = current_options.get(CONF_LOG_TRACES, DEFAULT_LOG_TRACES)
+    scan_interval = current_options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
 
     websession = aiohttp_client.async_get_clientsession(hass)
 
@@ -142,7 +144,7 @@ async def async_setup_entry(  # noqa: C901
 
     hilo = Hilo(hass, entry, api)
     try:
-        await hilo.async_init()
+        await hilo.async_init(scan_interval)
     except HiloError as err:
         raise ConfigEntryNotReady from err
 
@@ -209,7 +211,8 @@ class Hilo:
 
     def validate_heartbeat(self, event: WebsocketEvent) -> None:
         heartbeat_time = from_utc_timestamp(event.arguments[0])  # type: ignore
-        LOG.debug(f"Heartbeat: {time_diff(heartbeat_time, event.timestamp)}")
+        if self._api.log_traces:
+            LOG.debug(f"Heartbeat: {time_diff(heartbeat_time, event.timestamp)}")
 
     @callback
     def on_websocket_event(self, event: WebsocketEvent) -> None:
@@ -223,6 +226,8 @@ class Hilo:
             self.validate_heartbeat(event)
         elif event.target == "DevicesValuesReceived":
             updated_devices = self.devices.parse_values_received(event.arguments[0])
+            # NOTE(dvd): If we don't do this, we need to wait until the coordinator
+            # runs (scan_interval) to have updated data in the dashboard.
             for device in updated_devices:
                 async_dispatcher_send(
                     self._hass, SIGNAL_UPDATE_ENTITY.format(device.id)
@@ -252,7 +257,7 @@ class Hilo:
         for inv_id, inv_cb in self.invocations.items():
             await inv_cb(inv_id)
 
-    async def async_init(self) -> None:
+    async def async_init(self, scan_interval: int) -> None:
         """Initialize the Hilo "manager" class."""
         if TYPE_CHECKING:
             assert self._api.refresh_token
@@ -285,8 +290,8 @@ class Hilo:
         self.coordinator = DataUpdateCoordinator(
             self._hass,
             LOG,
-            name=self.entry.data[CONF_USERNAME],
-            update_interval=timedelta(seconds=DEFAULT_SCAN_INTERVAL),
+            name="hilo",
+            update_interval=timedelta(seconds=scan_interval),
             update_method=self.async_update,
         )
 
@@ -523,3 +528,15 @@ class HiloEntity(CoordinatorEntity):
     def _update_callback(self):
         """Call update method."""
         self.async_schedule_update_ha_state(True)
+
+    async def async_update(self) -> None:
+        """Update the entity.
+
+        Only used by the generic entity update service.
+        """
+        # Ignore manual update requests if the entity is disabled
+        if not self.enabled:
+            return
+
+        if self._device.type != "Gateway":
+            await self.coordinator.async_request_refresh()
