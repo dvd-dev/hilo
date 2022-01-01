@@ -51,7 +51,7 @@ CONF_HIGH_PERIODS = {
 TARIFF_LIST = ["high", "medium", "low"]
 
 # Class lists
-LIGHT_CLASSES = ["WhiteBulb", "ColorBulb", "LightSwitch"]
+LIGHT_CLASSES = ["LightDimmer", "WhiteBulb", "ColorBulb", "LightSwitch"]
 HILO_SENSOR_CLASSES = [
     "SmokeDetector",
     "IndoorWeatherStation",
