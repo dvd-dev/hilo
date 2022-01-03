@@ -516,13 +516,20 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
             )
             params = details.get("parameters", {})
             devices = params.get("devices", [])
+            consumption = details.get("consumption", {})
             event["total_devices"] = len(devices)
             event["opt_out_devices"] = len([x for x in devices if x["optOut"]])
             event["pre_heat_devices"] = len([x for x in devices if x["preheat"]])
             event["mode"] = details.get("parameters", {}).get("mode", "Unknown")
-            baseline = details.get("consumption", {}).get("baselineWh", 0) or 0
+            baseline = consumption.get("baselineWh", 0) or 0
+            current = consumption.get("currentWh", 0) or 0
             event["allowed_Wh"] = baseline
             event["allowed_kWh"] = round(baseline / 1000, 2)
+            event["used_Wh"] = current
+            event["used_kWh"] = round(current / 1000, 2)
+            event["used_percentage"] = 0
+            if baseline > 0:
+                event["used_percentage"] = round(current / baseline * 100, 2)
             del event["event_id"]
             self._next_events.append(event)
         self._state = "off"
