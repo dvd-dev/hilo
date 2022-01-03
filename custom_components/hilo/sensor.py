@@ -440,6 +440,14 @@ class HiloRewardSensor(HiloEntity, SensorEntity):
         for idx, season in enumerate(seasons):
             if idx == 0:
                 self._state = season.get("totalReward", 0)
+            events = []
+            for event in season.get("events", []):
+                events.append(
+                    await self._hilo._api.get_events(
+                        self._hilo.devices.location_id, event_id=event["id"]
+                    )
+                )
+            season["events"] = events
             self._history.append(season)
 
 
@@ -503,6 +511,19 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
             event = event_parsing(raw_event)
             if not event:
                 continue
+            details = await self._hilo._api.get_events(
+                self._hilo.devices.location_id, event_id=event["event_id"]
+            )
+            params = details.get("parameters", {})
+            devices = params.get("devices", [])
+            event["total_devices"] = len(devices)
+            event["opt_out_devices"] = len([x for x in devices if x["optOut"]])
+            event["pre_heat_devices"] = len([x for x in devices if x["preheat"]])
+            event["mode"] = details.get("parameters", {}).get("mode", "Unknown")
+            baseline = details.get("consumption", {}).get("baselineWh", 0) or 0
+            event["allowed_Wh"] = baseline
+            event["allowed_kWh"] = round(baseline / 1000, 2)
+            del event["event_id"]
             self._next_events.append(event)
         self._state = "off"
         if len(self._next_events):
