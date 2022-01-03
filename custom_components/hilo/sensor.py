@@ -7,7 +7,11 @@ from homeassistant.components.integration.sensor import (
     TRAPEZOIDAL_METHOD,
     IntegrationSensor,
 )
-from homeassistant.components.sensor import STATE_CLASS_MEASUREMENT, SensorEntity
+from homeassistant.components.sensor import (
+    STATE_CLASS_MEASUREMENT,
+    STATE_CLASS_TOTAL_INCREASING,
+    SensorEntity,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONCENTRATION_PARTS_PER_MILLION,
@@ -15,6 +19,7 @@ from homeassistant.const import (
     DEVICE_CLASS_BATTERY,
     DEVICE_CLASS_CO2,
     DEVICE_CLASS_ENERGY,
+    DEVICE_CLASS_MONETARY,
     DEVICE_CLASS_POWER,
     DEVICE_CLASS_SIGNAL_STRENGTH,
     DEVICE_CLASS_TEMPERATURE,
@@ -87,6 +92,9 @@ def generate_entities_from_device(device, hilo, scan_interval):
     if device.type == "Gateway":
         entities.append(
             HiloChallengeSensor(hilo, device, scan_interval),
+        )
+        entities.append(
+            HiloRewardSensor(hilo, device, scan_interval),
         )
     if device.has_attribute("current_temperature"):
         entities.append(TemperatureSensor(hilo, device))
@@ -386,6 +394,52 @@ class WifiStrengthSensor(HiloEntity, SensorEntity):
     @property
     def extra_state_attributes(self):
         return {"wifi_signal": self._device.get_value("wifi_status", 0)}
+
+
+class HiloRewardSensor(HiloEntity, SensorEntity):
+    """Hilo Reward sensor.
+    Its state will be either the total amount rewarded this season.
+    """
+
+    _attr_device_class = DEVICE_CLASS_MONETARY
+    _attr_state_class = STATE_CLASS_TOTAL_INCREASING
+
+    def __init__(self, hilo, device, scan_interval):
+        self._attr_name = "Recompenses Hilo"
+        super().__init__(hilo, name=self._attr_name, device=device)
+        self._attr_unique_id = slugify(self._attr_name)
+        LOG.debug(f"Setting up RewardSensor entity: {self._attr_name}")
+        self.scan_interval = timedelta(seconds=scan_interval)
+        self._attr_native_unit_of_measurement = hilo._hass.config.currency
+        self._state = 0
+        self._history = []
+        self.async_update = Throttle(self.scan_interval)(self._async_update)
+
+    @property
+    def state(self):
+        return self._state
+
+    @property
+    def icon(self):
+        if not self._device.available:
+            return "mdi:lan-disconnect"
+        return "mdi:cash-plus"
+
+    @property
+    def should_poll(self):
+        return True
+
+    @property
+    def extra_state_attributes(self):
+        return {"history": self._history}
+
+    async def _async_update(self):
+        self._history = []
+        seasons = await self._hilo._api.get_seasons(self._hilo.devices.location_id)
+        for idx, season in enumerate(seasons):
+            if idx == 0:
+                self._state = season.get("totalReward", 0)
+            self._history.append(season)
 
 
 class HiloChallengeSensor(HiloEntity, SensorEntity):
