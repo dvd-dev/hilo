@@ -16,6 +16,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONCENTRATION_PARTS_PER_MILLION,
     CONF_SCAN_INTERVAL,
+    CURRENCY_DOLLAR,
     DEVICE_CLASS_BATTERY,
     DEVICE_CLASS_CO2,
     DEVICE_CLASS_ENERGY,
@@ -537,22 +538,20 @@ class DeviceSensor(HiloEntity, SensorEntity):
         return "mdi:access-point-network"
 
 
-class HiloCostSensor(RestoreEntity):
+class HiloCostSensor(RestoreEntity, SensorEntity):
+
+    _attr_device_class = DEVICE_CLASS_MONETARY
+    _attr_native_unit_of_measurement = f"{CURRENCY_DOLLAR}/{ENERGY_KILO_WATT_HOUR}"
+    _attr_state_class = STATE_CLASS_MEASUREMENT
+    _attr_icon = "mdi:cash"
+
     def __init__(self, name, plan_name, amount=0):
         self.data = None
-        self._name = name
+        self._attr_name = name
         self.plan_name = plan_name
         self._amount = amount
         self._last_update = dt_util.utcnow()
         LOG.info(f"Initializing energy cost sensor {name} {plan_name} Amount: {amount}")
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def icon(self):
-        return "mdi:cash"
 
     @property
     def state(self):
@@ -561,18 +560,6 @@ class HiloCostSensor(RestoreEntity):
     @property
     def should_poll(self) -> bool:
         return False
-
-    @property
-    def state_class(self):
-        return STATE_CLASS_MEASUREMENT
-
-    @property
-    def device_class(self):
-        return "monetary"
-
-    @property
-    def unit_of_measurement(self):
-        return "$/kWh"
 
     @property
     def extra_state_attributes(self):
