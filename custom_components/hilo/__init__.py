@@ -114,6 +114,7 @@ async def async_setup_entry(  # noqa: C901
     current_options = {**entry.options}
     log_traces = current_options.get(CONF_LOG_TRACES, DEFAULT_LOG_TRACES)
     scan_interval = current_options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+    state_yaml = hass.config.path("hilo_state.yaml")
 
     websession = aiohttp_client.async_get_clientsession(hass)
 
@@ -124,6 +125,7 @@ async def async_setup_entry(  # noqa: C901
                 session=websession,
                 provided_refresh_token=entry.data[CONF_TOKEN],
                 log_traces=log_traces,
+                state_yaml=state_yaml,
             )
         else:
             raise InvalidCredentialsError
@@ -135,6 +137,7 @@ async def async_setup_entry(  # noqa: C901
                 entry.data[CONF_PASSWORD],
                 session=websession,
                 log_traces=log_traces,
+                state_yaml=state_yaml,
             )
         except InvalidCredentialsError as err:
             raise ConfigEntryAuthFailed from err
