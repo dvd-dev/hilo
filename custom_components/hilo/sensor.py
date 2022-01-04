@@ -42,7 +42,6 @@ from pyhilo.util.hilo import event_parsing
 
 from . import Hilo, HiloEntity
 from .const import (
-    CHALLENGE_SENSOR_INTERVAL,
     CONF_ENERGY_METER_PERIOD,
     CONF_GENERATE_ENERGY_METERS,
     CONF_HQ_PLAN_NAME,
@@ -93,7 +92,7 @@ def generate_entities_from_device(device, hilo, scan_interval):
     entities = []
     if device.type == "Gateway":
         entities.append(
-            HiloChallengeSensor(hilo, device, CHALLENGE_SENSOR_INTERVAL),
+            HiloChallengeSensor(hilo, device, scan_interval),
         )
         entities.append(
             HiloRewardSensor(hilo, device, scan_interval),
