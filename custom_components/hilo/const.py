@@ -20,6 +20,9 @@ DEFAULT_UNTARIFICATED_DEVICES = False
 CONF_LOG_TRACES = "log_traces"
 DEFAULT_LOG_TRACES = False
 
+CONF_CHALLENGE_LOCK = "challenge_lock"
+DEFAULT_CHALLENGE_LOCK = True
+
 CONF_ENERGY_METER_PERIOD = "energy_meter_period"
 DEFAULT_ENERGY_METER_PERIOD = DAILY
 
@@ -33,6 +36,7 @@ CONF_TARIFF = {
         "medium": 0.09502,
         "high": 0,
         "access": 0.41168,
+        "reward_rate": 0.55,
     },
     "flex d": {
         "low_threshold": 40,
@@ -40,6 +44,7 @@ CONF_TARIFF = {
         "medium": 0.07456,
         "high": 0.5065,
         "access": 0.41168,
+        "reward_rate": 0.55,
     },
 }
 
