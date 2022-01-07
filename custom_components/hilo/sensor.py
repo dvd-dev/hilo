@@ -38,7 +38,7 @@ from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import Throttle, slugify
 import homeassistant.util.dt as dt_util
 from pyhilo.device import HiloDevice
-from pyhilo.util.hilo import event_parsing
+from pyhilo.event import Event
 
 from . import Hilo, HiloEntity
 from .const import (
@@ -397,7 +397,7 @@ class WifiStrengthSensor(HiloEntity, SensorEntity):
         return {"wifi_signal": self._device.get_value("wifi_status", 0)}
 
 
-class HiloRewardSensor(HiloEntity, SensorEntity):
+class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
     """Hilo Reward sensor.
     Its state will be either the total amount rewarded this season.
     """
@@ -434,6 +434,14 @@ class HiloRewardSensor(HiloEntity, SensorEntity):
     def extra_state_attributes(self):
         return {"history": self._history}
 
+    async def async_added_to_hass(self):
+        """Handle entity about to be added to hass event."""
+        await super().async_added_to_hass()
+        last_state = await self.async_get_last_state()
+        if last_state:
+            self._last_update = dt_util.utcnow()
+            self._state = last_state.state
+
     async def _async_update(self):
         self._history = []
         seasons = await self._hilo._api.get_seasons(self._hilo.devices.location_id)
@@ -441,12 +449,11 @@ class HiloRewardSensor(HiloEntity, SensorEntity):
             if idx == 0:
                 self._state = season.get("totalReward", 0)
             events = []
-            for event in season.get("events", []):
-                events.append(
-                    await self._hilo._api.get_events(
-                        self._hilo.devices.location_id, event_id=event["id"]
-                    )
+            for raw_event in season.get("events", []):
+                details = await self._hilo._api.get_events(
+                    self._hilo.devices.location_id, event_id=raw_event["id"]
                 )
+                events.append(Event(**details).as_dict())
             season["events"] = events
             self._history.append(season)
 
@@ -508,29 +515,10 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
         self._next_events = []
         events = await self._hilo._api.get_events(self._hilo.devices.location_id)
         for raw_event in events:
-            event = event_parsing(raw_event)
-            if not event:
-                continue
             details = await self._hilo._api.get_events(
-                self._hilo.devices.location_id, event_id=event["event_id"]
+                self._hilo.devices.location_id, event_id=raw_event["id"]
             )
-            params = details.get("parameters", {})
-            devices = params.get("devices", [])
-            consumption = details.get("consumption", {})
-            event["total_devices"] = len(devices)
-            event["opt_out_devices"] = len([x for x in devices if x["optOut"]])
-            event["pre_heat_devices"] = len([x for x in devices if x["preheat"]])
-            event["mode"] = details.get("parameters", {}).get("mode", "Unknown")
-            baseline = consumption.get("baselineWh", 0) or 0
-            current = consumption.get("currentWh", 0) or 0
-            event["allowed_Wh"] = baseline
-            event["allowed_kWh"] = round(baseline / 1000, 2)
-            event["used_Wh"] = current
-            event["used_kWh"] = round(current / 1000, 2)
-            event["used_percentage"] = 0
-            if baseline > 0:
-                event["used_percentage"] = round(current / baseline * 100, 2)
-            del event["event_id"]
+            event = Event(**details).as_dict()
             self._next_events.append(event)
         self._state = "off"
         if len(self._next_events):
