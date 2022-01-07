@@ -73,6 +73,13 @@ class HiloClimate(HiloEntity, ClimateEntity):
 
     async def async_set_temperature(self, **kwargs):
         if ATTR_TEMPERATURE in kwargs:
+            if self._hilo.challenge_lock:
+                challenge = self._hilo._hass.states.get("sensor.defi_hilo")
+                if challenge.state == "reduction":
+                    LOG.warning(
+                        f"{self._device._tag} Attempt to set temperature to {kwargs[ATTR_TEMPERATURE]} was blocked because challenge lock is active"
+                    )
+                    return
             LOG.info(
                 f"{self._device._tag} Setting temperature to {kwargs[ATTR_TEMPERATURE]}"
             )
