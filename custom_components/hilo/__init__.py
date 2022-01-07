@@ -44,12 +44,14 @@ from pyhilo.websocket import WebsocketEvent
 
 from .config_flow import STEP_OPTION_SCHEMA
 from .const import (
+    CONF_CHALLENGE_LOCK,
     CONF_GENERATE_ENERGY_METERS,
     CONF_HIGH_PERIODS,
     CONF_HQ_PLAN_NAME,
     CONF_LOG_TRACES,
     CONF_TARIFF,
     CONF_UNTARIFICATED_DEVICES,
+    DEFAULT_CHALLENGE_LOCK,
     DEFAULT_GENERATE_ENERGY_METERS,
     DEFAULT_HQ_PLAN_NAME,
     DEFAULT_LOG_TRACES,
@@ -202,6 +204,9 @@ class Hilo:
             1: self.subscribe_to_attributes,
         }
         self.hq_plan_name = entry.options.get(CONF_HQ_PLAN_NAME, DEFAULT_HQ_PLAN_NAME)
+        self.challenge_lock = entry.options.get(
+            CONF_CHALLENGE_LOCK, DEFAULT_CHALLENGE_LOCK
+        )
         self.untarificated_devices = entry.options.get(
             CONF_UNTARIFICATED_DEVICES, DEFAULT_UNTARIFICATED_DEVICES
         )
