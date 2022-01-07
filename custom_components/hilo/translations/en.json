@@ -27,7 +27,8 @@
           "untarificated_devices": "Generate only total meters for each devices",
           "hq_plan_name": "Hydro Quebec rate plan name ('rate d' or 'flex d')",
           "scan_interval": "Scan interval (min: 15s)",
-          "log_traces": "Also log request data and websocket messages (requires debug log level on both the integration and pyhilo)"
+          "log_traces": "Also log request data and websocket messages (requires debug log level on both the integration and pyhilo)",
+          "challenge_lock": "Lock climate entities during Hilo challenges, preventing any changes when a challenge is in progress."
         }
       }
     }
