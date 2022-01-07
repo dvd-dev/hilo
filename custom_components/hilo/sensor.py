@@ -522,7 +522,7 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
             self._next_events.append(event)
         self._state = "off"
         if len(self._next_events):
-            self._state = self._next_events[0]["current"]
+            self._state = self._next_events[0]["state"]
 
 
 class DeviceSensor(HiloEntity, SensorEntity):
