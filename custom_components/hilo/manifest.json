@@ -4,7 +4,7 @@
   "config_flow": true,
   "documentation": "https://github.com/dvd-dev/hilo",
   "issue_tracker": "https://github.com/dvd-dev/hilo/issues",
-  "requirements": ["python-hilo>=2022.1.4"],
+  "requirements": ["python-hilo>=2022.1.5"],
   "after_dependencies": [
     "energy",
     "integration",
@@ -12,5 +12,5 @@
   ],
   "codeowners": ["@dvd-dev"],
   "iot_class": "cloud_polling",
-  "version": "2022.1.11"
+  "version": "2022.1.12"
 }
