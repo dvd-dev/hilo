@@ -44,6 +44,7 @@ from pyhilo.websocket import WebsocketEvent
 
 from .config_flow import STEP_OPTION_SCHEMA
 from .const import (
+    CONF_APPRECIATION_PHASE,
     CONF_CHALLENGE_LOCK,
     CONF_GENERATE_ENERGY_METERS,
     CONF_HIGH_PERIODS,
@@ -51,6 +52,7 @@ from .const import (
     CONF_LOG_TRACES,
     CONF_TARIFF,
     CONF_UNTARIFICATED_DEVICES,
+    DEFAULT_APPRECIATION_PHASE,
     DEFAULT_CHALLENGE_LOCK,
     DEFAULT_GENERATE_ENERGY_METERS,
     DEFAULT_HQ_PLAN_NAME,
@@ -204,6 +206,9 @@ class Hilo:
             1: self.subscribe_to_attributes,
         }
         self.hq_plan_name = entry.options.get(CONF_HQ_PLAN_NAME, DEFAULT_HQ_PLAN_NAME)
+        self.appreciation = entry.options.get(
+            CONF_APPRECIATION_PHASE, DEFAULT_APPRECIATION_PHASE
+        )
         self.challenge_lock = entry.options.get(
             CONF_CHALLENGE_LOCK, DEFAULT_CHALLENGE_LOCK
         )

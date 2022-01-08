@@ -20,11 +20,13 @@ from pyhilo.exceptions import HiloError, InvalidCredentialsError
 import voluptuous as vol
 
 from .const import (
+    CONF_APPRECIATION_PHASE,
     CONF_CHALLENGE_LOCK,
     CONF_GENERATE_ENERGY_METERS,
     CONF_HQ_PLAN_NAME,
     CONF_LOG_TRACES,
     CONF_UNTARIFICATED_DEVICES,
+    DEFAULT_APPRECIATION_PHASE,
     DEFAULT_CHALLENGE_LOCK,
     DEFAULT_GENERATE_ENERGY_METERS,
     DEFAULT_HQ_PLAN_NAME,
@@ -59,6 +61,10 @@ STEP_OPTION_SCHEMA = vol.Schema(
             CONF_CHALLENGE_LOCK,
             default=DEFAULT_CHALLENGE_LOCK,
         ): cv.boolean,
+        vol.Optional(
+            CONF_APPRECIATION_PHASE,
+            default=DEFAULT_APPRECIATION_PHASE,
+        ): cv.positive_int,
         vol.Optional(CONF_HQ_PLAN_NAME, default=DEFAULT_HQ_PLAN_NAME): cv.string,
         vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): (
             vol.All(cv.positive_int, vol.Range(min=MIN_SCAN_INTERVAL))
@@ -191,6 +197,14 @@ class HiloOptionsFlowHandler(config_entries.OptionsFlow):
                             )
                         },
                     ): cv.string,
+                    vol.Optional(
+                        CONF_APPRECIATION_PHASE,
+                        description={
+                            "suggested_value": self.config_entry.options.get(
+                                CONF_APPRECIATION_PHASE
+                            )
+                        },
+                    ): cv.positive_int,
                     vol.Optional(
                         CONF_SCAN_INTERVAL,
                         description={

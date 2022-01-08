@@ -518,8 +518,10 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
             details = await self._hilo._api.get_events(
                 self._hilo.devices.location_id, event_id=raw_event["id"]
             )
-            event = Event(**details).as_dict()
-            self._next_events.append(event)
+            event = Event(**details)
+            if self._hilo.appreciation > 0:
+                event.appreciation(self._hilo.appreciation)
+            self._next_events.append(event.as_dict())
         self._state = "off"
         if len(self._next_events):
             self._state = self._next_events[0]["state"]
