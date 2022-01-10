@@ -353,7 +353,7 @@ class TemperatureSensor(HiloEntity, SensorEntity):
 
     @property
     def state(self):
-        return str(int(self._device.get_value("current_temperature", 0)))
+        return str(float(self._device.get_value("current_temperature", 0)))
 
     @property
     def icon(self):
