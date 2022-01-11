@@ -1,0 +1,1 @@
+## Some Hilo automation ideas
