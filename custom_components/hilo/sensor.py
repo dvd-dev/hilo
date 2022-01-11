@@ -491,6 +491,8 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
     def icon(self):
         if not self._device.available:
             return "mdi:lan-disconnect"
+        if self.state == "appreciation":
+            return "mdi:glass-cocktail"
         if self.state == "off":
             return "mdi:lightning-bolt"
         if self.state == "scheduled":
