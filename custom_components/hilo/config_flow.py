@@ -25,6 +25,7 @@ from .const import (
     CONF_GENERATE_ENERGY_METERS,
     CONF_HQ_PLAN_NAME,
     CONF_LOG_TRACES,
+    CONF_TRACK_UNKNOWN_SOURCES,
     CONF_UNTARIFICATED_DEVICES,
     DEFAULT_APPRECIATION_PHASE,
     DEFAULT_CHALLENGE_LOCK,
@@ -32,6 +33,7 @@ from .const import (
     DEFAULT_HQ_PLAN_NAME,
     DEFAULT_LOG_TRACES,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_TRACK_UNKNOWN_SOURCES,
     DEFAULT_UNTARIFICATED_DEVICES,
     DOMAIN,
     LOG,
@@ -60,6 +62,10 @@ STEP_OPTION_SCHEMA = vol.Schema(
         vol.Optional(
             CONF_CHALLENGE_LOCK,
             default=DEFAULT_CHALLENGE_LOCK,
+        ): cv.boolean,
+        vol.Optional(
+            CONF_TRACK_UNKNOWN_SOURCES,
+            default=DEFAULT_TRACK_UNKNOWN_SOURCES,
         ): cv.boolean,
         vol.Optional(
             CONF_APPRECIATION_PHASE,
@@ -186,6 +192,14 @@ class HiloOptionsFlowHandler(config_entries.OptionsFlow):
                         description={
                             "suggested_value": self.config_entry.options.get(
                                 CONF_CHALLENGE_LOCK
+                            )
+                        },
+                    ): cv.boolean,
+                    vol.Optional(
+                        CONF_TRACK_UNKNOWN_SOURCES,
+                        description={
+                            "suggested_value": self.config_entry.options.get(
+                                CONF_TRACK_UNKNOWN_SOURCES
                             )
                         },
                     ): cv.boolean,

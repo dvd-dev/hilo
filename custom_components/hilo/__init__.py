@@ -51,6 +51,7 @@ from .const import (
     CONF_HQ_PLAN_NAME,
     CONF_LOG_TRACES,
     CONF_TARIFF,
+    CONF_TRACK_UNKNOWN_SOURCES,
     CONF_UNTARIFICATED_DEVICES,
     DEFAULT_APPRECIATION_PHASE,
     DEFAULT_CHALLENGE_LOCK,
@@ -58,6 +59,7 @@ from .const import (
     DEFAULT_HQ_PLAN_NAME,
     DEFAULT_LOG_TRACES,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_TRACK_UNKNOWN_SOURCES,
     DEFAULT_UNTARIFICATED_DEVICES,
     DOMAIN,
     HILO_ENERGY_TOTAL,
@@ -211,6 +213,9 @@ class Hilo:
         )
         self.challenge_lock = entry.options.get(
             CONF_CHALLENGE_LOCK, DEFAULT_CHALLENGE_LOCK
+        )
+        self.track_unknown_sources = entry.options.get(
+            CONF_TRACK_UNKNOWN_SOURCES, DEFAULT_TRACK_UNKNOWN_SOURCES
         )
         self.untarificated_devices = entry.options.get(
             CONF_UNTARIFICATED_DEVICES, DEFAULT_UNTARIFICATED_DEVICES
