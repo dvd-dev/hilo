@@ -139,7 +139,7 @@ async def async_setup_entry(
         default_tariff_list = validate_tariff_list(tariff_config)
     if generate_energy_meters:
         energy_manager = await EnergyManager().init(hass, energy_meter_period)
-        utility_manager = UtilityManager(energy_meter_period)
+        utility_manager = UtilityManager(hass, energy_meter_period)
 
     def create_energy_entity(device):
         device._energy_entity = EnergySensor(device)
@@ -179,7 +179,7 @@ async def async_setup_entry(
     cost_entities.append(HiloCostSensor("hilo_rate_current", hq_plan_name))
     async_add_entities(cost_entities)
     # This setups the utility_meter platform
-    await utility_manager.update(hass, async_add_entities)
+    await utility_manager.update(async_add_entities)
     # This sends the entities to the energy dashboard
     await energy_manager.update()
 
