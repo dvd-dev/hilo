@@ -98,17 +98,19 @@ def _async_standardize_config_entry(hass: HomeAssistant, entry: ConfigEntry) -> 
 
 
 @callback
-def _async_register_gateway(
-    hass: HomeAssistant, entry: ConfigEntry, gateway: HiloDevice
+def _async_register_custom_device(
+    hass: HomeAssistant, entry: ConfigEntry, device: HiloDevice
 ) -> None:
-    """Register a new bridge."""
+    """Register a custom device. This is used to register the
+    Hilo gateway and the unknown source tracker."""
+    LOG.debug(f"Generating custom device {device}")
     device_registry = dr.async_get(hass)
     device_registry.async_get_or_create(
         config_entry_id=entry.entry_id,
-        identifiers={(DOMAIN, gateway.identifier)},
-        manufacturer=gateway.manufacturer,
-        model=gateway.model,
-        name=gateway.name,
+        identifiers={(DOMAIN, device.identifier)},
+        manufacturer=device.manufacturer,
+        model=device.model,
+        name=device.name,
     )
 
 
@@ -226,6 +228,9 @@ class Hilo:
 
         # This will get filled in by async_init:
         self.coordinator: DataUpdateCoordinator | None = None
+        self.unknown_tracker_device: HiloDevice | None = None
+        if self.track_unknown_sources:
+            self._api._get_device_callbacks = [self._get_unknown_source_tracker]
 
     def validate_heartbeat(self, event: WebsocketEvent) -> None:
         heartbeat_time = from_utc_timestamp(event.arguments[0])  # type: ignore
@@ -275,6 +280,22 @@ class Hilo:
         for inv_id, inv_cb in self.invocations.items():
             await inv_cb(inv_id)
 
+    @callback
+    def _get_unknown_source_tracker(self) -> HiloDevice:
+        return {
+            "name": "Unknown Source Tracker",
+            "Disconnected": False,
+            "type": "Tracker",
+            "category": "Tracker",
+            "supportedAttributes": "Power",
+            "settableAttributes": "",
+            "id": 0,
+            "identifier": "hass-hilo-unknown_source_tracker",
+            "provider": 0,
+            "model_number": "Hass-hilo-2022.1",
+            "sw_version": "0.0.1",
+        }
+
     async def async_init(self, scan_interval: int) -> None:
         """Initialize the Hilo "manager" class."""
         if TYPE_CHECKING:
@@ -283,7 +304,17 @@ class Hilo:
 
         await self.devices.async_init()
 
-        _async_register_gateway(self._hass, self.entry, self.devices.find_device(1))
+        _async_register_custom_device(
+            self._hass, self.entry, self.devices.find_device(1)
+        )
+        if self.track_unknown_sources:
+            if not self.unknown_tracker_device:
+                self.unknown_tracker_device = self.devices.generate_device(
+                    self._get_unknown_source_tracker()
+                )
+            _async_register_custom_device(
+                self._hass, self.entry, self.unknown_tracker_device
+            )
 
         self._api.websocket.add_connect_callback(self.request_status_update)
         self._api.websocket.add_event_callback(self.on_websocket_event)
@@ -430,10 +461,14 @@ class Hilo:
         )
         known_power = 0
         smart_meter = "sensor.smartenergymeter_power"
+        unknown_source_tracker = "sensor.unknown_source_tracker_power"
         for state in self._hass.states.async_all():
             entity = state.entity_id
             self.set_tarif(entity, state.state, tarif)
-            if entity.endswith("_power") and entity != smart_meter:
+            if entity.endswith("_power") and entity not in [
+                unknown_source_tracker,
+                smart_meter,
+            ]:
                 known_power += int(state.state)
             if not entity.startswith("sensor.hilo_energy") or entity.endswith("_cost"):
                 continue
@@ -441,6 +476,18 @@ class Hilo:
         if self.track_unknown_sources:
             total_power = self._hass.states.get(smart_meter)
             unknown_power = int(total_power.state) - known_power
+            self.devices.parse_values_received(
+                [
+                    {
+                        "deviceId": 0,
+                        "locationId": self.devices.location_id,
+                        "timeStampUTC": datetime.utcnow().isoformat(),
+                        "attribute": "Power",
+                        "value": unknown_power,
+                        "valueType": "Watt",
+                    }
+                ]
+            )
             LOG.debug(
                 f"Currently in use: Total: {total_power.state} Known sources: {known_power} Unknown sources: {unknown_power}"
             )
