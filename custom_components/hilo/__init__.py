@@ -428,12 +428,22 @@ class Hilo:
         LOG.debug(
             f"check_tarif: Current plan: {plan_name} Target Tarif: {tarif} Energy used: {energy_used.state} Peak: {self.high_times}"
         )
+        known_power = 0
+        smart_meter = "sensor.smartenergymeter_power"
         for state in self._hass.states.async_all():
             entity = state.entity_id
             self.set_tarif(entity, state.state, tarif)
+            if entity.endswith("_power") and entity != smart_meter:
+                known_power += int(state.state)
             if not entity.startswith("sensor.hilo_energy") or entity.endswith("_cost"):
                 continue
             self.fix_utility_sensor(entity, state)
+        if self.track_unknown_sources:
+            total_power = self._hass.states.get(smart_meter)
+            unknown_power = int(total_power.state) - known_power
+            LOG.debug(
+                f"Currently in use: Total: {total_power.state} Known sources: {known_power} Unknown sources: {unknown_power}"
+            )
 
     @callback
     def fix_utility_sensor(self, entity, state):
