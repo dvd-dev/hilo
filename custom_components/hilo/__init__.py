@@ -469,7 +469,10 @@ class Hilo:
                 unknown_source_tracker,
                 smart_meter,
             ]:
-                known_power += int(state.state)
+                try:
+                    known_power += int(float(state.state))
+                except ValueError:
+                    pass
             if not entity.startswith("sensor.hilo_energy") or entity.endswith("_cost"):
                 continue
             self.fix_utility_sensor(entity, state)
