@@ -70,4 +70,4 @@ HILO_SENSOR_CLASSES = [
     "Gateway",
 ]
 CLIMATE_CLASSES = ["Thermostat"]
-SWITCH_CLASSES = []
+SWITCH_CLASSES = ["Outlet"]
