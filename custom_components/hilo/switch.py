@@ -32,6 +32,14 @@ class HiloSwitch(HiloEntity, SwitchEntity):
         return self._device.state
 
     @property
+    def icon(self):
+        if not self._device.available:
+            return "mdi:lan-disconnect"
+        if self.state == "on":
+            return "mdi:power-plug"
+        return "mdi:power-plug-off"
+
+    @property
     def is_on(self):
         return self._device.get_value("is_on")
 
