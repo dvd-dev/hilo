@@ -456,7 +456,7 @@ class HiloNotificationSensor(HiloEntity, RestoreEntity, SensorEntity):
         for notification in await self._hilo._api.get_event_notifications(
             self._hilo.devices.location_id
         ):
-            if not notification.get("viewed"):
+            if notification.get("viewed"):
                 continue
             self._notifications.append(
                 {
