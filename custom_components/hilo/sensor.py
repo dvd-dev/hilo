@@ -39,6 +39,7 @@ from homeassistant.util import Throttle, slugify
 import homeassistant.util.dt as dt_util
 from pyhilo.device import HiloDevice
 from pyhilo.event import Event
+from pyhilo.util import from_utc_timestamp
 
 from . import Hilo, HiloEntity
 from .const import (
@@ -97,6 +98,9 @@ def generate_entities_from_device(device, hilo, scan_interval):
         entities.append(
             HiloRewardSensor(hilo, device, scan_interval),
         )
+        entities.append(
+            HiloNotificationSensor(hilo, device, scan_interval),
+        )
     if device.has_attribute("current_temperature"):
         entities.append(TemperatureSensor(hilo, device))
     if device.has_attribute("co2"):
@@ -139,7 +143,7 @@ async def async_setup_entry(
         default_tariff_list = validate_tariff_list(tariff_config)
     if generate_energy_meters:
         energy_manager = await EnergyManager().init(hass, energy_meter_period)
-        utility_manager = UtilityManager(energy_meter_period)
+        utility_manager = UtilityManager(hass, energy_meter_period)
 
     def create_energy_entity(device):
         device._energy_entity = EnergySensor(device)
@@ -179,7 +183,7 @@ async def async_setup_entry(
     cost_entities.append(HiloCostSensor("hilo_rate_current", hq_plan_name))
     async_add_entities(cost_entities)
     # This setups the utility_meter platform
-    await utility_manager.update(hass, async_add_entities)
+    await utility_manager.update(async_add_entities)
     # This sends the entities to the energy dashboard
     await energy_manager.update()
 
@@ -221,7 +225,7 @@ class Co2Sensor(HiloEntity, SensorEntity):
     def __init__(self, hilo, device):
         self._attr_name = f"{device.name} WifiStrength"
         super().__init__(hilo, name=self._attr_name, device=device)
-        self._attr_unique_id = f"{slugify(device.name)}-wifistrength"
+        self._attr_unique_id = f"{slugify(device.name)}-co2"
         LOG.debug(f"Setting up WifiStrengthSensor entity: {self._attr_name}")
 
     @property
@@ -397,6 +401,76 @@ class WifiStrengthSensor(HiloEntity, SensorEntity):
         return {"wifi_signal": self._device.get_value("wifi_status", 0)}
 
 
+class HiloNotificationSensor(HiloEntity, RestoreEntity, SensorEntity):
+    """Hilo Notification sensor.
+    Its state will be the number of notification waiting in the Hilo app.
+    """
+
+    _attr_device_class = None
+    _attr_native_unit_of_measurement = None
+    _attr_state_class = None
+
+    def __init__(self, hilo, device, scan_interval):
+        self._attr_name = "Notifications Hilo"
+        super().__init__(hilo, name=self._attr_name, device=device)
+        self._attr_unique_id = slugify(self._attr_name)
+        LOG.debug(f"Setting up NotificationSensor entity: {self._attr_name}")
+        self.scan_interval = timedelta(seconds=scan_interval)
+        self._state = 0
+        self._notifications = []
+        self.async_update = Throttle(self.scan_interval)(self._async_update)
+
+    @property
+    def state(self):
+        try:
+            return int(self._state)
+        except ValueError:
+            return 0
+
+    @property
+    def icon(self):
+        if not self._device.available:
+            return "mdi:lan-disconnect"
+        if self.state > 0:
+            return "mdi:bell-alert"
+        return "mdi:bell-outline"
+
+    @property
+    def should_poll(self):
+        return True
+
+    @property
+    def extra_state_attributes(self):
+        return {"notifications": self._notifications}
+
+    async def async_added_to_hass(self):
+        """Handle entity about to be added to hass event."""
+        await super().async_added_to_hass()
+        last_state = await self.async_get_last_state()
+        if last_state:
+            self._last_update = dt_util.utcnow()
+            self._state = last_state.state
+
+    async def _async_update(self):
+        self._notifications = []
+        for notification in await self._hilo._api.get_event_notifications(
+            self._hilo.devices.location_id
+        ):
+            if notification.get("viewed"):
+                continue
+            self._notifications.append(
+                {
+                    "type_id": notification.get("eventTypeId"),
+                    "event_id": notification.get("eventId"),
+                    "device_id": notification.get("deviceId"),
+                    "date": from_utc_timestamp(notification.get("notificationDateUTC")),
+                    "title": notification.get("notificationTitle"),
+                    "body": notification.get("notificationBody"),
+                }
+            )
+        self._state = len(self._notifications)
+
+
 class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
     """Hilo Reward sensor.
     Its state will be either the total amount rewarded this season.
@@ -450,7 +524,7 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
                 self._state = season.get("totalReward", 0)
             events = []
             for raw_event in season.get("events", []):
-                details = await self._hilo._api.get_events(
+                details = await self._hilo._api.get_gd_events(
                     self._hilo.devices.location_id, event_id=raw_event["id"]
                 )
                 events.append(Event(**details).as_dict())
@@ -458,7 +532,7 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
             self._history.append(season)
 
 
-class HiloChallengeSensor(HiloEntity, SensorEntity):
+class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
     """Hilo challenge sensor.
     Its state will be either:
     - off: no ongoing or scheduled challenge
@@ -491,6 +565,8 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
     def icon(self):
         if not self._device.available:
             return "mdi:lan-disconnect"
+        if self.state == "appreciation":
+            return "mdi:glass-cocktail"
         if self.state == "off":
             return "mdi:lightning-bolt"
         if self.state == "scheduled":
@@ -511,11 +587,21 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
     def extra_state_attributes(self):
         return {"next_events": self._next_events}
 
+    async def async_added_to_hass(self):
+        """Handle entity about to be added to hass event."""
+        await super().async_added_to_hass()
+        last_state = await self.async_get_last_state()
+        if last_state:
+            self._last_update = dt_util.utcnow()
+            self._state = last_state.state
+            self._next_events = last_state.attributes.get("next_events", [])
+
     async def _async_update(self):
         self._next_events = []
-        events = await self._hilo._api.get_events(self._hilo.devices.location_id)
+        events = await self._hilo._api.get_gd_events(self._hilo.devices.location_id)
+        LOG.debug(f"Events received from Hilo: {events}")
         for raw_event in events:
-            details = await self._hilo._api.get_events(
+            details = await self._hilo._api.get_gd_events(
                 self._hilo.devices.location_id, event_id=raw_event["id"]
             )
             event = Event(**details)

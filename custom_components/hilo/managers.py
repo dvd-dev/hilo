@@ -14,16 +14,22 @@ from .const import HILO_ENERGY_TOTAL, LOG
 class UtilityManager:
     """Class that maps to the utility_meters"""
 
-    def __init__(self, period):
+    def __init__(self, hass, period):
+        self.hass = hass
         self.period = period
         self.meter_configs = OrderedDict()
         self.meter_entities = []
+        self.new_entities = 0
 
     def add_meter(self, entity, tariff_list):
         self.add_meter_entity(entity, tariff_list)
         self.add_meter_config(entity, tariff_list)
 
     def add_meter_entity(self, entity, tariff_list):
+        if entity in self.hass.data.get("utility_meter_data", {}):
+            LOG.debug(f"Entity {entity} is already in the utility meters")
+            return
+        self.new_entities += 1
         for tarif in tariff_list:
             name = f"{entity}_{self.period}"
             LOG.debug(f"Creating UtilityMeter entity: {name} {tarif}")
@@ -47,15 +53,18 @@ class UtilityManager:
             }
         )
 
-    async def update(self, hass, async_add_entities):
+    async def update(self, async_add_entities):
         LOG.debug(f"Setting up UtilityMeter entities {UTILITY_DOMAIN}")
+        if self.new_entities == 0:
+            LOG.debug("No new entities, not setting up again")
+            return
         config = {}
         config[UTILITY_DOMAIN] = OrderedDict(
-            {**hass.data.get("utility_meter_data", {}), **self.meter_configs}
+            {**self.hass.data.get("utility_meter_data", {}), **self.meter_configs}
         )
-        await utility_setup(hass, config)
+        await utility_setup(self.hass, config)
         await utility_setup_platform(
-            hass, config, async_add_entities, self.meter_entities
+            self.hass, config, async_add_entities, self.meter_entities
         )
 
 

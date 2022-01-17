@@ -129,93 +129,9 @@ Other options are available under the `Configure` button in Home Assistant:
   Number of seconds between each device update. Defaults to 60 and it's not recommended to go below 30 as it might
   result in a suspension from Hilo.
 
-## Lovelace sample integration
+## Lovelace sample integration and automation example
 
-Here's an example on how to add the energy data to Lovelace.
-<details>
-  <summary>Click to expand</summary>
-
-```
-     - type: vertical-stack
-        cards:
-          - type: "custom:paper-buttons-row"
-            buttons:
-              - type: entity
-                entity: sensor.hilo_gateway
-                name: false
-                action: none
-                state: false
-                state_styles:
-                  "on":
-                    button:
-                      color: green
-                  "off":
-                    button:
-                      color: red
-              - type: entity
-                entity: sensor.defi_hilo
-                state: false
-                action: none
-                state_styles:
-                  "on":
-                    button:
-                      color: red
-                  "scheduled":
-                    button:
-                      color: yellow
-                  "pre_heat":
-                    button:
-                      color: red
-                  "recovery":
-                    button:
-                      color: blue
-                  "off":
-                    button:
-                      color: green
-              - type: entity
-                entity: sensor.smartenergymeter_power
-                name: false
-                layout: icon|state
-                action: none
-                state: "{{ states(config.entity) }}"
-                icon: mdi:speedometer
-                style:
-                  button:
-                    color: >-
-                      {% if states(config.entity) | int > 1000 %}
-                        yellow
-                      {% elif states(config.entity) | int > 1500 %}
-                        orange
-                      {% elif states(config.entity) | int > 2000 %}
-                        red
-                      {% else%}
-                        green
-                      {% endif %}
-              - type: entity
-                entity: sensor.hilo_rate_current
-                name: false
-                layout: icon|state
-                action: none
-                state: "{{ states(config.entity) }}"
-                style:
-                  button:
-                    color: >-
-                      {% if states(config.entity) | float > 0.07 %}
-                        yellow
-                      {% elif states(config.entity) | float > 0.1 %}
-                        red
-                      {% else%}
-                        green
-                      {% endif %}
-
-          - type: energy-date-selection
-          - type: energy-sources-table
-          - type: energy-usage-graph
-          - type: energy-distribution
-            link_dashboard: true
-```
-</details>
-
+You can find multiple examples and ideas for lovelace dashboard, cards and automation here [in the wiki of the project](https://github.com/dvd-dev/hilo/wiki/Utilisation)
 
 
 ## References
@@ -230,15 +146,7 @@ For now, these are the swagger links we've found:
 
 ## FAQ
 
-Q: I see no data or receive no readings?
-A: Try to reboot your Hilo gateway, it's been known to solve issues like this. If that doesn't work, open an issue.
-
-Q: When there's a challenge, Hilo can't read my power usage.
-A: Contact Hilo, this looks like it's a problem on their side, see issue #15
-
-Q: There's a naming conflict in my entities.
-A: We need to rely on unique names for entities. This is how we generate their unique ids. You can't have 2 lights
-   named Light. See issue #11
+You can find the FAQ in the wiki of the project: https://github.com/dvd-dev/hilo/wiki/FAQ
 
 ## Contributing
 

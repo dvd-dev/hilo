@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
     HVAC_MODE_HEAT,
@@ -12,6 +14,25 @@ from homeassistant.util import slugify
 
 from . import Hilo, HiloEntity
 from .const import CLIMATE_CLASSES, DOMAIN, LOG
+
+
+def validate_reduction_phase(events, tag):
+    if not events:
+        return
+    current = events[0]
+    phases = current["phases"]
+    start = phases["reduction_start"]
+    end = phases["reduction_end"]
+    if (
+        start + timedelta(minutes=2)
+        < datetime.now(start.tzinfo)
+        < end - timedelta(minutes=2)
+    ):
+        LOG.warning(
+            f"{tag} Attempt to set temperature was blocked because challenge lock is active"
+        )
+        # Raising an exception here will raise it up to the GUI
+        raise Exception("Challenge lock is active, unable to change temperature target")
 
 
 async def async_setup_entry(
@@ -75,11 +96,9 @@ class HiloClimate(HiloEntity, ClimateEntity):
         if ATTR_TEMPERATURE in kwargs:
             if self._hilo.challenge_lock:
                 challenge = self._hilo._hass.states.get("sensor.defi_hilo")
-                if challenge.state == "reduction":
-                    LOG.warning(
-                        f"{self._device._tag} Attempt to set temperature to {kwargs[ATTR_TEMPERATURE]} was blocked because challenge lock is active"
-                    )
-                    return
+                validate_reduction_phase(
+                    challenge.attributes.get("next_events", []), self._device._tag
+                )
             LOG.info(
                 f"{self._device._tag} Setting temperature to {kwargs[ATTR_TEMPERATURE]}"
             )
