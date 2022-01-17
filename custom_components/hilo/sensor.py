@@ -599,6 +599,7 @@ class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
     async def _async_update(self):
         self._next_events = []
         events = await self._hilo._api.get_gd_events(self._hilo.devices.location_id)
+        LOG.debug(f"Events received from Hilo: {events}")
         for raw_event in events:
             details = await self._hilo._api.get_gd_events(
                 self._hilo.devices.location_id, event_id=raw_event["id"]
