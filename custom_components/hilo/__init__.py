@@ -461,6 +461,7 @@ class Hilo:
         )
         known_power = 0
         smart_meter = "sensor.smartenergymeter_power"
+        smart_meter_00 = "sensor.meter00_power"
         unknown_source_tracker = "sensor.unknown_source_tracker_power"
         for state in self._hass.states.async_all():
             entity = state.entity_id
@@ -468,6 +469,7 @@ class Hilo:
             if entity.endswith("_power") and entity not in [
                 unknown_source_tracker,
                 smart_meter,
+                smart_meter_00
             ]:
                 try:
                     known_power += int(float(state.state))
@@ -478,6 +480,8 @@ class Hilo:
             self.fix_utility_sensor(entity, state)
         if self.track_unknown_sources:
             total_power = self._hass.states.get(smart_meter)
+            if not total_power:
+                total_power = self._hass.states.get(smart_meter_00)
             unknown_power = int(total_power.state) - known_power
             self.devices.parse_values_received(
                 [
