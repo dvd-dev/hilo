@@ -532,7 +532,7 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
             self._history.append(season)
 
 
-class HiloChallengeSensor(HiloEntity, SensorEntity):
+class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
     """Hilo challenge sensor.
     Its state will be either:
     - off: no ongoing or scheduled challenge
@@ -586,6 +586,15 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
     @property
     def extra_state_attributes(self):
         return {"next_events": self._next_events}
+
+    async def async_added_to_hass(self):
+        """Handle entity about to be added to hass event."""
+        await super().async_added_to_hass()
+        last_state = await self.async_get_last_state()
+        if last_state:
+            self._last_update = dt_util.utcnow()
+            self._state = last_state.state
+            self._next_events = last_state.attributes.get("next_events", [])
 
     async def _async_update(self):
         self._next_events = []
