@@ -469,7 +469,7 @@ class Hilo:
             if entity.endswith("_power") and entity not in [
                 unknown_source_tracker,
                 smart_meter,
-                smart_meter_alternate
+                smart_meter_alternate,
             ]:
                 try:
                     known_power += int(float(state.state))
