@@ -8,6 +8,7 @@
 [![calver][calver-shield]][calver]
 [![lgtm-alert][lgtm-alert-shield]][lgtm-alert]
 [![lgtm-grade][lgtm-grade-shield]][lgtm-grade]
+[![discord][discord-shield]][discord]
 
 
 **BETA** This is a beta release. There will be some bugs, issues, etc. Please bear with us and open issues in the repo.
@@ -195,3 +196,5 @@ If you have any kind of python/home-assistant experience and want to contribute 
 [lgtm-alert-shield]: https://img.shields.io/lgtm/alerts/g/dvd-dev/hilo.svg?logo=lgtm&style=for-the-badge
 [lgtm-grade]: https://lgtm.com/projects/g/dvd-dev/hilo/context:python
 [lgtm-grade-shield]: https://img.shields.io/lgtm/grade/python/g/dvd-dev/hilo.svg?logo=lgtm&style=for-the-badge
+[discord-shield]: https://img.shields.io/badge/discord-Chat-green?logo=discord&style=for-the-badge
+[discord]: https://discord.gg/AHqW3vKx
