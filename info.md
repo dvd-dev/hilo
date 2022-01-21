@@ -8,6 +8,7 @@
 [![calver][calver-shield]][calver]
 [![lgtm-alert][lgtm-alert-shield]][lgtm-alert]
 [![lgtm-grade][lgtm-grade-shield]][lgtm-grade]
+[![discord][discord-shield]][discord]
 
 
 This is the unofficial Hilo integration. [Hilo](https://www.hiloenergie.com/en-ca/) is a smart home platform developed
@@ -222,3 +223,5 @@ Credits to to [Francis Poisson](https://github.com/francispoisson/) who's the or
 [lgtm-alert-shield]: https://img.shields.io/lgtm/alerts/g/dvd-dev/hilo.svg?logo=lgtm&style=for-the-badge
 [lgtm-grade]: https://lgtm.com/projects/g/dvd-dev/hilo/context:python
 [lgtm-grade-shield]: https://img.shields.io/lgtm/grade/python/g/dvd-dev/hilo.svg?logo=lgtm&style=for-the-badge
+[discord-shield]: https://img.shields.io/badge/discord-Chat-green?logo=discord&style=for-the-badge
+[discord]: https://discord.gg/AHqW3vKx
