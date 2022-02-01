@@ -197,4 +197,4 @@ If you have any kind of python/home-assistant experience and want to contribute 
 [lgtm-grade]: https://lgtm.com/projects/g/dvd-dev/hilo/context:python
 [lgtm-grade-shield]: https://img.shields.io/lgtm/grade/python/g/dvd-dev/hilo.svg?logo=lgtm&style=for-the-badge
 [discord-shield]: https://img.shields.io/badge/discord-Chat-green?logo=discord&style=for-the-badge
-[discord]: https://discord.gg/AHqW3vKx
+[discord]: https://discord.gg/MD5ydRJxpc
