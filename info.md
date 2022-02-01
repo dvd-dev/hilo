@@ -224,4 +224,4 @@ Credits to to [Francis Poisson](https://github.com/francispoisson/) who's the or
 [lgtm-grade]: https://lgtm.com/projects/g/dvd-dev/hilo/context:python
 [lgtm-grade-shield]: https://img.shields.io/lgtm/grade/python/g/dvd-dev/hilo.svg?logo=lgtm&style=for-the-badge
 [discord-shield]: https://img.shields.io/badge/discord-Chat-green?logo=discord&style=for-the-badge
-[discord]: https://discord.gg/AHqW3vKx
+[discord]: https://discord.gg/MD5ydRJxpc
