@@ -32,10 +32,11 @@ class UtilityManager:
         self.new_entities += 1
         for tarif in tariff_list:
             name = f"{entity}_{self.period}"
-            LOG.debug(f"Creating UtilityMeter entity: {name} {tarif}")
-            self.meter_entities[name] = {
+            meter_name = f"{name} {tarif}"
+            LOG.debug(f"Creating UtilityMeter entity for {entity}: {meter_name}")
+            self.meter_entities[meter_name] = {
                 "meter": entity,
-                "name": f"{name} {tarif}",
+                "name": meter_name,
                 "tariff": tarif,
             }
 
