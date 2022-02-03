@@ -5,7 +5,6 @@ from datetime import timedelta
 
 from homeassistant.components.integration.sensor import (
     LEFT_METHOD,
-    TRAPEZOIDAL_METHOD,
     IntegrationSensor,
 )
 from homeassistant.components.sensor import (
