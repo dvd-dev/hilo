@@ -33,7 +33,7 @@ class UtilityManager:
         for tarif in tariff_list:
             name = f"{entity}_{self.period}"
             LOG.debug(f"Creating UtilityMeter entity: {name} {tarif}")
-            self.meter_entities[entity] = {
+            self.meter_entities[name] = {
                 "meter": entity,
                 "name": f"{name} {tarif}",
                 "tariff": tarif,
