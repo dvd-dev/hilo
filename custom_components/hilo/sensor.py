@@ -3,10 +3,8 @@ from __future__ import annotations
 
 from datetime import timedelta
 
-from homeassistant.components.integration.sensor import (
-    LEFT_METHOD,
-    IntegrationSensor,
-)
+import homeassistant.util.dt as dt_util
+from homeassistant.components.integration.sensor import LEFT_METHOD, IntegrationSensor
 from homeassistant.components.sensor import (
     STATE_CLASS_MEASUREMENT,
     STATE_CLASS_TOTAL_INCREASING,
@@ -36,7 +34,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import Throttle, slugify
-import homeassistant.util.dt as dt_util
 from pyhilo.device import HiloDevice
 from pyhilo.event import Event
 from pyhilo.util import from_utc_timestamp
