@@ -5,6 +5,7 @@ from datetime import timedelta
 
 from homeassistant.components.integration.sensor import (
     TRAPEZOIDAL_METHOD,
+    LEFT_METHOD,
     IntegrationSensor,
 )
 from homeassistant.components.sensor import (
@@ -252,6 +253,7 @@ class EnergySensor(IntegrationSensor):
         self._attr_name = f"hilo_energy_{slugify(device.name)}"
         self._unit_of_measurement = ENERGY_WATT_HOUR
         self._unit_prefix = None
+        self._net_consumption = True
         if device.type == "Meter":
             self._attr_name = HILO_ENERGY_TOTAL
             self._unit_of_measurement = ENERGY_KILO_WATT_HOUR
@@ -268,7 +270,7 @@ class EnergySensor(IntegrationSensor):
             self._unit_prefix,
             "h",
             self._unit_of_measurement,
-            TRAPEZOIDAL_METHOD,
+            LEFT_METHOD,
         )
         self._state = 0
         self._last_period = 0
@@ -517,19 +519,22 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
             self._state = last_state.state
 
     async def _async_update(self):
-        self._history = []
         seasons = await self._hilo._api.get_seasons(self._hilo.devices.location_id)
-        for idx, season in enumerate(seasons):
-            if idx == 0:
-                self._state = season.get("totalReward", 0)
-            events = []
-            for raw_event in season.get("events", []):
-                details = await self._hilo._api.get_gd_events(
-                    self._hilo.devices.location_id, event_id=raw_event["id"]
-                )
-                events.append(Event(**details).as_dict())
-            season["events"] = events
-            self._history.append(season)
+        if seasons:
+            new_history = []
+            for idx, season in enumerate(seasons):
+                if idx == 0:
+                    self._state = season.get("totalReward", 0)
+                events = []
+                for raw_event in season.get("events", []):
+                    details = await self._hilo._api.get_gd_events(
+                        self._hilo.devices.location_id, event_id=raw_event["id"]
+                    )
+                    events.append(Event(**details).as_dict())
+                season["events"] = events
+                new_history.append(season)
+            self._history = []
+            self._history = new_history
 
 
 class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
@@ -597,7 +602,7 @@ class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
             self._next_events = last_state.attributes.get("next_events", [])
 
     async def _async_update(self):
-        self._next_events = []
+        new_events = []
         events = await self._hilo._api.get_gd_events(self._hilo.devices.location_id)
         LOG.debug(f"Events received from Hilo: {events}")
         for raw_event in events:
@@ -607,10 +612,14 @@ class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
             event = Event(**details)
             if self._hilo.appreciation > 0:
                 event.appreciation(self._hilo.appreciation)
-            self._next_events.append(event.as_dict())
-        self._state = "off"
-        if len(self._next_events):
-            self._state = self._next_events[0]["state"]
+            new_events.append(event.as_dict())
+        if len(new_events):
+            self._state = new_events[0]["state"]
+            self._next_events = []
+            self._next_events = new_events
+        else:
+            self._state = "off"
+            self._next_events = []
 
 
 class DeviceSensor(HiloEntity, SensorEntity):
