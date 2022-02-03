@@ -18,7 +18,7 @@ class UtilityManager:
         self.hass = hass
         self.period = period
         self.meter_configs = OrderedDict()
-        self.meter_entities = []
+        self.meter_entities = {}
         self.new_entities = 0
 
     def add_meter(self, entity, tariff_list):
@@ -32,10 +32,13 @@ class UtilityManager:
         self.new_entities += 1
         for tarif in tariff_list:
             name = f"{entity}_{self.period}"
-            LOG.debug(f"Creating UtilityMeter entity: {name} {tarif}")
-            self.meter_entities.append(
-                {"meter": entity, "name": f"{name} {tarif}", "tariff": tarif}
-            )
+            meter_name = f"{name} {tarif}"
+            LOG.debug(f"Creating UtilityMeter entity for {entity}: {meter_name}")
+            self.meter_entities[meter_name] = {
+                "meter": entity,
+                "name": meter_name,
+                "tariff": tarif,
+            }
 
     def add_meter_config(self, entity, tariff_list):
         name = f"{entity}_{self.period}"
