@@ -4,8 +4,8 @@ from __future__ import annotations
 from datetime import timedelta
 
 from homeassistant.components.integration.sensor import (
-    TRAPEZOIDAL_METHOD,
     LEFT_METHOD,
+    TRAPEZOIDAL_METHOD,
     IntegrationSensor,
 )
 from homeassistant.components.sensor import (
