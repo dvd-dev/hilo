@@ -635,6 +635,10 @@ class DeviceSensor(HiloEntity, SensorEntity):
         return "on" if self._device.available else "off"
 
     @property
+    def extra_state_attributes(self):
+        return {k: self._device.get_value(k) for k in self._device.attributes}
+
+    @property
     def icon(self):
         if not self._device.available:
             return "mdi:lan-disconnect"
