@@ -249,7 +249,6 @@ class EnergySensor(IntegrationSensor):
         self._attr_name = f"hilo_energy_{slugify(device.name)}"
         self._unit_of_measurement = ENERGY_WATT_HOUR
         self._unit_prefix = None
-        self._net_consumption = True
         if device.type == "Meter":
             self._attr_name = HILO_ENERGY_TOTAL
             self._unit_of_measurement = ENERGY_KILO_WATT_HOUR
@@ -529,7 +528,6 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
                     events.append(Event(**details).as_dict())
                 season["events"] = events
                 new_history.append(season)
-            self._history = []
             self._history = new_history
 
 
@@ -609,13 +607,11 @@ class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
             if self._hilo.appreciation > 0:
                 event.appreciation(self._hilo.appreciation)
             new_events.append(event.as_dict())
+        self._state = "off"
+        self._next_events = []
         if len(new_events):
             self._state = new_events[0]["state"]
-            self._next_events = []
             self._next_events = new_events
-        else:
-            self._state = "off"
-            self._next_events = []
 
 
 class DeviceSensor(HiloEntity, SensorEntity):
