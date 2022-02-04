@@ -156,7 +156,8 @@ async def async_setup_entry(
         if device.type == "Meter":
             energy_entity = HILO_ENERGY_TOTAL
             tariff_list = validate_tariff_list(tariff_config)
-        utility_manager.add_meter(energy_entity, tariff_list)
+        net_consumption = device.net_consumption
+        utility_manager.add_meter(energy_entity, tariff_list, net_consumption)
         energy_manager.add_to_dashboard(energy_entity, tariff_list)
 
     for d in hilo.devices.all:

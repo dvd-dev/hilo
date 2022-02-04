@@ -312,6 +312,7 @@ class Hilo:
                 self.unknown_tracker_device = self.devices.generate_device(
                     self._get_unknown_source_tracker()
                 )
+                self.unknown_tracker_device.net_consumption = True
             _async_register_custom_device(
                 self._hass, self.entry, self.unknown_tracker_device
             )

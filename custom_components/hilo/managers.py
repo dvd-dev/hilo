@@ -21,9 +21,9 @@ class UtilityManager:
         self.meter_entities = {}
         self.new_entities = 0
 
-    def add_meter(self, entity, tariff_list):
+    def add_meter(self, entity, tariff_list, net_consumption=False):
         self.add_meter_entity(entity, tariff_list)
-        self.add_meter_config(entity, tariff_list)
+        self.add_meter_config(entity, tariff_list, net_consumption)
 
     def add_meter_entity(self, entity, tariff_list):
         if entity in self.hass.data.get("utility_meter_data", {}):
@@ -40,16 +40,18 @@ class UtilityManager:
                 "tariff": tarif,
             }
 
-    def add_meter_config(self, entity, tariff_list):
+    def add_meter_config(self, entity, tariff_list, net_consumption):
         name = f"{entity}_{self.period}"
-        LOG.debug(f"Creating UtilityMeter config: {name} {tariff_list}")
+        LOG.debug(
+            f"Creating UtilityMeter config: {name} {tariff_list} (Net Consumption: {net_consumption})"
+        )
         self.meter_configs[entity] = OrderedDict(
             {
                 "source": f"sensor.{entity}",
                 "name": name,
                 "cycle": self.period,
                 "tariffs": tariff_list,
-                "net_consumption": False,
+                "net_consumption": net_consumption,
                 "utility_meter_sensors": [],
                 "offset": timedelta(0),
                 "delta_values": False,
