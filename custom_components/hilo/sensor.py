@@ -51,9 +51,11 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_UNTARIFICATED_DEVICES,
     DOMAIN,
+    EVENT_SCAN_INTERVAL,
     HILO_ENERGY_TOTAL,
     HILO_SENSOR_CLASSES,
     LOG,
+    REWARD_SCAN_INTERVAL,
     TARIFF_LIST,
 )
 from .managers import EnergyManager, UtilityManager
@@ -486,7 +488,7 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
         self._attr_native_unit_of_measurement = hilo._hass.config.currency
         self._state = 0
         self._history = []
-        self.async_update = Throttle(self.scan_interval)(self._async_update)
+        self.async_update = Throttle(REWARD_SCAN_INTERVAL)(self._async_update)
 
     @property
     def state(self):
@@ -555,7 +557,7 @@ class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
         self.scan_interval = timedelta(seconds=scan_interval)
         self._state = "off"
         self._next_events = []
-        self.async_update = Throttle(self.scan_interval)(self._async_update)
+        self.async_update = Throttle(EVENT_SCAN_INTERVAL)(self._async_update)
 
     @property
     def state(self):
