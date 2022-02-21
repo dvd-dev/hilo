@@ -484,11 +484,11 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
         super().__init__(hilo, name=self._attr_name, device=device)
         self._attr_unique_id = slugify(self._attr_name)
         LOG.debug(f"Setting up RewardSensor entity: {self._attr_name}")
-        self.scan_interval = timedelta(seconds=scan_interval)
+        self.scan_interval = timedelta(seconds=REWARD_SCAN_INTERVAL)
         self._attr_native_unit_of_measurement = hilo._hass.config.currency
         self._state = 0
         self._history = []
-        self.async_update = Throttle(REWARD_SCAN_INTERVAL)(self._async_update)
+        self.async_update = Throttle(self.scan_interval)(self._async_update)
 
     @property
     def state(self):
@@ -554,10 +554,10 @@ class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
         super().__init__(hilo, name=self._attr_name, device=device)
         self._attr_unique_id = slugify(self._attr_name)
         LOG.debug(f"Setting up ChallengeSensor entity: {self._attr_name}")
-        self.scan_interval = timedelta(seconds=scan_interval)
+        self.scan_interval = timedelta(seconds=EVENT_SCAN_INTERVAL)
         self._state = "off"
         self._next_events = []
-        self.async_update = Throttle(EVENT_SCAN_INTERVAL)(self._async_update)
+        self.async_update = Throttle(self.scan_interval)(self._async_update)
 
     @property
     def state(self):
