@@ -413,15 +413,15 @@ class Hilo:
                 LOG.warning(f"Unable to set state because there's no current: {params}")
                 return
             attrs = {}
+            attrs["last_update"] = datetime.now()
         else:
-            attrs = current.as_dict()["attributes"]
+            attrs = current.as_dict()["attributes"]                    
         LOG.debug(f"Setting state {params} {current}")
-        attrs["last_update"] = datetime.now()
-        attrs = {**attrs, **new_attrs}
+        attrs = {**attrs, **new_attrs}        
         if keep_state and current:
-            state = current.state
+            state = current.state                
         if "Cost" in attrs:
-            attrs["Cost"] = state
+            attrs["Cost"] = state                
         self._hass.states.async_set(entity, state, attrs)
 
     @property
