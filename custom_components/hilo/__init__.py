@@ -413,10 +413,10 @@ class Hilo:
                 LOG.warning(f"Unable to set state because there's no current: {params}")
                 return
             attrs = {}
-            attrs["last_update"] = datetime.now()
         else:
-            attrs = current.as_dict()["attributes"]
+            attrs = dict(current.as_dict()["attributes"])
         LOG.debug(f"Setting state {params} {current}")
+        attrs["last_update"] = datetime.now()
         attrs = {**attrs, **new_attrs}
         if keep_state and current:
             state = current.state
