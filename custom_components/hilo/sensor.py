@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from datetime import timedelta
 
-from homeassistant.components.integration.sensor import LEFT_METHOD, IntegrationSensor
+from homeassistant.components.integration.sensor import METHOD_LEFT, IntegrationSensor
 from homeassistant.components.sensor import (
     STATE_CLASS_MEASUREMENT,
     STATE_CLASS_TOTAL_INCREASING,
@@ -262,13 +262,14 @@ class EnergySensor(IntegrationSensor):
         self._source = f"sensor.{slugify(device.name)}_power"
 
         super().__init__(
-            self._source,
-            self._attr_name,
-            2,
-            self._unit_prefix,
-            "h",
-            self._unit_of_measurement,
-            LEFT_METHOD,
+            integration_method=METHOD_LEFT,
+            name=self._attr_name,
+            round_digits=2,
+            source_entity=self._source,
+            unique_id=self._attr_unique_id,
+            unit_of_measurement=self._unit_of_measurement,
+            unit_prefix=self._unit_prefix,
+            unit_time="h",
         )
         self._state = 0
         self._last_period = 0
