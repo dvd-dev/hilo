@@ -40,10 +40,10 @@ MIN_SCAN_INTERVAL = 15
 CONF_TARIFF = {
     "rate d": {
         "low_threshold": 40,
-        "low": 0.06159,
-        "medium": 0.09502,
+        "low": 0.06319,
+        "medium": 0.09749,
         "high": 0,
-        "access": 0.41168,
+        "access": 0.42238,
         "reward_rate": 0.55,
     },
     "flex d": {
