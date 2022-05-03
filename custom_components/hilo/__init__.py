@@ -36,6 +36,7 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
 )
 from pyhilo import API
+from pyhilo.const import DEFAULT_STATE_FILE
 from pyhilo.device import HiloDevice
 from pyhilo.devices import Devices
 from pyhilo.exceptions import HiloError, InvalidCredentialsError, WebsocketError
@@ -122,7 +123,7 @@ async def async_setup_entry(  # noqa: C901
     current_options = {**entry.options}
     log_traces = current_options.get(CONF_LOG_TRACES, DEFAULT_LOG_TRACES)
     scan_interval = current_options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
-    state_yaml = hass.config.path("hilo_state.yaml")
+    state_yaml = hass.config.path(DEFAULT_STATE_FILE)
 
     websession = aiohttp_client.async_get_clientsession(hass)
 
