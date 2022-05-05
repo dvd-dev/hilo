@@ -12,5 +12,5 @@
   ],
   "codeowners": ["@dvd-dev"],
   "iot_class": "cloud_polling",
-  "version": "2022.5.2"
+  "version": "2022.5.3"
 }
