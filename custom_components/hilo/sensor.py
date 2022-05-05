@@ -267,7 +267,6 @@ class EnergySensor(IntegrationSensor):
             round_digits=2,
             source_entity=self._source,
             unique_id=self._attr_unique_id,
-            unit_of_measurement=self._unit_of_measurement,
             unit_prefix=self._unit_prefix,
             unit_time="h",
         )
