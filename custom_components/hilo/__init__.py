@@ -434,7 +434,7 @@ class Hilo:
 
     def check_tarif(self):
         tarif = "low"
-        base_sensor = f"sensor.{HILO_ENERGY_TOTAL}_daily_low"
+        base_sensor = f"sensor.{HILO_ENERGY_TOTAL}_low"
         energy_used = self._hass.states.get(base_sensor)
         if not energy_used:
             LOG.warning(f"check_tarif: Unable to find state for {base_sensor}")
