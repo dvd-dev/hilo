@@ -1,7 +1,7 @@
 {
   "name": "Hilo",
   "hacs": "1.6.0",
-  "domains": ["climate", "sensor", "light", "utility_meter"],
   "country": "CA",
+  "render_readme": true,
   "homeassistant": "2022.4.0"
 }
