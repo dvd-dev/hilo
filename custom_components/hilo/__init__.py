@@ -6,10 +6,10 @@ from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Union
 
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
-from homeassistant.components.utility_meter.const import (
-    ATTR_TARIFF,
-    DOMAIN as UTIL_METER_DOMAIN,
-    SERVICE_SELECT_TARIFF,
+from homeassistant.components.select.const import (
+    ATTR_OPTION,
+    DOMAIN as SELECT_DOMAIN,
+    SERVICE_SELECT_OPTION,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -537,10 +537,12 @@ class Hilo:
                 f"check_tarif: Changing tarif of {entity} from {current} to {new}"
             )
             context = Context()
-            data = {ATTR_TARIFF: new, "entity_id": entity}
             self._hass.async_create_task(
                 self._hass.services.async_call(
-                    UTIL_METER_DOMAIN, SERVICE_SELECT_TARIFF, data, context=context
+                    SELECT_DOMAIN,
+                    SERVICE_SELECT_OPTION,
+                    {ATTR_ENTITY_ID: entity, ATTR_OPTION: new},
+                    context=context,
                 )
             )
 
