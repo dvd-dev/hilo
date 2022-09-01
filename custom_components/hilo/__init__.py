@@ -537,7 +537,7 @@ class Hilo:
                 f"check_tarif: Changing tarif of {entity} from {current} to {new}"
             )
             context = Context()
-            data = {ATTR_TARIFF: new, "entity_id": entity}
+            data = {ATTR_OPTION: new, "entity_id": entity}
             self._hass.async_create_task(
                 self._hass.services.async_call(
                     SELECT_DOMAIN, SERVICE_SELECT_OPTION, data, context=context
