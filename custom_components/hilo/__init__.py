@@ -529,10 +529,10 @@ class Hilo:
     def set_tarif(self, entity, current, new):
         if (
             self.untarificated_devices
-            and entity != f"utility_meter.{HILO_ENERGY_TOTAL}"
+            and entity != f"select.{HILO_ENERGY_TOTAL}"
         ):
             return
-        if entity.startswith("utility_meter.hilo_energy") and current != new:
+        if entity.startswith("select.hilo_energy") and current != new:
             LOG.debug(
                 f"check_tarif: Changing tarif of {entity} from {current} to {new}"
             )
