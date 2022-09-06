@@ -164,13 +164,6 @@ async def async_setup_entry(  # noqa: C901
     hass.data[DOMAIN][entry.entry_id] = hilo
 
     hass.config_entries.async_setup_platforms(entry, PLATFORMS)
-    
-#    async def handle_subscribe_to_location(call):
-#        """Handle the service call."""
-#        name = call.data.get(ATTR_NAME, DEFAULT_NAME)
-
-    
-#    hass.services.register(DOMAIN, "subscribe_to_location", handle_subscribe_to_location)
 
     async def async_reload_entry(_: HomeAssistant, updated_entry: ConfigEntry) -> None:
         """Handle an options update.
