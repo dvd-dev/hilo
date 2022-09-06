@@ -5,12 +5,12 @@ import asyncio
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Union
 
-from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from homeassistant.components.select.const import (
     ATTR_OPTION,
     DOMAIN as SELECT_DOMAIN,
     SERVICE_SELECT_OPTION,
 )
+from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_DEVICE_CLASS,
@@ -164,6 +164,13 @@ async def async_setup_entry(  # noqa: C901
     hass.data[DOMAIN][entry.entry_id] = hilo
 
     hass.config_entries.async_setup_platforms(entry, PLATFORMS)
+    
+#    async def handle_subscribe_to_location(call):
+#        """Handle the service call."""
+#        name = call.data.get(ATTR_NAME, DEFAULT_NAME)
+
+    
+#    hass.services.register(DOMAIN, "subscribe_to_location", handle_subscribe_to_location)
 
     async def async_reload_entry(_: HomeAssistant, updated_entry: ConfigEntry) -> None:
         """Handle an options update.
@@ -527,10 +534,7 @@ class Hilo:
 
     @callback
     def set_tarif(self, entity, current, new):
-        if (
-            self.untarificated_devices
-            and entity != f"select.{HILO_ENERGY_TOTAL}"
-        ):
+        if self.untarificated_devices and entity != f"select.{HILO_ENERGY_TOTAL}":
             return
         if entity.startswith("select.hilo_energy") and current != new:
             LOG.debug(
