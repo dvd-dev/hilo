@@ -5,12 +5,12 @@ import asyncio
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Union
 
-from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
-from homeassistant.components.utility_meter.const import (
-    ATTR_TARIFF,
-    DOMAIN as UTIL_METER_DOMAIN,
-    SERVICE_SELECT_TARIFF,
+from homeassistant.components.select.const import (
+    ATTR_OPTION,
+    DOMAIN as SELECT_DOMAIN,
+    SERVICE_SELECT_OPTION,
 )
+from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_DEVICE_CLASS,
@@ -527,20 +527,17 @@ class Hilo:
 
     @callback
     def set_tarif(self, entity, current, new):
-        if (
-            self.untarificated_devices
-            and entity != f"utility_meter.{HILO_ENERGY_TOTAL}"
-        ):
+        if self.untarificated_devices and entity != f"select.{HILO_ENERGY_TOTAL}":
             return
-        if entity.startswith("utility_meter.hilo_energy") and current != new:
+        if entity.startswith("select.hilo_energy") and current != new:
             LOG.debug(
                 f"check_tarif: Changing tarif of {entity} from {current} to {new}"
             )
             context = Context()
-            data = {ATTR_TARIFF: new, "entity_id": entity}
+            data = {ATTR_OPTION: new, "entity_id": entity}
             self._hass.async_create_task(
                 self._hass.services.async_call(
-                    UTIL_METER_DOMAIN, SERVICE_SELECT_TARIFF, data, context=context
+                    SELECT_DOMAIN, SERVICE_SELECT_OPTION, data, context=context
                 )
             )
 
