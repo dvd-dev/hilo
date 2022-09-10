@@ -3,5 +3,5 @@
   "hacs": "1.6.0",
   "country": "CA",
   "render_readme": true,
-  "homeassistant": "2022.4.0"
+  "homeassistant": "2022.9.0"
 }
