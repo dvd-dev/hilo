@@ -55,13 +55,23 @@ rewrite it. Hilo is now pushing device readings via websocket from SignalR.
 
 ## Installation
 
-### Manual
+### Step 1: Download files
 
-Copy the `custom_components/hilo` directory from the latest release to your `custom_components` directory.
+#### Option 1: Via HACS
 
-### HACS
+Make sure you have [HACS](https://hacs.xyz/docs/setup/download/) installed.  
+Under HACS, click the '+ EXPLORE & DOWNLOAD REPOSITORIES' button on the bottom of the page, serch for "Hilo", choose it, and click _download_ in HACS.
 
-Follow standard HACS procedure to install.
+#### Option 2: Manual
+
+Download and copy the `custom_components/hilo` directory from the [latest release](https://github.com/dvd-dev/hilo/releases/latest) to your `custom_components` directory in HA.
+
+### Step 2: Add integration to HA (<--- this is a step that a lot of people forget)
+
+In HA, go to Settings > Devices & Services > Integrations.
+In the bottom right corner, click the '+ ADD INTEGRATION' button.
+
+If the component is properly installed, you should be able to find the 'Hilo integration' in the list. You might need to clear you browser cache for the integration to show up.
 
 ## Configuration
 
