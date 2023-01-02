@@ -5,12 +5,12 @@ import asyncio
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Union
 
-from homeassistant.components.select.const import (
+from homeassistant.components.select import (
     ATTR_OPTION,
     DOMAIN as SELECT_DOMAIN,
     SERVICE_SELECT_OPTION,
 )
-from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
+from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_DEVICE_CLASS,
@@ -19,8 +19,8 @@ from homeassistant.const import (
     CONF_SCAN_INTERVAL,
     CONF_TOKEN,
     CONF_USERNAME,
-    DEVICE_CLASS_ENERGY,
     EVENT_HOMEASSISTANT_STOP,
+    Platform,
 )
 from homeassistant.core import Context, Event, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
@@ -69,9 +69,12 @@ from .const import (
 
 DISPATCHER_TOPIC_WEBSOCKET_EVENT = "pyhilo_websocket_event"
 SIGNAL_UPDATE_ENTITY = "pyhilo_device_update_{}"
-# COORDINATOR_AWARE_PLATFORMS = [SENSOR_DOMAIN, BINARY_SENSOR_DOMAIN]
-COORDINATOR_AWARE_PLATFORMS = [SENSOR_DOMAIN]
-PLATFORMS = COORDINATOR_AWARE_PLATFORMS + ["climate", "light", "switch"]
+COORDINATOR_AWARE_PLATFORMS = [Platform.SENSOR]
+PLATFORMS = COORDINATOR_AWARE_PLATFORMS + [
+    Platform.CLIMATE,
+    Platform.LIGHT,
+    Platform.SWITCH,
+]
 
 
 @callback
@@ -517,7 +520,7 @@ class Hilo:
             ATTR_UNIT_OF_MEASUREMENT: parent_unit.as_dict()
             .get("attributes", {})
             .get(ATTR_UNIT_OF_MEASUREMENT),
-            ATTR_DEVICE_CLASS: DEVICE_CLASS_ENERGY,
+            ATTR_DEVICE_CLASS: SensorDeviceClass.ENERGY,
         }
         if not all(a in attrs.keys() for a in new_attrs.keys()):
             LOG.warning(

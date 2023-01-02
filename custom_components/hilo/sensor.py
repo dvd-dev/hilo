@@ -5,22 +5,15 @@ from datetime import timedelta
 
 from homeassistant.components.integration.sensor import METHOD_LEFT, IntegrationSensor
 from homeassistant.components.sensor import (
-    STATE_CLASS_MEASUREMENT,
-    STATE_CLASS_TOTAL_INCREASING,
+    SensorDeviceClass,
     SensorEntity,
+    SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONCENTRATION_PARTS_PER_MILLION,
     CONF_SCAN_INTERVAL,
     CURRENCY_DOLLAR,
-    DEVICE_CLASS_BATTERY,
-    DEVICE_CLASS_CO2,
-    DEVICE_CLASS_ENERGY,
-    DEVICE_CLASS_MONETARY,
-    DEVICE_CLASS_POWER,
-    DEVICE_CLASS_SIGNAL_STRENGTH,
-    DEVICE_CLASS_TEMPERATURE,
     ENERGY_KILO_WATT_HOUR,
     ENERGY_WATT_HOUR,
     PERCENTAGE,
@@ -191,9 +184,9 @@ async def async_setup_entry(
 class BatterySensor(HiloEntity, SensorEntity):
     """Define a Battery sensor entity."""
 
-    _attr_device_class = DEVICE_CLASS_BATTERY
+    _attr_device_class = SensorDeviceClass.BATTERY
     _attr_native_unit_of_measurement = PERCENTAGE
-    _attr_state_class = STATE_CLASS_MEASUREMENT
+    _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(self, hilo, device):
         self._attr_name = f"{device.name} Battery"
@@ -218,9 +211,9 @@ class BatterySensor(HiloEntity, SensorEntity):
 class Co2Sensor(HiloEntity, SensorEntity):
     """Define a Co2 sensor entity."""
 
-    _attr_device_class = DEVICE_CLASS_CO2
+    _attr_device_class = SensorDeviceClass.CO2
     _attr_native_unit_of_measurement = CONCENTRATION_PARTS_PER_MILLION
-    _attr_state_class = STATE_CLASS_MEASUREMENT
+    _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(self, hilo, device):
         self._attr_name = f"{device.name} WifiStrength"
@@ -242,9 +235,9 @@ class Co2Sensor(HiloEntity, SensorEntity):
 class EnergySensor(IntegrationSensor):
     """Define a Hilo energy sensor entity."""
 
-    _attr_device_class = DEVICE_CLASS_ENERGY
+    _attr_device_class = SensorDeviceClass.ENERGY
     _attr_native_unit_of_measurement = ENERGY_WATT_HOUR
-    _attr_state_class = STATE_CLASS_MEASUREMENT
+    _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_icon = "mdi:lightning-bolt"
 
     def __init__(self, device):
@@ -291,9 +284,8 @@ class EnergySensor(IntegrationSensor):
 class NoiseSensor(HiloEntity, SensorEntity):
     """Define a Netatmo noise sensor entity."""
 
-    _attr_device_class = None
     _attr_native_unit_of_measurement = SOUND_PRESSURE_DB
-    _attr_state_class = STATE_CLASS_MEASUREMENT
+    _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(self, hilo, device):
         self._attr_name = f"{device.name} Noise"
@@ -317,9 +309,9 @@ class NoiseSensor(HiloEntity, SensorEntity):
 class PowerSensor(HiloEntity, SensorEntity):
     """Define a Hilo power sensor entity."""
 
-    _attr_device_class = DEVICE_CLASS_POWER
+    _attr_device_class = SensorDeviceClass.POWER
     _attr_native_unit_of_measurement = POWER_WATT
-    _attr_state_class = STATE_CLASS_MEASUREMENT
+    _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(self, hilo: Hilo, device: HiloDevice) -> None:
         """Initialize."""
@@ -345,9 +337,9 @@ class PowerSensor(HiloEntity, SensorEntity):
 class TemperatureSensor(HiloEntity, SensorEntity):
     """Define a Hilo temperature sensor entity."""
 
-    _attr_device_class = DEVICE_CLASS_TEMPERATURE
+    _attr_device_class = SensorDeviceClass.TEMPERATURE
     _attr_native_unit_of_measurement = TEMP_CELSIUS
-    _attr_state_class = STATE_CLASS_MEASUREMENT
+    _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(self, hilo, device):
         self._attr_name = f"{device.name} Temperature"
@@ -376,9 +368,9 @@ class TemperatureSensor(HiloEntity, SensorEntity):
 class WifiStrengthSensor(HiloEntity, SensorEntity):
     """Define a Wifi strength sensor entity."""
 
-    _attr_device_class = DEVICE_CLASS_SIGNAL_STRENGTH
+    _attr_device_class = SensorDeviceClass.SIGNAL_STRENGTH
     _attr_native_unit_of_measurement = SIGNAL_STRENGTH_DECIBELS_MILLIWATT
-    _attr_state_class = STATE_CLASS_MEASUREMENT
+    _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(self, hilo, device):
         self._attr_name = f"{device.name} WifiStrength"
@@ -405,10 +397,6 @@ class HiloNotificationSensor(HiloEntity, RestoreEntity, SensorEntity):
     """Hilo Notification sensor.
     Its state will be the number of notification waiting in the Hilo app.
     """
-
-    _attr_device_class = None
-    _attr_native_unit_of_measurement = None
-    _attr_state_class = None
 
     def __init__(self, hilo, device, scan_interval):
         self._attr_name = "Notifications Hilo"
@@ -476,8 +464,8 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
     Its state will be either the total amount rewarded this season.
     """
 
-    _attr_device_class = DEVICE_CLASS_MONETARY
-    _attr_state_class = STATE_CLASS_TOTAL_INCREASING
+    _attr_device_class = SensorDeviceClass.MONETARY
+    _attr_state_class = SensorStateClass.TOTAL_INCREASING
 
     def __init__(self, hilo, device, scan_interval):
         self._attr_name = "Recompenses Hilo"
@@ -544,10 +532,6 @@ class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
     - reduction or on: Challenge is currently active, heat is lowered
     - recovery: Challenge is completed, we're reheating.
     """
-
-    _attr_device_class = None
-    _attr_native_unit_of_measurement = None
-    _attr_state_class = None
 
     def __init__(self, hilo, device, scan_interval):
         self._attr_name = "Defi Hilo"
@@ -623,10 +607,6 @@ class DeviceSensor(HiloEntity, SensorEntity):
     this state.
     """
 
-    _attr_device_class = None
-    _attr_native_unit_of_measurement = None
-    _attr_state_class = None
-
     def __init__(self, hilo, device):
         self._attr_name = device.name
         super().__init__(hilo, name=self._attr_name, device=device)
@@ -652,9 +632,9 @@ class DeviceSensor(HiloEntity, SensorEntity):
 
 class HiloCostSensor(RestoreEntity, SensorEntity):
 
-    _attr_device_class = DEVICE_CLASS_MONETARY
+    _attr_device_class = SensorDeviceClass.MONETARY
     _attr_native_unit_of_measurement = f"{CURRENCY_DOLLAR}/{ENERGY_KILO_WATT_HOUR}"
-    _attr_state_class = STATE_CLASS_MEASUREMENT
+    _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_icon = "mdi:cash"
 
     def __init__(self, name, plan_name, amount=0):
