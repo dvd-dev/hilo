@@ -1,7 +1,7 @@
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
-    COLOR_MODE_BRIGHTNESS,
-    COLOR_MODE_ONOFF,
+    ATTR_HS_COLOR,
+    ColorMode,
     LightEntity,
 )
 from homeassistant.config_entries import ConfigEntry
@@ -42,24 +42,30 @@ class HiloLight(HiloEntity, LightEntity):
 
     @property
     def is_on(self):
-        return self._device.get_value("is_on")
+        return self._device.get_value("is_on")  
+    
+    @property
+    def hs_color(self):
+        return (self._device.hue, self._device.saturation)
 
     @property
     def color_mode(self):
         """Return the color mode."""
-        return (
-            COLOR_MODE_BRIGHTNESS
-            if COLOR_MODE_BRIGHTNESS in self.supported_color_modes
-            else COLOR_MODE_ONOFF
-        )
+        if ColorMode.HS in self.supported_color_modes:
+            return ColorMode.HS
+        elif ColorMode.BRIGHTNESS in self.supported_color_modes:
+            return ColorMode.BRIGHTNESS
+        return ColorMode.ONOFF
 
     @property
     def supported_color_modes(self) -> set:
         """Flag supported modes."""
         supports = set()
-        supports.add("onoff")
+        supports.add(ColorMode.ONOFF)
         if self._device.has_attribute("intensity"):
-            supports.add("brightness")
+            supports.add(ColorMode.BRIGHTNESS)
+        if self._device.has_attribute("hue"):
+            supports.add(ColorMode.HS)
         return supports
 
     async def async_turn_off(self, **kwargs):
@@ -73,6 +79,12 @@ class HiloLight(HiloEntity, LightEntity):
         if ATTR_BRIGHTNESS in kwargs:
             LOG.info(
                 f"{self._device._tag} Setting brightness to {kwargs[ATTR_BRIGHTNESS]}"
-            )
+        )
             await self._device.set_attribute("intensity", kwargs[ATTR_BRIGHTNESS] / 255)
+        if ATTR_HS_COLOR in kwargs:
+            LOG.info(
+                f"{self._device._tag} Setting HS Color to {kwargs[ATTR_HS_COLOR]}"
+        )
+            await self._device.set_attribute("hue", kwargs[ATTR_HS_COLOR][0])
+            await self._device.set_attribute("saturation", kwargs[ATTR_HS_COLOR][1])
         self.async_schedule_update_ha_state(True)
