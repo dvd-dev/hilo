@@ -130,15 +130,37 @@ home assistant. You simply need to add a line like this in your `configuration.y
 
 Other options are available under the `Configure` button in Home Assistant:
 
+- `Generate energy meters`: Checkbox
+  
+  Automatically generate energy meters, see procedure above for proper setup
+  
+- `Generate only total meters for each devices`: Checkbox
+  
+  Calculate only energy total without splitting between low cost and high cost
+  
+- `Also log request data and websocket messages (requires debug log level on both the integration and pyhilo)`: Checkbox
+
+  Allows higher logging level for developpers
+  
+- `Lock climate entities during Hilo challenges, preventing any changes when a challenge is in progress.`
+
+  Prevents modifying temperature setpoints during Hilo Challenges
+  
+- `Track unknown power sources in a separate energy sensor. This is a round approximation calculated when we get a reading from the Smart Energy Meter.`: Checkbox
+
+  All other energy sources are lumped into a single sensor. Uses the reading from the home's smart meter.
+
 - `hq_plan_name`: String
+  
   Define the Hydro Quebec rate plan name.
   Only 2 values are supported at this time:
   - `rate d`
   - `flex d`
 
 - `scan_interval`: Integer
+  
   Number of seconds between each device update. Defaults to 60 and it's not recommended to go below 30 as it might
-  result in a suspension from Hilo.
+  result in a suspension from Hilo. 
 
 ## Lovelace sample integration and automation example
 
