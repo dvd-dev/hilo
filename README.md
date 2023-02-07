@@ -140,7 +140,7 @@ Other options are available under the `Configure` button in Home Assistant:
   
 - `Also log request data and websocket messages (requires debug log level on both the integration and pyhilo)`: Checkbox
 
-  Allows higher logging level for developpers
+  Allows higher logging level for developpers/debugging
   
 - `Lock climate entities during Hilo challenges, preventing any changes when a challenge is in progress.`
 
@@ -148,7 +148,7 @@ Other options are available under the `Configure` button in Home Assistant:
   
 - `Track unknown power sources in a separate energy sensor. This is a round approximation calculated when we get a reading from the Smart Energy Meter.`: Checkbox
 
-  All other energy sources are lumped into a single sensor. Uses the reading from the home's smart meter.
+  All energy sources other than Hilo hardware are lumped into a single sensor. Uses the reading from the home's smart meter.
 
 - `hq_plan_name`: String
   
