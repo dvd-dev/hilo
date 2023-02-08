@@ -140,7 +140,7 @@ Other options are available under the `Configure` button in Home Assistant:
 
 - `Also log request data and websocket messages (requires debug log level on both the integration and pyhilo)`: Checkbox
 
-  Allows higher logging level for developpers/debugging
+  Allows higher logging level for developers/debugging
 
 - `Lock climate entities during Hilo challenges, preventing any changes when a challenge is in progress.`
 
