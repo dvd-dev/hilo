@@ -6,8 +6,6 @@
 [![pre-commit][pre-commit-shield]][pre-commit]
 [![black][black-shield]][black]
 [![calver][calver-shield]][calver]
-[![lgtm-alert][lgtm-alert-shield]][lgtm-alert]
-[![lgtm-grade][lgtm-grade-shield]][lgtm-grade]
 [![discord][discord-shield]][discord]
 
 
@@ -196,10 +194,32 @@ logger:
      pyhilo: debug
 ```
 
-If you have any kind of python/home-assistant experience and want to contribute to the code, feel free to submit a merge request.
+If you have any kind of python/home-assistant experience and want to contribute to the code, feel free to submit a pull request.
 
+### Submitting a Pull Request
 
-### Collaborators
+- First you need to `fork` the repository into your own userspace.
+- And then, you can `clone` it on your computer.
+- To maintain some kind of tidyness and standard in the code, we have some linters and validators that need to be executed via `pre-commit` hooks:
+```
+pre-commit install --install-hooks
+```
+- You can now proceed with whatever code change you want.
+- Once you're done with the code change, you can `stage` the files for a `commit`:
+```
+git add path/to/file
+```
+- And you can create a `commit`:
+```
+git commit -m "I changed this because blabla"
+```
+- Finally, you can `push` the change on your upstream repository:
+```
+git push
+```
+- At this point, if you visit the [upstream repository](https://github.com/dvd-dev/hilo), Github should prompt you to create a Pull Request (aka PR). Just follow the instructions.
+
+### Initial collaborators
 
 * [Francis Poisson](https://github.com/francispoisson/)
 * [David Vallee Delisle](https://github.com/valleedelisle/)
@@ -224,9 +244,5 @@ If you have any kind of python/home-assistant experience and want to contribute 
 [calver]: http://calver.org/
 [black-shield]: https://img.shields.io/badge/code%20style-black-000000.svg?style=for-the-badge
 [black]: https://github.com/psf/black
-[lgtm-alert]: https://lgtm.com/projects/g/dvd-dev/hilo/alerts/
-[lgtm-alert-shield]: https://img.shields.io/lgtm/alerts/g/dvd-dev/hilo.svg?logo=lgtm&style=for-the-badge
-[lgtm-grade]: https://lgtm.com/projects/g/dvd-dev/hilo/context:python
-[lgtm-grade-shield]: https://img.shields.io/lgtm/grade/python/g/dvd-dev/hilo.svg?logo=lgtm&style=for-the-badge
 [discord-shield]: https://img.shields.io/badge/discord-Chat-green?logo=discord&style=for-the-badge
 [discord]: https://discord.gg/MD5ydRJxpc
