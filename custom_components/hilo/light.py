@@ -42,8 +42,8 @@ class HiloLight(HiloEntity, LightEntity):
 
     @property
     def is_on(self):
-        return self._device.get_value("is_on")  
-    
+        return self._device.get_value("is_on")
+
     @property
     def hs_color(self):
         return (self._device.hue, self._device.saturation)
@@ -79,12 +79,10 @@ class HiloLight(HiloEntity, LightEntity):
         if ATTR_BRIGHTNESS in kwargs:
             LOG.info(
                 f"{self._device._tag} Setting brightness to {kwargs[ATTR_BRIGHTNESS]}"
-        )
+            )
             await self._device.set_attribute("intensity", kwargs[ATTR_BRIGHTNESS] / 255)
         if ATTR_HS_COLOR in kwargs:
-            LOG.info(
-                f"{self._device._tag} Setting HS Color to {kwargs[ATTR_HS_COLOR]}"
-        )
+            LOG.info(f"{self._device._tag} Setting HS Color to {kwargs[ATTR_HS_COLOR]}")
             await self._device.set_attribute("hue", kwargs[ATTR_HS_COLOR][0])
             await self._device.set_attribute("saturation", kwargs[ATTR_HS_COLOR][1])
         self.async_schedule_update_ha_state(True)
