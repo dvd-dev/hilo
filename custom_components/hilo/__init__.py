@@ -166,7 +166,9 @@ async def async_setup_entry(  # noqa: C901
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = hilo
 
-    hass.config_entries.async_setup_platforms(entry, PLATFORMS)
+    hass.async_create_task(
+        hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    )
 
     async def async_reload_entry(_: HomeAssistant, updated_entry: ConfigEntry) -> None:
         """Handle an options update.
