@@ -132,8 +132,6 @@ class EnergyManager:
             name = f"{entity}_{self.period}"
             if entity == HILO_ENERGY_TOTAL:
                 self.add_flow_from(f"{name}_{tarif}", f"hilo_rate_{tarif}")
-            else:
-                self.add_device(f"{name}_{tarif}")
 
     async def update(self):
         if not self.updated:
