@@ -49,8 +49,7 @@ async def async_setup_entry(
 
 
 class HiloClimate(HiloEntity, ClimateEntity):
-    _attr_hvac_modes = [HVACMode.HEAT, HVACMode.OFF]
-    _attr_hvac_actions = [HVACAction.HEATING, HVACAction.IDLE]
+    _attr_hvac_modes = [HVACMode.HEAT]
     _attr_temperature_unit: str = TEMP_CELSIUS
     _attr_precision: float = PRECISION_TENTHS
     _attr_supported_features: int = ClimateEntityFeature.TARGET_TEMPERATURE
@@ -58,7 +57,7 @@ class HiloClimate(HiloEntity, ClimateEntity):
     def __init__(self, hilo: Hilo, device):
         super().__init__(hilo, device=device, name=device.name)
         self._attr_unique_id = f"{slugify(device.name)}-climate"
-        self.operations = [HVACMode.HEAT, HVACMode.OFF]
+        self.operations = [HVACMode.HEAT]
         self._has_operation = False
         self._temperature_entity = None
         LOG.debug(f"Setting up Climate entity: {self._attr_name}")
@@ -84,7 +83,7 @@ class HiloClimate(HiloEntity, ClimateEntity):
 
     @property
     def hvac_mode(self):
-        return self._device.hvac_mode
+        return HVACMode.HEAT
 
     @property
     def hvac_action(self):
