@@ -2,9 +2,9 @@ from datetime import datetime, timedelta
 
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
-    HVAC_MODE_HEAT,
-    HVAC_MODE_OFF,
-    SUPPORT_TARGET_TEMPERATURE,
+    ClimateEntityFeature,
+    HVACAction,
+    HVACMode,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_TEMPERATURE, PRECISION_TENTHS, TEMP_CELSIUS
@@ -49,15 +49,15 @@ async def async_setup_entry(
 
 
 class HiloClimate(HiloEntity, ClimateEntity):
-    _attr_hvac_modes = [HVAC_MODE_HEAT, HVAC_MODE_OFF]
+    _attr_hvac_modes = [HVACMode.HEAT]
     _attr_temperature_unit: str = TEMP_CELSIUS
     _attr_precision: float = PRECISION_TENTHS
-    _attr_supported_features: int = SUPPORT_TARGET_TEMPERATURE
+    _attr_supported_features: int = ClimateEntityFeature.TARGET_TEMPERATURE
 
     def __init__(self, hilo: Hilo, device):
         super().__init__(hilo, device=device, name=device.name)
         self._attr_unique_id = f"{slugify(device.name)}-climate"
-        self.operations = [HVAC_MODE_HEAT, HVAC_MODE_OFF]
+        self.operations = [HVACMode.HEAT]
         self._has_operation = False
         self._temperature_entity = None
         LOG.debug(f"Setting up Climate entity: {self._attr_name}")
@@ -79,16 +79,19 @@ class HiloClimate(HiloEntity, ClimateEntity):
         return self._device.min_temp
 
     def set_hvac_mode(self, hvac_mode):
-        """Set operation mode."""
         return
 
     @property
     def hvac_mode(self):
-        return self._device.hvac_mode
+        return HVACMode.HEAT
+
+    @property
+    def hvac_action(self):
+        return self._device.hvac_action
 
     @property
     def icon(self):
-        if self._device.hvac_mode == HVAC_MODE_HEAT:
+        if self._device.hvac_action == HVACAction.HEATING:
             return "mdi:radiator"
         return "mdi:radiator-disabled"
 
