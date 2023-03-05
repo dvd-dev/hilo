@@ -12,7 +12,9 @@
 [![discord][discord-shield]][discord]
 
 
-**BETA** This is a beta release. There will be some bugs, issues, etc. Please bear with us and open issues in the repo.
+**BETA** 
+
+This is a beta release. There will be some bugs, issues, etc. Please bear with us and open issues in the repo.
 
 # Hilo
 [Hilo](https://www.hydroquebec.com/hilo/en/) integration for Home Assistant
@@ -51,8 +53,9 @@ rewrite it. Hilo is now pushing device readings via websocket from SignalR.
 - Add functionalities for other devices
 - unit and functional tests
 - [Adding type hints to the code](https://developers.home-assistant.io/docs/development_typing/)
-- ~~Write a separate library for the hilo api mapping~~ Now available [here](https://github.com/dvd-dev/python-hilo)
-- Translate everything in French `#tokebakissite`
+- Now available [here](https://github.com/dvd-dev/python-hilo)
+- Map send energy meters automatically to enegery dashboard
+
 
 ## Installation
 
@@ -126,6 +129,8 @@ home assistant. You simply need to add a line like this in your `configuration.y
     [...]
     ValueError: could not convert string to float: 'None'
     ```
+Once created, energy meters will then have to be added manually to the energy dashboard.
+
 
 ### Other configuration
 
