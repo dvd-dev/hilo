@@ -12,7 +12,9 @@
 [![discord][discord-shield]][discord]
 
 
-**BETA** Ceci est une version Bêta. Il y aura probablements des bogues, irritants, etc. Merci pour votre patience et d'ouvrir des "Issues".
+**BETA**
+
+Ceci est une version Bêta. Il y aura probablements des bogues, irritants, etc. Merci pour votre patience et d'ouvrir des "Issues".
 
 # Hilo
 Intégration pour Home Assistant d'[Hilo](https://www.hydroquebec.com/hilo/fr/)
@@ -44,7 +46,8 @@ J'ai décidé de déplacer l'intégration ici car la dernière mise à jour de H
 - Ajouter la fonctionnalité pour d'autres appareils.
 - Tests fonctionnels
 - [Ajouter des "type hints" au code](https://developers.home-assistant.io/docs/development_typing/)
-- ~~Écrire une librairie distincte pour les appels API à Hilo~~ Maintenant disponible [ici](https://github.com/dvd-dev/python-hilo)
+- ~~Documenter la librairie d'appels API à Hilo~~ Maintenant disponible [ici](https://github.com/dvd-dev/python-hilo)
+- Ajout automatique des compteurs de consommation électrique
 
 ## Installation
 
@@ -116,6 +119,8 @@ Home Assistant. Il vous suffit d'ajouter une ligne comme celle-ci dans votre `co
     ValueError: could not convert string to float: 'None'
     ```
 
+Après leur création, il faut manuellement ajouter les capteurs au dashboard Energy.
+
 ### Autres options de configruation
 
 D'autres options sont disponibles sous le bouton "Configurer" dans Home Assistant:
@@ -144,7 +149,7 @@ D'autres options sont disponibles sous le bouton "Configurer" dans Home Assistan
 
   Définissez le nom du plan tarifaire d'Hydro-Québec.
   Seules 2 valeurs sont prises en charge pour le moment:
-  - 'taux d'
+  - 'rate d'
   - 'flex d'
 
 - `Intervalle de mise à jour (min: 15s)`: Nombre entier
