@@ -151,7 +151,7 @@ async def async_setup_entry(  # noqa: C901
                 log_traces=log_traces,
                 state_yaml=state_yaml,
             )
-        except InvalidCredentialsError as err:
+        except (KeyError, InvalidCredentialsError) as err:
             raise ConfigEntryAuthFailed from err
     except HiloError as err:
         LOG.error("Config entry failed: %s", err)
@@ -231,7 +231,6 @@ class Hilo:
         self.generate_energy_meters = entry.options.get(
             CONF_GENERATE_ENERGY_METERS, DEFAULT_GENERATE_ENERGY_METERS
         )
-
         # This will get filled in by async_init:
         self.coordinator: DataUpdateCoordinator | None = None
         self.unknown_tracker_device: HiloDevice | None = None

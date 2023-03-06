@@ -83,6 +83,7 @@ class HiloFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a Hilo config flow."""
 
     VERSION = 1
+    reauth_entry: ConfigEntry | None = None
 
     def __init__(self) -> None:
         """Initialize the config flow."""
@@ -101,14 +102,37 @@ class HiloFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_reauth(self, config: ConfigType) -> FlowResult:
         """Handle configuration by re-auth."""
-        self._username = config.get(CONF_USERNAME)
-        self._reauth = True
-        return await self.async_step_user()
+        self.reauth_entry = self.hass.config_entries.async_get_entry(
+            self.context["entry_id"]
+        )
+        return await self.async_step_reauth_confirm()
+        #self._username = config.get(CONF_USERNAME)
+        #self._reauth = True
+        #return await self.async_step_user()
 
-    def _async_show_form(self, *, errors: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_reauth_confirm(self, user_input=None):
+        """Dialog that informs the user that reauth is required."""
+        if user_input is None:
+            return self._async_show_form(
+                step_id="reauth_confirm",
+            )
+        return await self.async_step_user(user_input)
+
+    async def async_oauth_create_entry(self, data: dict) -> dict:
+        """Create an oauth config entry or update existing entry for reauth."""
+        if self.reauth_entry:
+            self.hass.config_entries.async_update_entry(self.reauth_entry, data=data)
+            await self.hass.config_entries.async_reload(self.reauth_entry.entry_id)
+            return self.async_abort(reason="reauth_successful")
+        await self.async_set_unique_id(data['username'])
+        self._abort_if_unique_id_configured()
+        LOG.debug(f"Creating entry: {data}")
+        return self.async_create_entry(title=data['username'], data=data)
+
+    def _async_show_form(self, *, step_id: str = "user", errors: dict[str, Any] | None = None) -> FlowResult:
         """Show the form."""
         return self.async_show_form(
-            step_id="user",
+            step_id=step_id,
             data_schema=STEP_USER_SCHEMA,
             errors=errors or {},
         )
@@ -138,11 +162,8 @@ class HiloFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             return self._async_show_form(errors=errors)
 
         data = {CONF_USERNAME: hilo._username, CONF_TOKEN: hilo._refresh_token}
+        return await self.async_oauth_create_entry(data)
 
-        await self.async_set_unique_id(hilo._username)
-        self._abort_if_unique_id_configured()
-        LOG.debug(f"Creating entry: {data}")
-        return self.async_create_entry(title=hilo._username, data=data)
 
 
 class HiloOptionsFlowHandler(config_entries.OptionsFlow):
