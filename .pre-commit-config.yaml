@@ -24,7 +24,7 @@ repos:
       - id: codespell
         args:
           - --skip=""./.*,*.json,./README.md"
-          - --quiet-level=10
+          - --quiet-level=5
           - -L ba,hass,que,bord
         exclude_types: [json]
   - repo: https://github.com/PyCQA/flake8
