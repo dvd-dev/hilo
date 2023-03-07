@@ -30,6 +30,8 @@ Si vous souhaitez aider avec le développement de cette intégration, vous pouve
 
 Gros merci à [Francis Poisson](https://github.com/francispoisson/) qui est l'auteur de l'intégration originale. Sans le travail qu'il a fait sur cette intégration, je n'aurais probablement jamais considéré utiliser Hilo.
 
+Un autre gros merci à @ic-dev21 pour son implication à plusieurs niveau.
+
 J'ai décidé de déplacer l'intégration ici car la dernière mise à jour de Hilo a brisé l'original et j'ai pris le temps de complètement la récrire. Hilo pousse maintenant les lectures des appareils via websocket de SignalR.
 
 ### Caractéristiques.
@@ -121,7 +123,7 @@ Home Assistant. Il vous suffit d'ajouter une ligne comme celle-ci dans votre `co
 
 Après leur création, il faut manuellement ajouter les capteurs au dashboard Energy.
 
-### Autres options de configruation
+### Autres options de configuration
 
 D'autres options sont disponibles sous le bouton "Configurer" dans Home Assistant:
 

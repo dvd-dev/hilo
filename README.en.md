@@ -12,7 +12,7 @@
 [![discord][discord-shield]][discord]
 
 
-**BETA** 
+**BETA**
 
 This is a beta release. There will be some bugs, issues, etc. Please bear with us and open issues in the repo.
 
@@ -36,6 +36,8 @@ developers.
 Big shout out to [Francis Poisson](https://github.com/francispoisson/) who's the original author of this integration. Without the work
 he put into this integration, I would probably have never even considered Hilo.
 
+Another big shout out to @ic-dev21 for his implication at multiple levels.
+
 I decided to move the integration here because of the latest updates from Hilo broke the original one and I took the time to completely
 rewrite it. Hilo is now pushing device readings via websocket from SignalR.
 
@@ -54,7 +56,7 @@ rewrite it. Hilo is now pushing device readings via websocket from SignalR.
 - unit and functional tests
 - [Adding type hints to the code](https://developers.home-assistant.io/docs/development_typing/)
 - Now available [here](https://github.com/dvd-dev/python-hilo)
-- Map send energy meters automatically to enegery dashboard
+- Map send energy meters automatically to enegry dashboard
 
 
 ## Installation
