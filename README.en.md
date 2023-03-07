@@ -56,7 +56,7 @@ rewrite it. Hilo is now pushing device readings via websocket from SignalR.
 - unit and functional tests
 - [Adding type hints to the code](https://developers.home-assistant.io/docs/development_typing/)
 - Now available [here](https://github.com/dvd-dev/python-hilo)
-- Map send energy meters automatically to enegry dashboard
+- Map send energy meters automatically to energy dashboard
 
 
 ## Installation
