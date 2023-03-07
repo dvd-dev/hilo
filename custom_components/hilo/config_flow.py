@@ -106,9 +106,6 @@ class HiloFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             self.context["entry_id"]
         )
         return await self.async_step_reauth_confirm()
-        #self._username = config.get(CONF_USERNAME)
-        #self._reauth = True
-        #return await self.async_step_user()
 
     async def async_step_reauth_confirm(self, user_input=None):
         """Dialog that informs the user that reauth is required."""
@@ -124,12 +121,14 @@ class HiloFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             self.hass.config_entries.async_update_entry(self.reauth_entry, data=data)
             await self.hass.config_entries.async_reload(self.reauth_entry.entry_id)
             return self.async_abort(reason="reauth_successful")
-        await self.async_set_unique_id(data['username'])
+        await self.async_set_unique_id(data["username"])
         self._abort_if_unique_id_configured()
         LOG.debug(f"Creating entry: {data}")
-        return self.async_create_entry(title=data['username'], data=data)
+        return self.async_create_entry(title=data["username"], data=data)
 
-    def _async_show_form(self, *, step_id: str = "user", errors: dict[str, Any] | None = None) -> FlowResult:
+    def _async_show_form(
+        self, *, step_id: str = "user", errors: dict[str, Any] | None = None
+    ) -> FlowResult:
         """Show the form."""
         return self.async_show_form(
             step_id=step_id,
@@ -163,7 +162,6 @@ class HiloFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         data = {CONF_USERNAME: hilo._username, CONF_TOKEN: hilo._refresh_token}
         return await self.async_oauth_create_entry(data)
-
 
 
 class HiloOptionsFlowHandler(config_entries.OptionsFlow):
