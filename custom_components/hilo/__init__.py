@@ -243,7 +243,7 @@ class Hilo:
             LOG.debug(f"Heartbeat: {time_diff(heartbeat_time, event.timestamp)}")
 
     @callback
-    def on_websocket_event(self, event: WebsocketEvent) -> None:
+    async def on_websocket_event(self, event: WebsocketEvent) -> None:
         """Define a callback for receiving a websocket event."""
         async_dispatcher_send(self._hass, DISPATCHER_TOPIC_WEBSOCKET_EVENT, event)
         if event.event_type == "COMPLETE":
@@ -253,6 +253,12 @@ class Hilo:
         elif event.target == "Heartbeat":
             self.validate_heartbeat(event)
         elif event.target == "DevicesValuesReceived":
+            # When receiving attribute values for unknown device, assume 
+            # we have refresh the device list.
+            new_devices = any(self.devices.find_device(item['deviceId']) is None for item in event.arguments[0])
+            if new_devices:
+                await self.devices.update()
+
             updated_devices = self.devices.parse_values_received(event.arguments[0])
             # NOTE(dvd): If we don't do this, we need to wait until the coordinator
             # runs (scan_interval) to have updated data in the dashboard.
@@ -260,6 +266,15 @@ class Hilo:
                 async_dispatcher_send(
                     self._hass, SIGNAL_UPDATE_ENTITY.format(device.id)
                 )
+        elif event.target == "DevicesListChanged":
+            # DeviceListChanged only triggers when unpairing devices 
+            # Forcing an update when that happens, even tho pyhilo doesn't
+            # manage device removal currently.
+            await self.devices.update()
+        elif event.target == "GatewayValuesReceived":
+            # Placeholder for new event that will allow Gateway updates without 
+            # calling update_gateway explicitly in async_update
+            LOG.debug("GatewayValuesReceived")
         else:
             LOG.warning(f"Unhandled websocket event: {event}")
 
@@ -405,8 +420,8 @@ class Hilo:
         await self._api.websocket.async_disconnect()
 
     async def async_update(self) -> None:
-        """Get updated data from Hilo API."""
-        await self.devices.update()
+        """Updates gateway and tarif periodically."""
+        await self.devices.update_gateway()
         if self.generate_energy_meters:
             self.check_tarif()
 
