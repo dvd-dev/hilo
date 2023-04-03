@@ -55,6 +55,7 @@ class UtilityManager:
                 "utility_meter_sensors": [],
                 "offset": timedelta(0),
                 "delta_values": False,
+                "periodically_resetting": True,
             }
         )
 
