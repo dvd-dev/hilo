@@ -6,12 +6,12 @@ from homeassistant.components.light import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.debounce import Debouncer
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import slugify
 
 from . import Hilo, HiloEntity
 from .const import DOMAIN, LIGHT_CLASSES, LOG
-
 
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
@@ -21,15 +21,22 @@ async def async_setup_entry(
 
     for d in hilo.devices.all:
         if d.type in LIGHT_CLASSES:
-            d._entity = HiloLight(hilo, d)
+            d._entity = HiloLight(hass, hilo, d)
             entities.append(d._entity)
     async_add_entities(entities)
 
 
 class HiloLight(HiloEntity, LightEntity):
-    def __init__(self, hilo: Hilo, device):
+    def __init__(self, hass: HomeAssistant, hilo: Hilo, device):
         super().__init__(hilo, device=device, name=device.name)
         self._attr_unique_id = f"{slugify(device.name)}-light"
+        self._debounced_turn_on = Debouncer(
+            hass,
+            LOG,
+            cooldown=1,
+            immediate=True,
+            function=self._async_debounced_turn_on
+        )
         LOG.debug(f"Setting up Light entity: {self._attr_name}")
 
     @property
@@ -74,15 +81,19 @@ class HiloLight(HiloEntity, LightEntity):
         self.async_schedule_update_ha_state(True)
 
     async def async_turn_on(self, **kwargs):
+        self._last_kwargs = kwargs
+        await self._debounced_turn_on.async_call()
+    
+    async def _async_debounced_turn_on(self):
         LOG.info(f"{self._device._tag} Turning on")
         await self._device.set_attribute("is_on", True)
-        if ATTR_BRIGHTNESS in kwargs:
+        if ATTR_BRIGHTNESS in self._last_kwargs:
             LOG.info(
-                f"{self._device._tag} Setting brightness to {kwargs[ATTR_BRIGHTNESS]}"
+                f"{self._device._tag} Setting brightness to {self._last_kwargs[ATTR_BRIGHTNESS]}"
             )
-            await self._device.set_attribute("intensity", kwargs[ATTR_BRIGHTNESS] / 255)
-        if ATTR_HS_COLOR in kwargs:
-            LOG.info(f"{self._device._tag} Setting HS Color to {kwargs[ATTR_HS_COLOR]}")
-            await self._device.set_attribute("hue", kwargs[ATTR_HS_COLOR][0])
-            await self._device.set_attribute("saturation", kwargs[ATTR_HS_COLOR][1])
+            await self._device.set_attribute("intensity", self._last_kwargs[ATTR_BRIGHTNESS] / 255)
+        if ATTR_HS_COLOR in self._last_kwargs:
+            LOG.info(f"{self._device._tag} Setting HS Color to {self._last_kwargs[ATTR_HS_COLOR]}")
+            await self._device.set_attribute("hue", self._last_kwargs[ATTR_HS_COLOR][0])
+            await self._device.set_attribute("saturation", self._last_kwargs[ATTR_HS_COLOR][1])
         self.async_schedule_update_ha_state(True)
