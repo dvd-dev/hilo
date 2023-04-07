@@ -23,7 +23,8 @@ repos:
     hooks:
       - id: codespell
         args:
-          - --skip=""./.*,*.json,./README.md"
+          - --help
+          - -S "./.*,*.json,README.md"
           - --quiet-level=5
           - -L ba,hass,que,bord
         exclude_types: [json]

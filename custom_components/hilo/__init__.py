@@ -253,9 +253,12 @@ class Hilo:
         elif event.target == "Heartbeat":
             self.validate_heartbeat(event)
         elif event.target == "DevicesValuesReceived":
-            # When receiving attribute values for unknown devices, assume 
+            # When receiving attribute values for unknown devices, assume
             # we have refresh the device list.
-            new_devices = any(self.devices.find_device(item['deviceId']) is None for item in event.arguments[0])
+            new_devices = any(
+                self.devices.find_device(item["deviceId"]) is None
+                for item in event.arguments[0]
+            )
             if new_devices:
                 await self.devices.update()
 
@@ -267,12 +270,12 @@ class Hilo:
                     self._hass, SIGNAL_UPDATE_ENTITY.format(device.id)
                 )
         elif event.target == "DevicesListChanged":
-            # DeviceListChanged only triggers when unpairing devices 
-            # Forcing an update when that happens, even tho pyhilo doesn't
+            # DeviceListChanged only triggers when unpairing devices
+            # Forcing an update when that happens, even though pyhilo doesn't
             # manage device removal currently.
             await self.devices.update()
         elif event.target == "GatewayValuesReceived":
-            # Placeholder for new event that will allow Gateway updates without 
+            # Placeholder for new event that will allow Gateway updates without
             # calling update_gateway explicitly in async_update
             LOG.debug("GatewayValuesReceived")
         else:

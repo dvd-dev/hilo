@@ -13,6 +13,7 @@ from homeassistant.util import slugify
 from . import Hilo, HiloEntity
 from .const import DOMAIN, LIGHT_CLASSES, LOG
 
+
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
@@ -35,7 +36,7 @@ class HiloLight(HiloEntity, LightEntity):
             LOG,
             cooldown=1,
             immediate=True,
-            function=self._async_debounced_turn_on
+            function=self._async_debounced_turn_on,
         )
         LOG.debug(f"Setting up Light entity: {self._attr_name}")
 
@@ -83,7 +84,7 @@ class HiloLight(HiloEntity, LightEntity):
     async def async_turn_on(self, **kwargs):
         self._last_kwargs = kwargs
         await self._debounced_turn_on.async_call()
-    
+
     async def _async_debounced_turn_on(self):
         LOG.info(f"{self._device._tag} Turning on")
         await self._device.set_attribute("is_on", True)
@@ -91,9 +92,15 @@ class HiloLight(HiloEntity, LightEntity):
             LOG.info(
                 f"{self._device._tag} Setting brightness to {self._last_kwargs[ATTR_BRIGHTNESS]}"
             )
-            await self._device.set_attribute("intensity", self._last_kwargs[ATTR_BRIGHTNESS] / 255)
+            await self._device.set_attribute(
+                "intensity", self._last_kwargs[ATTR_BRIGHTNESS] / 255
+            )
         if ATTR_HS_COLOR in self._last_kwargs:
-            LOG.info(f"{self._device._tag} Setting HS Color to {self._last_kwargs[ATTR_HS_COLOR]}")
+            LOG.info(
+                f"{self._device._tag} Setting HS Color to {self._last_kwargs[ATTR_HS_COLOR]}"
+            )
             await self._device.set_attribute("hue", self._last_kwargs[ATTR_HS_COLOR][0])
-            await self._device.set_attribute("saturation", self._last_kwargs[ATTR_HS_COLOR][1])
+            await self._device.set_attribute(
+                "saturation", self._last_kwargs[ATTR_HS_COLOR][1]
+            )
         self.async_schedule_update_ha_state(True)
