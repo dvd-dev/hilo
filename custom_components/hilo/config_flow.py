@@ -71,9 +71,15 @@ STEP_OPTION_SCHEMA = vol.Schema(
             CONF_APPRECIATION_PHASE,
             default=DEFAULT_APPRECIATION_PHASE,
         ): cv.positive_int,
-        vol.Optional(CONF_HQ_PLAN_NAME, default=DEFAULT_HQ_PLAN_NAME): cv.string,
-        vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): (
-            vol.All(cv.positive_int, vol.Range(min=MIN_SCAN_INTERVAL))
+        vol.Optional(
+            CONF_HQ_PLAN_NAME, 
+            default=DEFAULT_HQ_PLAN_NAME
+        ): cv.string,
+        vol.Optional(
+            CONF_SCAN_INTERVAL, 
+            default=DEFAULT_SCAN_INTERVAL
+        ): (
+        vol.All(cv.positive_int, vol.Range(min=MIN_SCAN_INTERVAL))
         ),
     }
 )
@@ -245,7 +251,7 @@ class HiloOptionsFlowHandler(config_entries.OptionsFlow):
                                 CONF_SCAN_INTERVAL
                             )
                         },
-                    ): (vol.All(cv.positive_int, vol.Range(min=MIN_SCAN_INTERVAL))),
+                   ): (vol.All(cv.positive_int, vol.Range(min=MIN_SCAN_INTERVAL))),
                 }
             ),
         )
