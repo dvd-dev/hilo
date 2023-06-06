@@ -275,9 +275,20 @@ class Hilo:
             # manage device removal currently.
             await self.devices.update()
         elif event.target == "GatewayValuesReceived":
-            # Placeholder for new event that will allow Gateway updates without
-            # calling update_gateway explicitly in async_update
-            LOG.debug("GatewayValuesReceived")
+            # Gateway deviceId hardcoded to 1 as it is not returned by Gateways/Info. 
+            # First time we encounter a GatewayValueReceived event, update device with proper deviceid.
+            gateway = self.devices.find_device(1)
+            if not gateway is None:
+                gateway.id = event.arguments[0][0]["deviceId"]
+                LOG.debug("Updated Gateway's deviceId from default 1 to {gateway.id}")
+
+            updated_devices = self.devices.parse_values_received(event.arguments[0])
+            # NOTE(dvd): If we don't do this, we need to wait until the coordinator
+            # runs (scan_interval) to have updated data in the dashboard.
+            for device in updated_devices:
+                async_dispatcher_send(
+                    self._hass, SIGNAL_UPDATE_ENTITY.format(device.id)
+                )
         else:
             LOG.warning(f"Unhandled websocket event: {event}")
 
@@ -423,8 +434,7 @@ class Hilo:
         await self._api.websocket.async_disconnect()
 
     async def async_update(self) -> None:
-        """Updates gateway and tarif periodically."""
-        await self.devices.update_gateway()
+        """Updates tarif periodically."""
         if self.generate_energy_meters:
             self.check_tarif()
 
