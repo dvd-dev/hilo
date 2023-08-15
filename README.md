@@ -89,7 +89,7 @@ Il est possible que l'activation de cette option brise ou supprime ces capteurs 
 ou temps d'arrêt du service, ou tout autre type tel qu'il est décrit dans la licence.
 
 Si vous rencontrez un problème et que vous souhaitez collaborer, veuillez activer le niveau de journalisation "debug" pour cette intégration et fournir une copie
-du fichier `home-assistant.log`. Les détails sur la façon d'activer `debug` sont ci-dessous.
+du fichier `home-assistant.log`. Les détails sur la façon d'activer `debug` sont [ci-dessous](https://github.com/dvd-dev/hilo#contribuer).
 
 #### Procédure
 
@@ -179,9 +179,9 @@ Vous pouvez trouver le FAQ dans le wiki du projet: https://github.com/dvd-dev/hi
 
 ## Contribuer
 
-Rapport tout problème est une bonne manière disponible à tous de contribuer au projet.
+Rapporter tout problème est une bonne manière disponible à tous de contribuer au projet.
 
-Si vous éprouves des problèmes ou voyez des comportements étranges, merci de soumettre un "Issue" et d'y attach vos journaux.
+Si vous éprouvez des problèmes ou voyez des comportements étranges, merci de soumettre un "Issue" et d'y attach vos journaux.
 
 Pour mettre en fonction la journalisation de débogage, vous devez ajouter ceci dans votre fichier `configuration.yaml`:
 ```
