@@ -100,7 +100,7 @@ It's possible that enabling this will break or delete these original sensors. We
 service downtime, or any kind as it's described in the license.
 
 If you're facing an issue and you want to collaborate, please enable `debug` log level for this integration and provide a copy
-of the `home-assistant.log` file. Details on how to enable `debug` are below.
+of the `home-assistant.log` file. Details on how to enable `debug` are [below](https://github.com/dvd-dev/hilo/blob/main/README.en.md#contributing).
 
 #### Procedure
 

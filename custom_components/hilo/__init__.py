@@ -269,6 +269,10 @@ class Hilo:
                 async_dispatcher_send(
                     self._hass, SIGNAL_UPDATE_ENTITY.format(device.id)
                 )
+        elif event.target == "DeviceListInitialValuesReceived":
+            # This websocket event only happens on initial connection
+            # This triggers an update without throwing an exception
+            await self.devices.update()                
         elif event.target == "DevicesListChanged":
             # DeviceListChanged only triggers when unpairing devices
             # Forcing an update when that happens, even though pyhilo doesn't
