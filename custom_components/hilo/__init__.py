@@ -272,17 +272,17 @@ class Hilo:
         elif event.target == "DeviceListInitialValuesReceived":
             # This websocket event only happens on initial connection
             # This triggers an update without throwing an exception
-            await self.devices.update()                
+            await self.devices.update()
         elif event.target == "DevicesListChanged":
             # DeviceListChanged only triggers when unpairing devices
             # Forcing an update when that happens, even though pyhilo doesn't
             # manage device removal currently.
             await self.devices.update()
         elif event.target == "GatewayValuesReceived":
-            # Gateway deviceId hardcoded to 1 as it is not returned by Gateways/Info. 
+            # Gateway deviceId hardcoded to 1 as it is not returned by Gateways/Info.
             # First time we encounter a GatewayValueReceived event, update device with proper deviceid.
             gateway = self.devices.find_device(1)
-            if not gateway is None:
+            if gateway is not None:
                 gateway.id = event.arguments[0][0]["deviceId"]
                 LOG.debug("Updated Gateway's deviceId from default 1 to {gateway.id}")
 
