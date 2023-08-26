@@ -206,6 +206,26 @@ logger:
 
 If you have any kind of python/home-assistant experience and want to contribute to the code, feel free to submit a pull request.
 
+### Before submiting a Pull Request
+
+It goes without saying you must test your modifications on your local install for problems. You may modify the .py files inside the following folder. Don't forget a backup!
+```
+custom_components/hilo
+```
+
+If you need to modify python-hilo for your tests tests, you can pull your own fork into Home Assistant with the following on the CLI:
+
+```
+pip install -e git+https://github.com/YOUR_FORK_HERE/python-hilo.git#egg=python-hilo
+```
+
+You must then restart Home Assistant for your install to take effect. To go back to the original, simply type:
+
+```
+pip install python-hilo
+```
+And restart Home Assistant
+
 ### Submitting a Pull Request
 
 - First you need to `fork` the repository into your own userspace.
