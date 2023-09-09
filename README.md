@@ -194,6 +194,27 @@ logger:
 
 Si vous avez de l'expérience python ou Home Assistant et que vous souhaitez contribuer au code, n'hésitez pas à soumettre une  pull request.
 
+### Avant de soumettre une Pull Request
+
+Il va sans dire qu'il est important de tester vos modifications sur une installation locale. Il est possible de modifier les fichiers .py de l'intégration directement dans votre dossier:
+```
+custom_components/hilo
+```
+N'oubliez pas votre copie de sauvegarde!
+
+Si vous devez modifier python-hilo pour vos tests, il est possible d'installer votre "fork" avec la commande suivante dans votre CLI:
+
+```
+pip install -e git+https://github.com/VOTRE_FORK_ICI/python-hilo.git#egg=python-hilo
+```
+
+Vous devrez ensuite redémarrer Home Assistant pour que votre installation prenne effet. Pour revenir en arrière, il suffit de faire:
+
+```
+pip install python-hilo
+```
+Et redémarrez Home Assistant
+
 ### Soumettre une Pull Request
 
 - D'abord, vous devez créer un `fork` du "repository" dans votre propre espace utilisateur.
