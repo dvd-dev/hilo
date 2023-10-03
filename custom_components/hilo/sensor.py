@@ -95,6 +95,8 @@ def generate_entities_from_device(device, hilo, scan_interval):
         )
     if device.has_attribute("current_temperature"):
         entities.append(TemperatureSensor(hilo, device))
+    if device.has_attribute("target_temperature"):
+        entities.append(TargetTemperatureSensor(hilo, device))
     if device.has_attribute("co2"):
         entities.append(Co2Sensor(hilo, device))
     if device.has_attribute("noise"):
@@ -358,6 +360,37 @@ class TemperatureSensor(HiloEntity, SensorEntity):
         elif current_temperature >= 22:
             thermometer = "high"
         elif current_temperature >= 18:
+            thermometer = "low"
+        else:
+            thermometer = "alert"
+        return f"mdi:thermometer-{thermometer}"
+
+
+class TargetTemperatureSensor(HiloEntity, SensorEntity):
+    """Define a Hilo target temperature sensor entity."""
+
+    _attr_device_class = SensorDeviceClass.TEMPERATURE
+    _attr_native_unit_of_measurement = TEMP_CELSIUS
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    def __init__(self, hilo, device):
+        self._attr_name = f"{device.name} Target Temperature"
+        super().__init__(hilo, name=self._attr_name, device=device)
+        self._attr_unique_id = f"{slugify(device.name)}-target-temperature"
+        LOG.debug(f"Setting up TargetTemperatureSensor entity: {self._attr_name}")
+
+    @property
+    def state(self):
+        return str(float(self._device.get_value("target_temperature", 0)))
+
+    @property
+    def icon(self):
+        target_temperature = int(self._device.get_value("target_temperature", 0))
+        if not self._device.available:
+            thermometer = "off"
+        elif target_temperature >= 22:
+            thermometer = "high"
+        elif target_temperature >= 18:
             thermometer = "low"
         else:
             thermometer = "alert"
@@ -630,7 +663,6 @@ class DeviceSensor(HiloEntity, SensorEntity):
 
 
 class HiloCostSensor(RestoreEntity, SensorEntity):
-
     _attr_device_class = SensorDeviceClass.MONETARY
     _attr_native_unit_of_measurement = f"{CURRENCY_DOLLAR}/{ENERGY_KILO_WATT_HOUR}"
     _attr_state_class = SensorStateClass.MEASUREMENT
