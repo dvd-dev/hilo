@@ -243,7 +243,8 @@ class EnergySensor(IntegrationSensor):
 
     def __init__(self, device):
         self._device = device
-        self._attr_name = f"hilo_energy_{slugify(device.name)}"
+        self._attr_name = f"Hilo Energy {slugify(device.name)}"
+        self._attr_unique_id = f"hilo_energy_{slugify(device.name)}"
         self._unit_of_measurement = ENERGY_WATT_HOUR
         self._unit_prefix = None
         if device.type == "Meter":
