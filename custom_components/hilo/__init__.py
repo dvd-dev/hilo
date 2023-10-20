@@ -439,7 +439,7 @@ class Hilo:
 
     async def async_update(self) -> None:
         """Updates tarif periodically."""
-        if self.generate_energy_meters:
+        if self.generate_energy_meters or self.track_unknown_sources:
             self.check_tarif()
 
     def set_state(self, entity, state, new_attrs={}, keep_state=False, force=False):
@@ -469,41 +469,43 @@ class Hilo:
         return False
 
     def check_tarif(self):
-        tarif = "low"
-        base_sensor = f"sensor.{HILO_ENERGY_TOTAL}_low"
-        energy_used = self._hass.states.get(base_sensor)
-        if not energy_used:
-            LOG.warning(f"check_tarif: Unable to find state for {base_sensor}")
-            return tarif
-        plan_name = self.hq_plan_name
-        tarif_config = CONF_TARIFF.get(plan_name)
-        current_cost = self._hass.states.get("sensor.hilo_rate_current")
-        try:
-            if float(energy_used.state) >= tarif_config.get("low_threshold"):
-                tarif = "medium"
-        except ValueError:
-            LOG.warning(
-                f"Unable to restore a valid state of {base_sensor}: {energy_used.state}"
-            )
+        if self.generate_energy_meters:
+            tarif = "low"
+            base_sensor = f"sensor.{HILO_ENERGY_TOTAL}_low"
+            energy_used = self._hass.states.get(base_sensor)
+            if not energy_used:
+                LOG.warning(f"check_tarif: Unable to find state for {base_sensor}")
+                return tarif
+            plan_name = self.hq_plan_name
+            tarif_config = CONF_TARIFF.get(plan_name)
+            current_cost = self._hass.states.get("sensor.hilo_rate_current")
+            try:
+                if float(energy_used.state) >= tarif_config.get("low_threshold"):
+                    tarif = "medium"
+            except ValueError:
+                LOG.warning(
+                    f"Unable to restore a valid state of {base_sensor}: {energy_used.state}"
+                )
 
-        if tarif_config.get("high", 0) > 0 and self.high_times:
-            tarif = "high"
-        target_cost = self._hass.states.get(f"sensor.hilo_rate_{tarif}")
-        if target_cost.state != current_cost.state:
+            if tarif_config.get("high", 0) > 0 and self.high_times:
+                tarif = "high"
+            target_cost = self._hass.states.get(f"sensor.hilo_rate_{tarif}")
+            if target_cost.state != current_cost.state:
+                LOG.debug(
+                    f"check_tarif: Updating current cost, was {current_cost.state} now {target_cost.state}"
+                )
+                self.set_state("sensor.hilo_rate_current", target_cost.state)
             LOG.debug(
-                f"check_tarif: Updating current cost, was {current_cost.state} now {target_cost.state}"
+                f"check_tarif: Current plan: {plan_name} Target Tarif: {tarif} Energy used: {energy_used.state} Peak: {self.high_times}"
             )
-            self.set_state("sensor.hilo_rate_current", target_cost.state)
-        LOG.debug(
-            f"check_tarif: Current plan: {plan_name} Target Tarif: {tarif} Energy used: {energy_used.state} Peak: {self.high_times}"
-        )
         known_power = 0
         smart_meter = "sensor.smartenergymeter_power"
         smart_meter_alternate = "sensor.meter00_power"
         unknown_source_tracker = "sensor.unknown_source_tracker_power"
         for state in self._hass.states.async_all():
             entity = state.entity_id
-            self.set_tarif(entity, state.state, tarif)
+            if self.generate_energy_meters:
+                self.set_tarif(entity, state.state, tarif)
             if entity.endswith("_power") and entity not in [
                 unknown_source_tracker,
                 smart_meter,
