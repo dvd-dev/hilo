@@ -75,53 +75,12 @@ Si l'intégration est correctement installée, vous devriez pouvoir trouver "Hil
 
 La configuration est faite via l'interface utilisateur. Lorsque vous ajoutez l'intégration, votre nom d'utilisateur et mot de passe Hio vous seront demandés. Après, vous devrez assigner une pièce de votre maison à chaque appareil.
 
-### Compteurs de consommation électrique
 
-Les compteurs de consommation électrique sont une nouvelle caractéristique de cette intégration. Nous devions auparavent les générer manuellement avec des "template sensors" et des automatisations mais ils sont maintenant pleinement intégrés dans l'intégration Hilo.
+### :warning: Compteurs de consommation électrique
 
-#### Avertissement
+La génération automatique des compteurs de consommation électrique est actuellement brisée. J'avais codé ça quand le panneau d'énergie de Homeassistant venait d'être rendu disponible et malheureusement, cette parti du code a changé énormément. Je n'ai plus le temps pour le moment de me remettre la tête là dedans mais si quelqu'un est assez brave pour se pencher là dessus en détail, ça va me faire plaisir de merger les patchs.
 
-Lors de l'activation des compteurs de consommation électrique générés par Hilo, il est recommandé de supprimer ceux générés manuellement pour avoir de meilleures
-statistiques, sinon nous pourrions nous retrouver avec des données en double.
-
-Cela n'a pas été testé avec des entités de données et d'énergie déjà actives (par exemple: batterie, gaz, solaire ou même d'autres appareils individuels).
-Il est possible que l'activation de cette option brise ou supprime ces capteurs d'origine. Nous ne pouvons être tenus responsables de toute perte de données
-ou temps d'arrêt du service, ou tout autre type tel qu'il est décrit dans la licence.
-
-Si vous rencontrez un problème et que vous souhaitez collaborer, veuillez activer le niveau de journalisation "debug" pour cette intégration et fournir une copie
-du fichier `home-assistant.log`. Les détails sur la façon d'activer `debug` sont [ci-dessous](https://github.com/dvd-dev/hilo#contribuer).
-
-#### Procédure
-
-Si vous souhaitez activer la génération automatique des capteurs d'énergie, procédez comme suit:
-
-* Assurez-vous que la plate-forme `utility_meter` est chargée dans votre fichier `configuration.yaml` depuis
-Home Assistant. Il vous suffit d'ajouter une ligne comme celle-ci dans votre `configuration.yaml`:
-
-    ```
-    utility_meter:
-    ```
-
-* Cliquez sur "Configurer" dans l'interface utilisateur de l'intégration et cochez la case "Générer compteurs de consommation électrique".
-
-* Redémarrez Home Assistant et attendez 5 minutes jusqu'à ce que l'entité `sensor.hilo_energy_total_low` soit créée et remplie
-  avec des données:
-  * Le `status` devrait être `collecting`
-  * Le `state` devrait être un nombre supérieur à 0.
-
-* Toutes les entités et capteurs générés seront préfixés par `hilo_energy_` ou `hilo_rate_`.
-
-* Si vous voyez l'erreur suivante dans vos journaux, il s'agit d'un bogue dans Home Assistant et c'est parce que le wattmètre en question a 0 w/h
-  utilisation jusqu'à présent. Cela disparaîtra une fois l'utilisation calculée. Il y a un PR en amont [ici](https://github.com/home-assistant/core/pull/60678) pour résoudre ce problème.
-
-    ```
-    2021-11-29 22:03:46 ERROR (MainThread) [homeassistant] Error doing job: Task exception was never retrieved
-    Traceback (most recent call last):
-    [...]
-    ValueError: could not convert string to float: 'None'
-    ```
-
-Après leur création, il faut manuellement ajouter les capteurs au dashboard Energy.
+Voir les issues #204 #281 #292
 
 ### Autres options de configuration
 
@@ -243,6 +202,9 @@ git push
 * [Francis Poisson](https://github.com/francispoisson/)
 * [David Vallee Delisle](https://github.com/valleedelisle/)
 
+### Mentions très honorables
+* [Ian Couture](https://github.com/ic-dev21/): Il tiens cet addon du bout de ces bras depuis un certain temps
+* [Hilo](https://www.hiloenergie.com): Merci à Hilo pour son support et ses contributions.
 
 ---
 
