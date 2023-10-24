@@ -217,10 +217,10 @@ class Co2Sensor(HiloEntity, SensorEntity):
     _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(self, hilo, device):
-        self._attr_name = f"{device.name} WifiStrength"
+        self._attr_name = f"{device.name} CO2"
         super().__init__(hilo, name=self._attr_name, device=device)
         self._attr_unique_id = f"{slugify(device.name)}-co2"
-        LOG.debug(f"Setting up WifiStrengthSensor entity: {self._attr_name}")
+        LOG.debug(f"Setting up CO2Sensor entity: {self._attr_name}")
 
     @property
     def state(self):
