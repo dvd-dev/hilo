@@ -681,8 +681,8 @@ class HiloCostSensor(HiloEntity, RestoreEntity, SensorEntity):
         self.plan_name = plan_name
         self._amount = amount
         self._attr_unique_id = slugify(self._attr_name)
-        super().__init__(hilo, name=self._attr_name, device=device)
         self._last_update = dt_util.utcnow()
+        super().__init__(hilo, name=self._attr_name, device=device)
         LOG.info(f"Initializing energy cost sensor {name} {plan_name} Amount: {amount}")
 
     @property
