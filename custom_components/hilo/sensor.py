@@ -172,9 +172,9 @@ async def async_setup_entry(
     # referred later in the energy dashboard based on the tarif selected
     for tarif, amount in tariff_config.items():
         if amount > 0:
-            sensor_name = f"hilo_rate_{tarif}"
-            cost_entities.append(HiloCostSensor(sensor_name, hq_plan_name, amount))
-    cost_entities.append(HiloCostSensor("hilo_rate_current", hq_plan_name))
+            sensor_name = f"Hilo rate {tarif}"
+            cost_entities.append(HiloCostSensor(hilo, sensor_name, hq_plan_name, amount))
+    cost_entities.append(HiloCostSensor(hilo, "Hilo rate current", hq_plan_name))
     async_add_entities(cost_entities)
     # This setups the utility_meter platform
     await utility_manager.update(async_add_entities)
@@ -663,17 +663,25 @@ class DeviceSensor(HiloEntity, SensorEntity):
         return "mdi:access-point-network"
 
 
-class HiloCostSensor(RestoreEntity, SensorEntity):
+class HiloCostSensor(HiloEntity, RestoreEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.MONETARY
     _attr_native_unit_of_measurement = f"{CURRENCY_DOLLAR}/{ENERGY_KILO_WATT_HOUR}"
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_icon = "mdi:cash"
 
-    def __init__(self, name, plan_name, amount=0):
+    def __init__(self, hilo, name, plan_name, amount=0):
+        for d in hilo.devices.all:
+            if d.type == "Gateway":
+                device = d
+        if "low_threshold" in name:
+            self._attr_device_class = SensorDeviceClass.ENERGY
+            self._attr_native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
         self.data = None
         self._attr_name = name
         self.plan_name = plan_name
         self._amount = amount
+        self._attr_unique_id = slugify(self._attr_name)
+        super().__init__(hilo, name=self._attr_name, device=device)
         self._last_update = dt_util.utcnow()
         LOG.info(f"Initializing energy cost sensor {name} {plan_name} Amount: {amount}")
 
@@ -696,6 +704,7 @@ class HiloCostSensor(RestoreEntity, SensorEntity):
         if last_state:
             self._last_update = dt_util.utcnow()
             self._amount = last_state.state
+            LOG.info(f"Restoring energy cost sensor {last_state.name} {self.plan_name} Amount: {self._amount}")
 
     async def async_update(self):
         return
