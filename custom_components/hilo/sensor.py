@@ -15,7 +15,6 @@ from homeassistant.const import (
     CONF_SCAN_INTERVAL,
     CURRENCY_DOLLAR,
     ENERGY_KILO_WATT_HOUR,
-    ENERGY_WATT_HOUR,
     PERCENTAGE,
     POWER_WATT,
     SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
@@ -93,22 +92,22 @@ def generate_entities_from_device(device, hilo, scan_interval):
         entities.append(
             HiloNotificationSensor(hilo, device, scan_interval),
         )
-    if device.has_attribute("current_temperature"):
-        entities.append(TemperatureSensor(hilo, device))
-    if device.has_attribute("target_temperature"):
-        entities.append(TargetTemperatureSensor(hilo, device))
-    if device.has_attribute("co2"):
-        entities.append(Co2Sensor(hilo, device))
-    if device.has_attribute("noise"):
-        entities.append(NoiseSensor(hilo, device))
-    if device.has_attribute("wifi_status"):
-        entities.append(WifiStrengthSensor(hilo, device))
     if device.has_attribute("battery"):
         entities.append(BatterySensor(hilo, device))
+    if device.has_attribute("co2"):
+        entities.append(Co2Sensor(hilo, device))
+    if device.has_attribute("current_temperature"):
+        entities.append(TemperatureSensor(hilo, device))
     if device.type in HILO_SENSOR_CLASSES:
         entities.append(DeviceSensor(hilo, device))
+    if device.has_attribute("noise"):
+        entities.append(NoiseSensor(hilo, device))
     if device.has_attribute("power"):
         entities.append(PowerSensor(hilo, device))
+    if device.has_attribute("target_temperature"):
+        entities.append(TargetTemperatureSensor(hilo, device))
+    if device.has_attribute("wifi_status"):
+        entities.append(WifiStrengthSensor(hilo, device))
     return entities
 
 
@@ -237,7 +236,7 @@ class EnergySensor(IntegrationSensor):
     """Define a Hilo energy sensor entity."""
 
     _attr_device_class = SensorDeviceClass.ENERGY
-    _attr_native_unit_of_measurement = ENERGY_WATT_HOUR
+    _attr_native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
     _attr_icon = "mdi:lightning-bolt"
 
@@ -245,7 +244,7 @@ class EnergySensor(IntegrationSensor):
         self._device = device
         self._attr_name = f"Hilo Energy {slugify(device.name)}"
         self._attr_unique_id = f"hilo_energy_{slugify(device.name)}"
-        self._unit_of_measurement = ENERGY_WATT_HOUR
+        self._unit_of_measurement = ENERGY_KILO_WATT_HOUR
         self._unit_prefix = None
         if device.type == "Meter":
             self._attr_name = HILO_ENERGY_TOTAL
@@ -279,8 +278,6 @@ class EnergySensor(IntegrationSensor):
         """Handle entity which will be added."""
         LOG.debug(f"Added to hass: {self._attr_name}")
         await super().async_added_to_hass()
-        if state := await self.async_get_last_state():
-            self._state = state.state
 
 
 class NoiseSensor(HiloEntity, SensorEntity):
