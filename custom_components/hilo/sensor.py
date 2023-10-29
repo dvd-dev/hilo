@@ -173,7 +173,9 @@ async def async_setup_entry(
     for tarif, amount in tariff_config.items():
         if amount > 0:
             sensor_name = f"Hilo rate {tarif}"
-            cost_entities.append(HiloCostSensor(hilo, sensor_name, hq_plan_name, amount))
+            cost_entities.append(
+                HiloCostSensor(hilo, sensor_name, hq_plan_name, amount)
+            )
     cost_entities.append(HiloCostSensor(hilo, "Hilo rate current", hq_plan_name))
     async_add_entities(cost_entities)
     # This setups the utility_meter platform
@@ -704,7 +706,9 @@ class HiloCostSensor(HiloEntity, RestoreEntity, SensorEntity):
         if last_state:
             self._last_update = dt_util.utcnow()
             self._amount = last_state.state
-            LOG.info(f"Restoring energy cost sensor {last_state.name} {self.plan_name} Amount: {self._amount}")
+            LOG.info(
+                f"Restoring energy cost sensor {last_state.name} {self.plan_name} Amount: {self._amount}"
+            )
 
     async def async_update(self):
         return
