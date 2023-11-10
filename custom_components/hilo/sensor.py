@@ -1,7 +1,7 @@
 """Support for various Hilo sensors."""
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import timedelta, datetime, timezone
 
 from homeassistant.components.integration.sensor import METHOD_LEFT, IntegrationSensor
 from homeassistant.components.sensor import (
@@ -47,6 +47,7 @@ from .const import (
     HILO_ENERGY_TOTAL,
     HILO_SENSOR_CLASSES,
     LOG,
+    NOTIFICATION_SCAN_INTERVAL,
     REWARD_SCAN_INTERVAL,
     TARIFF_LIST,
 )
@@ -252,7 +253,7 @@ class EnergySensor(IntegrationSensor):
             self._attr_name = HILO_ENERGY_TOTAL
             self._unit_of_measurement = ENERGY_KILO_WATT_HOUR
             self._unit_prefix = "k"
-        if device.type == "Thermostat":
+        if device.type == "Thermostat" or device.type == "FloorThermostat":
             self._unit_of_measurement = ENERGY_KILO_WATT_HOUR
             self._unit_prefix = "k"
         self._source = f"sensor.{slugify(device.name)}_power"
@@ -428,6 +429,8 @@ class WifiStrengthSensor(HiloEntity, SensorEntity):
 class HiloNotificationSensor(HiloEntity, RestoreEntity, SensorEntity):
     """Hilo Notification sensor.
     Its state will be the number of notification waiting in the Hilo app.
+    Notifications only used for OneLink's alerts & Low-battery warnings.
+    We should consider having this sensor enabled only if a smoke detector is in use.
     """
 
     def __init__(self, hilo, device, scan_interval):
@@ -435,7 +438,7 @@ class HiloNotificationSensor(HiloEntity, RestoreEntity, SensorEntity):
         super().__init__(hilo, name=self._attr_name, device=device)
         self._attr_unique_id = slugify(self._attr_name)
         LOG.debug(f"Setting up NotificationSensor entity: {self._attr_name}")
-        self.scan_interval = timedelta(seconds=scan_interval)
+        self.scan_interval = timedelta(seconds=NOTIFICATION_SCAN_INTERVAL)
         self._state = 0
         self._notifications = []
         self.async_update = Throttle(self.scan_interval)(self._async_update)
@@ -539,16 +542,35 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
     async def _async_update(self):
         seasons = await self._hilo._api.get_seasons(self._hilo.devices.location_id)
         if seasons:
+            current_history = self._history
             new_history = []
+
             for idx, season in enumerate(seasons):
+                current_history_season = next((item for item in current_history if item.get("season") == season.get("season")), None)
+
                 if idx == 0:
                     self._state = season.get("totalReward", 0)
                 events = []
                 for raw_event in season.get("events", []):
-                    details = await self._hilo._api.get_gd_events(
-                        self._hilo.devices.location_id, event_id=raw_event["id"]
-                    )
-                    events.append(Event(**details).as_dict())
+                    current_history_event = None
+                    event = None
+
+                    if current_history_season:
+                        current_history_event = next((ev for ev in current_history_season["events"] if ev["event_id"] == raw_event["id"]), None)
+
+                    start_date_utc = datetime.fromisoformat(raw_event["startDateUtc"])
+                    event_age = datetime.now(timezone.utc) - start_date_utc
+                    if current_history_event and current_history_event.get("state") == "completed" and event_age > timedelta(days=1):
+                        # No point updating events for previously completed events, they won't change.
+                        event = current_history_event
+                    else:
+                        # Either it is an unknown event, one that is still in progress or a recent one, get the details.
+                        details = await self._hilo._api.get_gd_events(
+                            self._hilo.devices.location_id, event_id=raw_event["id"]
+                        )
+                        event = Event(**details).as_dict()
+
+                    events.append(event)
                 season["events"] = events
                 new_history.append(season)
             self._history = new_history
