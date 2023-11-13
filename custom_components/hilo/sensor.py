@@ -548,10 +548,10 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
             for idx, season in enumerate(seasons):
                 current_history_season = next(
                     (
-                        item 
-                        for item in current_history 
+                        item
+                        for item in current_history
                         if item.get("season") == season.get("season")
-                    ), 
+                    ),
                     None
                 )
 
@@ -565,17 +565,17 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
                     if current_history_season:
                         current_history_event = next(
                             (
-                                ev 
+                                ev
                                 for ev in current_history_season["events"] 
                                 if ev["event_id"] == raw_event["id"]
-                            ), 
+                            ),
                             None
                         )
 
                     start_date_utc = datetime.fromisoformat(raw_event["startDateUtc"])
                     event_age = datetime.now(timezone.utc) - start_date_utc
-                    if (current_history_event 
-                        and current_history_event.get("state") == "completed" 
+                    if (current_history_event
+                        and current_history_event.get("state") == "completed"
                         and event_age > timedelta(days=1)
                     ):
                         # No point updating events for previously completed events, they won't change.
