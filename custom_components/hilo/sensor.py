@@ -1,7 +1,7 @@
 """Support for various Hilo sensors."""
 from __future__ import annotations
 
-from datetime import timedelta, datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from homeassistant.components.integration.sensor import METHOD_LEFT, IntegrationSensor
 from homeassistant.components.sensor import (
@@ -546,7 +546,14 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
             new_history = []
 
             for idx, season in enumerate(seasons):
-                current_history_season = next((item for item in current_history if item.get("season") == season.get("season")), None)
+                current_history_season = next(
+                    (
+                        item 
+                        for item in current_history 
+                        if item.get("season") == season.get("season")
+                    ), 
+                    None
+                )
 
                 if idx == 0:
                     self._state = season.get("totalReward", 0)
@@ -556,11 +563,21 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
                     event = None
 
                     if current_history_season:
-                        current_history_event = next((ev for ev in current_history_season["events"] if ev["event_id"] == raw_event["id"]), None)
+                        current_history_event = next(
+                            (
+                                ev 
+                                for ev in current_history_season["events"] 
+                                if ev["event_id"] == raw_event["id"]
+                            ), 
+                            None
+                        )
 
                     start_date_utc = datetime.fromisoformat(raw_event["startDateUtc"])
                     event_age = datetime.now(timezone.utc) - start_date_utc
-                    if current_history_event and current_history_event.get("state") == "completed" and event_age > timedelta(days=1):
+                    if (current_history_event 
+                        and current_history_event.get("state") == "completed" 
+                        and event_age > timedelta(days=1)
+                    ):
                         # No point updating events for previously completed events, they won't change.
                         event = current_history_event
                     else:

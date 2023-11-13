@@ -62,10 +62,10 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_TRACK_UNKNOWN_SOURCES,
     DEFAULT_UNTARIFICATED_DEVICES,
-    MIN_SCAN_INTERVAL,
     DOMAIN,
     HILO_ENERGY_TOTAL,
     LOG,
+    MIN_SCAN_INTERVAL,
 )
 
 DISPATCHER_TOPIC_WEBSOCKET_EVENT = "pyhilo_websocket_event"
@@ -127,7 +127,9 @@ async def async_setup_entry(  # noqa: C901
     current_options = {**entry.options}
     log_traces = current_options.get(CONF_LOG_TRACES, DEFAULT_LOG_TRACES)
     scan_interval = current_options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
-    scan_interval = scan_interval if scan_interval >= MIN_SCAN_INTERVAL else MIN_SCAN_INTERVAL
+    scan_interval = (
+        scan_interval if scan_interval >= MIN_SCAN_INTERVAL else MIN_SCAN_INTERVAL
+    )
     state_yaml = hass.config.path(DEFAULT_STATE_FILE)
 
     websession = aiohttp_client.async_get_clientsession(hass)
@@ -213,9 +215,7 @@ class Hilo:
         self.devices: Devices = Devices(api)
         self._websocket_reconnect_task: asyncio.Task | None = None
         self._update_task: asyncio.Task | None = None
-        self.invocations = {
-            0: self.subscribe_to_location
-        }
+        self.invocations = {0: self.subscribe_to_location}
         self.hq_plan_name = entry.options.get(CONF_HQ_PLAN_NAME, DEFAULT_HQ_PLAN_NAME)
         self.appreciation = entry.options.get(
             CONF_APPRECIATION_PHASE, DEFAULT_APPRECIATION_PHASE
@@ -261,7 +261,9 @@ class Hilo:
                 for item in event.arguments[0]
             )
             if new_devices:
-                LOG.warn("Device list appears to be desynchronized, forcing a refresh thru the API...")
+                LOG.warn(
+                    "Device list appears to be desynchronized, forcing a refresh thru the API..."
+                )
                 await self.devices.update()
 
             updated_devices = self.devices.parse_values_received(event.arguments[0])
@@ -274,13 +276,17 @@ class Hilo:
         elif event.target == "DeviceListInitialValuesReceived":
             # This websocket event only happens after calling SubscribeToLocation.
             # This triggers an update without throwing an exception
-            new_devices = await self.devices.update_devicelist_from_signalr(event.arguments[0])
+            new_devices = await self.devices.update_devicelist_from_signalr(
+                event.arguments[0]
+            )
         elif event.target == "DeviceListUpdatedValuesReceived":
             # This message only contains display informations, such as the Device's name (as set in the app), it's groupid, icon, etc.
             # Updating the device name causes issues in the integration, it detects it as a new device and creates a new entity.
             # Ignore this call, for now... (update_devicelist_from_signalr does work, but causes the issue above)
             # await self.devices.update_devicelist_from_signalr(event.arguments[0])
-            LOG.debug("Received 'DeviceListUpdatedValuesReceived' message, not implemented yet.")
+            LOG.debug(
+                "Received 'DeviceListUpdatedValuesReceived' message, not implemented yet."
+            )
         elif event.target == "DevicesListChanged":
             # This message only contains the location_id and is used to inform us that devices have been removed from the location.
             # Device deletion is not implemented yet, so we just log the message for now.
