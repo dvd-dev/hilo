@@ -552,7 +552,7 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
                         for item in current_history
                         if item.get("season") == season.get("season")
                     ),
-                    None
+                    None,
                 )
 
                 if idx == 0:
@@ -566,15 +566,16 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
                         current_history_event = next(
                             (
                                 ev
-                                for ev in current_history_season["events"] 
+                                for ev in current_history_season["events"]
                                 if ev["event_id"] == raw_event["id"]
                             ),
-                            None
+                            None,
                         )
 
                     start_date_utc = datetime.fromisoformat(raw_event["startDateUtc"])
                     event_age = datetime.now(timezone.utc) - start_date_utc
-                    if (current_history_event
+                    if (
+                        current_history_event
                         and current_history_event.get("state") == "completed"
                         and event_age > timedelta(days=1)
                     ):
