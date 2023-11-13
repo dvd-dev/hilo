@@ -305,7 +305,7 @@ class Hilo:
             gateway = self.devices.find_device(1)
             if gateway:
                 gateway.id = event.arguments[0][0]["deviceId"]
-                LOG.debug("Updated Gateway's deviceId from default 1 to {gateway.id}")
+                LOG.debug(f"Updated Gateway's deviceId from default 1 to {gateway.id}")
 
             updated_devices = self.devices.parse_values_received(event.arguments[0])
             # NOTE(dvd): If we don't do this, we need to wait until the coordinator
