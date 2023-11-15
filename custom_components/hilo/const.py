@@ -35,7 +35,8 @@ DEFAULT_UNTARIFICATED_DEVICES = False
 DEFAULT_SCAN_INTERVAL = 300
 EVENT_SCAN_INTERVAL = 3000
 REWARD_SCAN_INTERVAL = 7200
-MIN_SCAN_INTERVAL = 15
+NOTIFICATION_SCAN_INTERVAL = 1800
+MIN_SCAN_INTERVAL = 60
 
 CONF_TARIFF = {
     "rate d": {
@@ -71,5 +72,5 @@ HILO_SENSOR_CLASSES = [
     "OutdoorWeatherStation",
     "Gateway",
 ]
-CLIMATE_CLASSES = ["Thermostat"]
-SWITCH_CLASSES = ["Outlet"]
+CLIMATE_CLASSES = ["Thermostat", "FloorThermostat", "Thermostat24V"]
+SWITCH_CLASSES = ["Outlet", "Ccr", "Cee"]
