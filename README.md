@@ -115,7 +115,7 @@ D'autres options sont disponibles sous le bouton "Configurer" dans Home Assistan
 
 - `Intervalle de mise à jour (min: 60s)`: Nombre entier
 
-  Nombre de secondes entre chaque mise à jour de l'appareil. Par défaut à 60s. Il n'est pas recommandé d'aller en dessous de 30 car cela pourrait entraîner une suspension de Hilo. Depuis [2023.11.1](https://github.com/dvd-dev/hilo/releases/tag/v2023.11.1) le mimnium est passé de 15s à 60s.
+  Nombre de secondes entre chaque mise à jour de l'appareil. Par défaut à 60s. Il n'est pas recommandé d'aller en dessous de 30 car cela pourrait entraîner une suspension de Hilo. Depuis [2023.11.1](https://github.com/dvd-dev/hilo/releases/tag/v2023.11.1) le minimum est passé de 15s à 60s.
 
 ## Exemples d'intégrations Lovelace et d'automatisations
 
