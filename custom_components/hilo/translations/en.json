@@ -26,7 +26,7 @@
           "generate_energy_meters": "Generate energy meters",
           "untarificated_devices": "Generate only total meters for each devices",
           "hq_plan_name": "Hydro Quebec rate plan name ('rate d' or 'flex d')",
-          "scan_interval": "Scan interval (min: 15s)",
+          "scan_interval": "Scan interval (min: 60s)",
           "log_traces": "Also log request data and websocket messages (requires debug log level on both the integration and pyhilo)",
           "challenge_lock": "Lock climate entities during Hilo challenges, preventing any changes when a challenge is in progress.",
           "track_unknown_sources": "Track unknown power sources in a separate energy sensor. This is a round approximation calculated when we get a reading from the Smart Energy Meter.",
