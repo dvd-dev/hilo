@@ -168,7 +168,7 @@ Other options are available under the `Configure` button in Home Assistant:
 - `Scan interval (min: 60s)`: Integer
 
   Number of seconds between each device update. Defaults to 60 and it's not recommended to go below 30 as it might
-  result in a suspension from Hilo. Since [2023.11.1](https://github.com/dvd-dev/hilo/releases/tag/v2023.11.1) the mimnium has changed from 15s to 60s.
+  result in a suspension from Hilo. Since [2023.11.1](https://github.com/dvd-dev/hilo/releases/tag/v2023.11.1) the minimum has changed from 15s to 60s.
 
 ## Lovelace sample integration and automation example
 
