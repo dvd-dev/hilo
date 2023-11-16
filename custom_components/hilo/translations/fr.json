@@ -26,7 +26,7 @@
           "generate_energy_meters": "Générer compteurs de consommation électrique",
           "untarificated_devices": "Générer seulement les compteurs totaux pour chaque appareil",
           "hq_plan_name": "Nom du tarif Hydro Québec ('rate d' ou 'flex d')",
-          "scan_interval": "Intervalle de mise à jour (min: 15s)",
+          "scan_interval": "Intervalle de mise à jour (min: 60s)",
           "log_traces": "Enregistrer aussi les requêtes et messages websocket (requiert le niveau de journalisation debug sur L'intégration et pyhilo)",
           "challenge_lock": "Vérouiller les entités climate lors de défis Hilo, empêchant tout changement lorsqu'un défi est en cours.",
           "track_unknown_sources": "Suivre des sources de consommation inconnues dans un compteur séparé. Ceci est une approximation calculée à partir de la lecture du compteur intelligent.",
