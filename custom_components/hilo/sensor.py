@@ -35,11 +35,13 @@ from .const import (
     CONF_ENERGY_METER_PERIOD,
     CONF_GENERATE_ENERGY_METERS,
     CONF_HQ_PLAN_NAME,
+    CONF_PRE_COLD_PHASE,
     CONF_TARIFF,
     CONF_UNTARIFICATED_DEVICES,
     DEFAULT_ENERGY_METER_PERIOD,
     DEFAULT_GENERATE_ENERGY_METERS,
     DEFAULT_HQ_PLAN_NAME,
+    DEFAULT_PRE_COLD_PHASE,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_UNTARIFICATED_DEVICES,
     DOMAIN,
@@ -600,6 +602,8 @@ class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
     - off: no ongoing or scheduled challenge
     - scheduled: A challenge is scheduled, details in the next_events
                  extra attribute
+    - pre_cold: optional phase to cool further before appreciation
+    - appreciation: optional phase to pre-heat more before challenge             
     - pre_heat: Currently in the pre-heat phase
     - reduction or on: Challenge is currently active, heat is lowered
     - recovery: Challenge is completed, we're reheating.
@@ -616,8 +620,28 @@ class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
         self.async_update = Throttle(self.scan_interval)(self._async_update)
 
     @property
-    def state(self):
-        return self._state
+    def state(self):        
+        if len(self._next_events) > 0:
+            if datetime.now(timezone.utc) > self._next_events[0].phases.recovery_end:
+                if len(self._next_events) > 1: 
+                    # another challenge is scheduled after this one
+                    return "scheduled"
+                else:
+                    return "off"
+            elif datetime.now(timezone.utc) > self._next_events[0].phases.recovery_start:
+                return "recovery"
+            elif datetime.now(timezone.utc) > self._next_events[0].phases.reduction_start:
+                return "reduction"
+            elif datetime.now(timezone.utc) > self._next_events[0].phases.preheat_start:
+                return "pre_heat"
+            elif datetime.now(timezone.utc) > self._next_events[0].phases.appreciation_start:
+                return "appreciation"
+            elif datetime.now(timezone.utc) > self._next_events[0].phases.appreciation_start - timedelta(hours = CONF_PRE_COLD_PHASE):
+                return "pre_cold"
+            else:
+                return "scheduled"
+        else:
+            return "off"
 
     @property
     def icon(self):
@@ -635,6 +659,8 @@ class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
             return "mdi:power-plug-off"
         if self.state == "recovery":
             return "mdi:calendar-check"
+        if self.state == "pre_cold":
+            return "mdi:radiator-off"
         return "mdi:battery-alert"
 
     @property
@@ -666,11 +692,17 @@ class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
             if self._hilo.appreciation > 0:
                 event.appreciation(self._hilo.appreciation)
             new_events.append(event.as_dict())
-        self._state = "off"
+
+           # event = Event(**details)
+            if self._hilo.pre_cold > 0:
+                event.pre_cold(self._hilo.pre_cold)
+            new_events.append(event.as_dict())
+
         self._next_events = []
-        if len(new_events):
-            self._state = new_events[0]["state"]
+        
+        if len(new_events):            
             self._next_events = new_events
+            #we don't update the state here anymore, since it's now calculated in the "state"
 
 
 class DeviceSensor(HiloEntity, SensorEntity):
