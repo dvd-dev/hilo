@@ -251,7 +251,7 @@ class HiloOptionsFlowHandler(config_entries.OptionsFlow):
                                 CONF_PRE_COLD_PHASE
                             )
                         },
-                    ): cv.positive_int,                    
+                    ): cv.positive_int,
                     vol.Optional(
                         CONF_SCAN_INTERVAL,
                         description={

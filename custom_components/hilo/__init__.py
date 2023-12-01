@@ -223,7 +223,7 @@ class Hilo:
             CONF_APPRECIATION_PHASE, DEFAULT_APPRECIATION_PHASE
         )
         self.pre_cold = entry.options.get(
-            CONF_PRE_COLD_PHASE, DEFAULT_PRE_COLD_PHASE  #this is new
+            CONF_PRE_COLD_PHASE, DEFAULT_PRE_COLD_PHASE  # this is new
         )
         self.challenge_lock = entry.options.get(
             CONF_CHALLENGE_LOCK, DEFAULT_CHALLENGE_LOCK

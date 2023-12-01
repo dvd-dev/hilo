@@ -603,7 +603,7 @@ class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
     - scheduled: A challenge is scheduled, details in the next_events
                  extra attribute
     - pre_cold: optional phase to cool further before appreciation
-    - appreciation: optional phase to pre-heat more before challenge             
+    - appreciation: optional phase to pre-heat more before challenge
     - pre_heat: Currently in the pre-heat phase
     - reduction or on: Challenge is currently active, heat is lowered
     - recovery: Challenge is completed, we're reheating.
@@ -620,10 +620,10 @@ class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
         self.async_update = Throttle(self.scan_interval)(self._async_update)
 
     @property
-    def state(self):        
-        if len(self._next_events) > 0:
+    def state(self):
+            if len(self._next_events) > 0:
             if datetime.now(timezone.utc) > self._next_events[0].phases.recovery_end:
-                if len(self._next_events) > 1: 
+                if len(self._next_events) > 1:
                     # another challenge is scheduled after this one
                     return "scheduled"
                 else:
@@ -693,14 +693,14 @@ class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
                 event.appreciation(self._hilo.appreciation)
             new_events.append(event.as_dict())
 
-           # event = Event(**details)
+            event = Event(**details)
             if self._hilo.pre_cold > 0:
                 event.pre_cold(self._hilo.pre_cold)
             new_events.append(event.as_dict())
 
         self._next_events = []
         
-        if len(new_events):            
+        if len(new_events):
             self._next_events = new_events
             #we don't update the state here anymore, since it's now calculated in the "state"
 
