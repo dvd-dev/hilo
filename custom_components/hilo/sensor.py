@@ -35,7 +35,6 @@ from .const import (
     CONF_ENERGY_METER_PERIOD,
     CONF_GENERATE_ENERGY_METERS,
     CONF_HQ_PLAN_NAME,
-    CONF_PRE_COLD_PHASE,
     CONF_TARIFF,
     CONF_UNTARIFICATED_DEVICES,
     DEFAULT_ENERGY_METER_PERIOD,
@@ -621,30 +620,19 @@ class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
     @property
     def state(self):
         if len(self._next_events) > 0:
-            if datetime.now(timezone.utc) > self._next_events[0].phases.recovery_end:
-                if len(self._next_events) > 1:
-                    # another challenge is scheduled after this one
-                    return "scheduled"
-                else:
-                    return "off"
-            elif (
-                datetime.now(timezone.utc) > self._next_events[0].phases.recovery_start
-            ):
+            phases = self._next_events[0].phases
+            now = datetime.now(timezone.utc)
+            if now > phases.recovery_end:
+                return "scheduled"
+            elif now > phases.recovery_start:
                 return "recovery"
-            elif (
-                datetime.now(timezone.utc) > self._next_events[0].phases.reduction_start
-            ):
+            elif now > phases.reduction_start:
                 return "reduction"
-            elif datetime.now(timezone.utc) > self._next_events[0].phases.preheat_start:
+            elif now > phases.preheat_start:
                 return "pre_heat"
-            elif (
-                datetime.now(timezone.utc)
-                > self._next_events[0].phases.appreciation_start
-            ):
+            elif now > phases.appreciation_start:
                 return "appreciation"
-            elif datetime.now(timezone.utc) > self._next_events[
-                0
-            ].phases.appreciation_start - timedelta(hours=CONF_PRE_COLD_PHASE):
+            elif now > phases.pre_cold_start:
                 return "pre_cold"
             else:
                 return "scheduled"
