@@ -41,7 +41,6 @@ from .const import (
     DEFAULT_ENERGY_METER_PERIOD,
     DEFAULT_GENERATE_ENERGY_METERS,
     DEFAULT_HQ_PLAN_NAME,
-    DEFAULT_PRE_COLD_PHASE,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_UNTARIFICATED_DEVICES,
     DOMAIN,
@@ -628,15 +627,24 @@ class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
                     return "scheduled"
                 else:
                     return "off"
-            elif datetime.now(timezone.utc) > self._next_events[0].phases.recovery_start:
+            elif (
+                datetime.now(timezone.utc) > self._next_events[0].phases.recovery_start
+            ):
                 return "recovery"
-            elif datetime.now(timezone.utc) > self._next_events[0].phases.reduction_start:
+            elif (
+                datetime.now(timezone.utc) > self._next_events[0].phases.reduction_start
+            ):
                 return "reduction"
             elif datetime.now(timezone.utc) > self._next_events[0].phases.preheat_start:
                 return "pre_heat"
-            elif datetime.now(timezone.utc) > self._next_events[0].phases.appreciation_start:
+            elif (
+                datetime.now(timezone.utc)
+                > self._next_events[0].phases.appreciation_start
+            ):
                 return "appreciation"
-            elif datetime.now(timezone.utc) > self._next_events[0].phases.appreciation_start - timedelta(hours = CONF_PRE_COLD_PHASE):
+            elif datetime.now(timezone.utc) > self._next_events[
+                0
+            ].phases.appreciation_start - timedelta(hours=CONF_PRE_COLD_PHASE):
                 return "pre_cold"
             else:
                 return "scheduled"
@@ -697,10 +705,11 @@ class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
             new_events.append(event.as_dict())
 
         self._next_events = []
-        
+
         if len(new_events):
             self._next_events = new_events
-            #we don't update the state here anymore, since it's now calculated in the "state"
+            # NOTE(ic-dev21): we don't update the state here anymore,
+            # since it's now calculated in the "state"
 
 
 class DeviceSensor(HiloEntity, SensorEntity):
