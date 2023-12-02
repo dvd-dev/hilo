@@ -621,7 +621,7 @@ class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
 
     @property
     def state(self):
-            if len(self._next_events) > 0:
+        if len(self._next_events) > 0:
             if datetime.now(timezone.utc) > self._next_events[0].phases.recovery_end:
                 if len(self._next_events) > 1:
                     # another challenge is scheduled after this one
@@ -691,9 +691,7 @@ class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
             event = Event(**details)
             if self._hilo.appreciation > 0:
                 event.appreciation(self._hilo.appreciation)
-            new_events.append(event.as_dict())
 
-            event = Event(**details)
             if self._hilo.pre_cold > 0:
                 event.pre_cold(self._hilo.pre_cold)
             new_events.append(event.as_dict())
