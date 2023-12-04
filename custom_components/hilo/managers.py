@@ -3,7 +3,20 @@ from datetime import timedelta
 
 from homeassistant.components.energy.data import async_get_manager
 from homeassistant.components.utility_meter import async_setup as utility_setup
-from homeassistant.components.utility_meter.const import DOMAIN as UTILITY_DOMAIN
+from homeassistant.components.utility_meter.const import (
+    CONF_METER,
+    CONF_METER_DELTA_VALUES,
+    CONF_METER_NET_CONSUMPTION,
+    CONF_METER_OFFSET,
+    CONF_METER_PERIODICALLY_RESETTING,
+    CONF_METER_TYPE,
+    CONF_SOURCE_SENSOR,
+    CONF_TARIFF,
+    CONF_TARIFFS,
+    DATA_TARIFF_SENSORS,
+    DATA_UTILITY,
+    DOMAIN as UTILITY_DOMAIN,
+)
 from homeassistant.components.utility_meter.sensor import (
     async_setup_platform as utility_setup_platform,
 )
@@ -26,7 +39,7 @@ class UtilityManager:
         self.add_meter_config(entity, tariff_list, net_consumption)
 
     def add_meter_entity(self, entity, tariff_list):
-        if entity in self.hass.data.get("utility_meter_data", {}):
+        if entity in self.hass.data.get(DATA_UTILITY, {}):
             LOG.debug(f"Entity {entity} is already in the utility meters")
             return
         self.new_entities += 1
@@ -35,9 +48,9 @@ class UtilityManager:
             meter_name = f"{name} {tarif}"
             LOG.debug(f"Creating UtilityMeter entity for {entity}: {meter_name}")
             self.meter_entities[meter_name] = {
-                "meter": entity,
+                CONF_METER: entity,
                 "name": meter_name,
-                "tariff": tarif,
+                CONF_TARIFF: tarif,
             }
 
     def add_meter_config(self, entity, tariff_list, net_consumption):
@@ -45,29 +58,29 @@ class UtilityManager:
         LOG.debug(
             f"Creating UtilityMeter config: {name} {tariff_list} (Net Consumption: {net_consumption})"
         )
-        self.meter_configs[entity] = OrderedDict(
-            {
-                "source": f"sensor.{entity}",
-                "name": name,
-                "cycle": self.period,
-                "tariffs": tariff_list,
-                "net_consumption": net_consumption,
-                "utility_meter_sensors": [],
-                "offset": timedelta(0),
-                "delta_values": False,
-                "periodically_resetting": True,
-            }
-        )
+        self.meter_configs[entity] = {
+            CONF_SOURCE_SENSOR: f"sensor.{entity}",
+            "name": name,
+            CONF_METER_TYPE: self.period,
+            CONF_TARIFFS: tariff_list,
+            CONF_METER_NET_CONSUMPTION: net_consumption,
+            DATA_TARIFF_SENSORS: [],
+            CONF_METER_OFFSET: timedelta(0),
+            CONF_METER_DELTA_VALUES: False,
+            CONF_METER_PERIODICALLY_RESETTING: True,
+        }
 
     async def update(self, async_add_entities):
         LOG.debug(f"Setting up UtilityMeter entities {UTILITY_DOMAIN}")
         if self.new_entities == 0:
             LOG.debug("No new entities, not setting up again")
             return
-        config = {}
-        config[UTILITY_DOMAIN] = OrderedDict(
-            {**self.hass.data.get("utility_meter_data", {}), **self.meter_configs}
-        )
+        current_meters = self.hass.data.get(DATA_UTILITY, {})
+        for meter, conf in current_meters.items():
+            if CONF_TARIFFS not in conf:
+                conf[CONF_TARIFFS] = []
+        config = {UTILITY_DOMAIN: OrderedDict({**current_meters, **self.meter_configs})}
+        LOG.debug(f"Config passed to utility_meters: {config=}")
         await utility_setup(self.hass, config)
         await utility_setup_platform(
             self.hass, config, async_add_entities, self.meter_entities
