@@ -75,12 +75,17 @@ class UtilityManager:
         if self.new_entities == 0:
             LOG.debug("No new entities, not setting up again")
             return
-        current_meters = self.hass.data.get(DATA_UTILITY, {})
-        for meter, conf in current_meters.items():
-            if CONF_TARIFFS not in conf:
-                conf[CONF_TARIFFS] = []
-        config = {UTILITY_DOMAIN: OrderedDict({**current_meters, **self.meter_configs})}
-        LOG.debug(f"Config passed to utility_meters: {config=}")
+        # NOTE(dvd): Pas sur si c'est relevant de pousser les config originale
+        # current_meters = self.hass.data.get(DATA_UTILITY, {})
+        # for meter, conf in current_meters.items():
+        #     conf[CONF_TARIFFS] = conf.get(CONF_TARIFFS, [])
+        #     conf[CONF_METER_OFFSET] = conf.get(CONF_METER_OFFSET, timedelta(0))
+        #     conf[CONF_METER_DELTA_VALUES] = conf.get(CONF_METER_DELTA_VALUES, False)
+        #     conf[CONF_METER_TYPE] = conf.get(CONF_METER_TYPE, "daily")
+        #     conf[CONF_METER_NET_CONSUMPTION] = conf.get(CONF_METER_NET_CONSUMPTION, True)
+        #     conf[CONF_METER_PERIODICALLY_RESETTING] = conf.get(CONF_METER_PERIODICALLY_RESETTING, True)
+        config = {UTILITY_DOMAIN: OrderedDict(self.meter_configs)}
+        LOG.debug(f"Performing utility_setup: {config=}")
         await utility_setup(self.hass, config)
         await utility_setup_platform(
             self.hass, config, async_add_entities, self.meter_entities
@@ -131,20 +136,21 @@ class EnergyManager:
             "entity_energy_price": f"sensor.{rate}",
             "number_energy_price": None,
         }
-        LOG.debug(f"Adding {sensor} / {rate} to grid source")
+        LOG.debug(f"Adding from flow: {sensor} / {rate} to grid source {flow=}")
         self.src[0]["flow_from"].append(flow)
 
     def add_device(self, sensor):
         sensor = f"sensor.{sensor}"
+        LOG.debug(f"energy dashboard: Adding {sensor} to individual device consumption")
         if any(d["stat_consumption"] == sensor for d in self.dev):
             return
-        LOG.debug(f"Adding {sensor} to individual device consumption")
         self.updated = True
         self.dev.append({"stat_consumption": sensor})
+        LOG.debug(f"energy dashboard: Added {sensor} to individual device consumption")
 
     def add_to_dashboard(self, entity, tariff_list):
         for tarif in tariff_list:
-            name = f"{entity}_{self.period}"
+            name = f"{entity}"
             if entity == HILO_ENERGY_TOTAL:
                 self.add_flow_from(f"{name}_{tarif}", f"hilo_rate_{tarif}")
             else:

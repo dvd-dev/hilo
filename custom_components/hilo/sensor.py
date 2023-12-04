@@ -272,7 +272,7 @@ class EnergySensor(IntegrationSensor):
     """Define a Hilo energy sensor entity."""
 
     _attr_device_class = SensorDeviceClass.ENERGY
-    _attr_native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
+    _attr_native_unit_of_measurement = ENERGY_WATT_HOUR
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
     _attr_icon = "mdi:lightning-bolt"
 
@@ -319,6 +319,8 @@ class EnergySensor(IntegrationSensor):
         LOG.debug(
             f"async_added_to_hass(): Adding to hass: {self._attr_name=} {self._attr_native_value=} {self._unit_of_measurement=} {self._last_valid_state=} {self._state=} {self._attr_device_class=}"
         )
+        if state := await self.async_get_last_state():
+            self._state = state.state
 
     async def async_get_last_sensor_data(self):
         last_sensor_data = await super().async_get_last_sensor_data()
