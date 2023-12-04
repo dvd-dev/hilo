@@ -22,7 +22,7 @@ from homeassistant.const import (
     SOUND_PRESSURE_DB,
     TEMP_CELSIUS,
 )
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import Throttle, slugify
@@ -308,8 +308,32 @@ class EnergySensor(IntegrationSensor):
 
     async def async_added_to_hass(self) -> None:
         """Handle entity which will be added."""
-        LOG.debug(f"Added to hass: {self._attr_name}")
+        LOG.debug(
+            f"async_added_to_hass(): Adding to hass: {self._attr_name=} {self._attr_native_value=} {self._unit_of_measurement=} {self._last_valid_state=} {self._state=} {self._attr_device_class=}"
+        )
         await super().async_added_to_hass()
+        LOG.debug(
+            f"async_added_to_hass(): Adding to hass: {self._attr_name=} {self._attr_native_value=} {self._unit_of_measurement=} {self._last_valid_state=} {self._state=} {self._attr_device_class=}"
+        )
+
+    async def async_get_last_sensor_data(self):
+        last_sensor_data = await super().async_get_last_sensor_data()
+        LOG.debug(f"async_get_last_sensor_data(): {last_sensor_data=}")
+        if last_sensor_data:
+            LOG.debug(
+                f"async_get_last_sensor_data(): {last_sensor_data.native_value=} {last_sensor_data.last_valid_state=}"
+            )
+        return last_sensor_data
+
+    async def async_get_last_state(self):
+        last_state = await super().async_get_last_state()
+        LOG.debug(f"async_get_last_state(): {last_state=}")
+        return last_state
+
+    @callback
+    def calc_integration(event):
+        LOG.debug(f"calc_integration(): {event=}")
+        super().calc_integration(event)
 
 
 class NoiseSensor(HiloEntity, SensorEntity):
