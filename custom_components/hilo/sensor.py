@@ -15,6 +15,7 @@ from homeassistant.const import (
     CONF_SCAN_INTERVAL,
     CURRENCY_DOLLAR,
     ENERGY_KILO_WATT_HOUR,
+    ENERGY_WATT_HOUR,
     PERCENTAGE,
     POWER_WATT,
     SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
@@ -275,7 +276,7 @@ class EnergySensor(IntegrationSensor):
         self._device = device
         self._attr_name = f"Hilo Energy {slugify(device.name)}"
         self._attr_unique_id = f"hilo_energy_{slugify(device.name)}"
-        self._unit_of_measurement = ENERGY_KILO_WATT_HOUR
+        self._unit_of_measurement = ENERGY_WATT_HOUR
         self._unit_prefix = None
         if device.type == "Meter":
             self._attr_name = HILO_ENERGY_TOTAL
