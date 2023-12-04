@@ -80,6 +80,7 @@ class EnergyManager:
 
     @property
     def msg(self):
+        LOG.debug(f"Updating dashboard with {self.src=} {self.dev=}")
         return {
             "energy_sources": self.src,
             "device_consumption": self.dev,
