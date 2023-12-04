@@ -235,6 +235,34 @@ class Co2Sensor(HiloEntity, SensorEntity):
         return "mdi:molecule-co2"
 
 
+class PowerSensor(HiloEntity, SensorEntity):
+    """Define a Hilo power sensor entity."""
+
+    _attr_device_class = SensorDeviceClass.POWER
+    _attr_native_unit_of_measurement = POWER_WATT
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    def __init__(self, hilo: Hilo, device: HiloDevice) -> None:
+        """Initialize."""
+        self._attr_name = f"{device.name} Power"
+        super().__init__(hilo, name=self._attr_name, device=device)
+        self._attr_unique_id = f"{slugify(device.name)}-power"
+        LOG.debug(f"Setting up PowerSensor entity: {self._attr_name}")
+
+    @property
+    def state(self):
+        return str(int(self._device.get_value("power", 0)))
+
+    @property
+    def icon(self):
+        if not self._device.available:
+            return "mdi:lan-disconnect"
+        power = int(self._device.get_value("power", 0))
+        if power > 0:
+            return "mdi:power-plug"
+        return "mdi:power-plug-off"
+
+
 class EnergySensor(IntegrationSensor):
     """Define a Hilo energy sensor entity."""
 
@@ -306,34 +334,6 @@ class NoiseSensor(HiloEntity, SensorEntity):
         if int(self._device.get_value("noise", 0)) > 0:
             return "mdi:volume-vibrate"
         return "mdi:volume-mute"
-
-
-class PowerSensor(HiloEntity, SensorEntity):
-    """Define a Hilo power sensor entity."""
-
-    _attr_device_class = SensorDeviceClass.POWER
-    _attr_native_unit_of_measurement = POWER_WATT
-    _attr_state_class = SensorStateClass.MEASUREMENT
-
-    def __init__(self, hilo: Hilo, device: HiloDevice) -> None:
-        """Initialize."""
-        self._attr_name = f"{device.name} Power"
-        super().__init__(hilo, name=self._attr_name, device=device)
-        self._attr_unique_id = f"{slugify(device.name)}-power"
-        LOG.debug(f"Setting up PowerSensor entity: {self._attr_name}")
-
-    @property
-    def state(self):
-        return str(int(self._device.get_value("power", 0)))
-
-    @property
-    def icon(self):
-        if not self._device.available:
-            return "mdi:lan-disconnect"
-        power = int(self._device.get_value("power", 0))
-        if power > 0:
-            return "mdi:power-plug"
-        return "mdi:power-plug-off"
 
 
 class TemperatureSensor(HiloEntity, SensorEntity):
