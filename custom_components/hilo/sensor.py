@@ -15,7 +15,6 @@ from homeassistant.const import (
     CONF_SCAN_INTERVAL,
     CURRENCY_DOLLAR,
     ENERGY_KILO_WATT_HOUR,
-    ENERGY_WATT_HOUR,
     PERCENTAGE,
     POWER_WATT,
     SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
@@ -272,7 +271,7 @@ class EnergySensor(IntegrationSensor):
     """Define a Hilo energy sensor entity."""
 
     _attr_device_class = SensorDeviceClass.ENERGY
-    _attr_native_unit_of_measurement = ENERGY_WATT_HOUR
+    _attr_native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
     _attr_icon = "mdi:lightning-bolt"
 
@@ -280,15 +279,10 @@ class EnergySensor(IntegrationSensor):
         self._device = device
         self._attr_name = f"Hilo Energy {slugify(device.name)}"
         self._attr_unique_id = f"hilo_energy_{slugify(device.name)}"
-        self._unit_of_measurement = ENERGY_WATT_HOUR
-        self._unit_prefix = None
+        self._unit_of_measurement = ENERGY_KILO_WATT_HOUR
+        self._unit_prefix = "k"
         if device.type == "Meter":
             self._attr_name = HILO_ENERGY_TOTAL
-            self._unit_of_measurement = ENERGY_KILO_WATT_HOUR
-            self._unit_prefix = "k"
-        if device.type == "Thermostat" or device.type == "FloorThermostat":
-            self._unit_of_measurement = ENERGY_KILO_WATT_HOUR
-            self._unit_prefix = "k"
         self._source = f"sensor.{slugify(device.name)}_power"
 
         super().__init__(
