@@ -26,7 +26,7 @@ DEFAULT_HQ_PLAN_NAME = "rate d"
 CONF_LOG_TRACES = "log_traces"
 DEFAULT_LOG_TRACES = False
 
-CONF_PRE_COLD_PHASE = "pre_cold"
+CONF_PRE_COLD_PHASE = "pre_cold_phase"
 DEFAULT_PRE_COLD_PHASE = 0
 
 CONF_TRACK_UNKNOWN_SOURCES = "track_unknown_sources"
