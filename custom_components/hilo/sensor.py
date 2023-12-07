@@ -23,6 +23,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import Throttle, slugify
 import homeassistant.util.dt as dt_util
@@ -180,8 +181,14 @@ async def async_setup_entry(
             cost_entities.append(
                 HiloCostSensor(hilo, sensor_name, hq_plan_name, amount)
             )
-    cost_entities.append(HiloCostSensor(hilo, "Hilo rate current", hq_plan_name))
+    hilo_rate_current = HiloCostSensor(hilo, "Hilo rate current", hq_plan_name)
+    cost_entities.append(hilo_rate_current)
     async_add_entities(cost_entities)
+    # hilo._hass.bus.async_listen(EVENT_STATE_CHANGED, hilo_rate_current._handle_state_change)
+    async_track_state_change_event(
+        hilo._hass, ["sensor.hilo_rate_current"], hilo_rate_current._handle_state_change
+    )
+
     # This setups the utility_meter platform
     await utility_manager.update(async_add_entities)
     # This sends the entities to the energy dashboard
@@ -566,36 +573,52 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
 
     async def _async_update(self):
         seasons = await self._hilo._api.get_seasons(self._hilo.devices.location_id)
-        if seasons:
-            current_history = self._history
-            new_history = []
+        if not seasons:
+            return
+        current_history = self._history
+        new_history = []
+        for idx, season in enumerate(seasons):
+            current_history_season = next(
+                (
+                    item
+                    for item in current_history
+                    if item.get("season") == season.get("season")
+                ),
+                None,
+            )
 
-            for idx, season in enumerate(seasons):
-                current_history_season = next(
-                    (
-                        item
-                        for item in current_history
-                        if item.get("season") == season.get("season")
-                    ),
-                    None,
-                )
+            if idx == 0:
+                self._state = season.get("totalReward", 0)
+            events = []
+            for raw_event in season.get("events", []):
+                current_history_event = None
+                event = None
 
-                if idx == 0:
-                    self._state = season.get("totalReward", 0)
-                events = []
-                for raw_event in season.get("events", []):
-                    current_history_event = None
-                    event = None
+                if current_history_season:
+                    current_history_event = next(
+                        (
+                            ev
+                            for ev in current_history_season["events"]
+                            if ev["event_id"] == raw_event["id"]
+                        ),
+                        None,
+                    )
 
-                    if current_history_season:
-                        current_history_event = next(
-                            (
-                                ev
-                                for ev in current_history_season["events"]
-                                if ev["event_id"] == raw_event["id"]
-                            ),
-                            None,
-                        )
+                start_date_utc = datetime.fromisoformat(raw_event["startDateUtc"])
+                event_age = datetime.now(timezone.utc) - start_date_utc
+                if (
+                    current_history_event
+                    and current_history_event.get("state") == "completed"
+                    and event_age > timedelta(days=1)
+                ):
+                    # No point updating events for previously completed events, they won't change.
+                    event = current_history_event
+                else:
+                    # Either it is an unknown event, one that is still in progress or a recent one, get the details.
+                    details = await self._hilo._api.get_gd_events(
+                        self._hilo.devices.location_id, event_id=raw_event["id"]
+                    )
+                    event = Event(**details).as_dict()
 
                     start_date_utc = datetime.fromisoformat(raw_event["startDateUtc"])
                     event_age = datetime.now(timezone.utc) - start_date_utc
@@ -727,43 +750,56 @@ class DeviceSensor(HiloEntity, SensorEntity):
         return "mdi:access-point-network"
 
 
-class HiloCostSensor(HiloEntity, RestoreEntity, SensorEntity):
+class HiloCostSensor(HiloEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.MONETARY
     _attr_native_unit_of_measurement = f"{CURRENCY_DOLLAR}/{ENERGY_KILO_WATT_HOUR}"
-    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_state_class = SensorStateClass.TOTAL
     _attr_icon = "mdi:cash"
 
     def __init__(self, hilo, name, plan_name, amount=0):
-        for d in hilo.devices.all:
-            if d.type == "Gateway":
-                device = d
+        device = next((d for d in hilo.devices.all if d.type == "Gateway"), None)
         if "low_threshold" in name:
             self._attr_device_class = SensorDeviceClass.ENERGY
             self._attr_native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
-        self.data = None
         self._attr_name = name
         self.plan_name = plan_name
-        self._amount = amount
         self._attr_unique_id = slugify(self._attr_name)
         self._last_update = dt_util.utcnow()
+        self._cost = amount
         super().__init__(hilo, name=self._attr_name, device=device)
         LOG.info(f"Initializing energy cost sensor {name} {plan_name} Amount: {amount}")
 
+    def _handle_state_change(self, event):
+        if (state := event.data.get("new_state")) is None:
+            return
+        if state.entity_id != f"sensor.{self._attr_unique_id}":
+            return
+        try:
+            if state.attributes.get("hilo_update"):
+                LOG.debug(
+                    f"Setting new state {state.state} {state=} {state.attributes=}"
+                )
+                self._cost = state.state
+                self._last_update = dt_util.utcnow()
+        except ValueError:
+            LOG.error(f"Invalidate state received for {self._attr_unique_id}: {state}")
+
     @property
     def state(self):
-        return self._amount
+        return self._cost
+
+    @property
+    def extra_state_attributes(self):
+        return {
+            "Cost": self._cost,
+            "Plan": self.plan_name,
+            "last_update": self._last_update,
+        }
 
     @property
     def should_poll(self) -> bool:
         return False
 
-    @property
-    def extra_state_attributes(self):
-        return {"last_update": self._last_update, "Cost": self.state}
-
-    async def async_added_to_hass(self):
-        """Handle entity about to be added to hass event."""
-        await super().async_added_to_hass()
-
     async def async_update(self):
-        return
+        self._last_update = dt_util.utcnow()
+        return super().async_update()

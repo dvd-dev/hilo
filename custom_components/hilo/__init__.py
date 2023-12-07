@@ -462,7 +462,7 @@ class Hilo:
             self.check_tarif()
 
     def set_state(self, entity, state, new_attrs={}, keep_state=False, force=False):
-        params = f"entity={entity}, state={state}, new_attrs={new_attrs}, keep_state={keep_state}"
+        params = f"{entity=} {state=} {new_attrs=} {keep_state=}"
         current = self._hass.states.get(entity)
         if not current:
             if not force:
@@ -471,14 +471,15 @@ class Hilo:
             attrs = {}
         else:
             attrs = dict(current.as_dict()["attributes"])
-        LOG.debug(f"Setting state {params} {current}")
         attrs["last_update"] = datetime.now()
+        attrs["hilo_update"] = True
         attrs = {**attrs, **new_attrs}
         if keep_state and current:
             state = current.state
         if "Cost" in attrs:
             attrs["Cost"] = state
-        self._hass.states.async_set(entity, state, attrs)
+        LOG.debug(f"Setting state {params} {current=} {attrs=}")
+        self._hass.states.async_set(entity, state, attrs, force_update=force)
 
     @property
     def high_times(self):
@@ -490,32 +491,35 @@ class Hilo:
     def check_tarif(self):
         if self.generate_energy_meters:
             tarif = "low"
-            base_sensor = f"sensor.{HILO_ENERGY_TOTAL}_low"
+            base_sensor = f"sensor.{HILO_ENERGY_TOTAL}"
             energy_used = self._hass.states.get(base_sensor)
             if not energy_used:
-                LOG.warning(f"check_tarif: Unable to find state for {base_sensor}")
+                LOG.warning(f"check_tarif(): Unable to find state for {base_sensor}")
                 return tarif
             plan_name = self.hq_plan_name
             tarif_config = CONF_TARIFF.get(plan_name)
             current_cost = self._hass.states.get("sensor.hilo_rate_current")
+            current_state = 0 if not current_cost else current_cost.state
             try:
                 if float(energy_used.state) >= tarif_config.get("low_threshold"):
                     tarif = "medium"
             except ValueError:
                 LOG.warning(
-                    f"Unable to restore a valid state of {base_sensor}: {energy_used.state}"
+                    f"check_tarif(): Unable to restore a valid state of {base_sensor}: {energy_used.state}"
                 )
 
             if tarif_config.get("high", 0) > 0 and self.high_times:
                 tarif = "high"
             target_cost = self._hass.states.get(f"sensor.hilo_rate_{tarif}")
-            if target_cost.state != current_cost.state:
+            if target_cost.state != current_state:
                 LOG.debug(
-                    f"check_tarif: Updating current cost, was {current_cost.state} now {target_cost.state}"
+                    f"check_tarif: Updating current cost, was {current_state=} now {target_cost.state=}"
                 )
-                self.set_state("sensor.hilo_rate_current", target_cost.state)
+                self.set_state(
+                    "sensor.hilo_rate_current", target_cost.state, force=True
+                )
             LOG.debug(
-                f"check_tarif: Current plan: {plan_name} Target Tarif: {tarif} Energy used: {energy_used.state} Peak: {self.high_times}"
+                f"check_tarif: Current plan: {plan_name} Target Tarif: {tarif} Energy used: {energy_used.state} Peak: {self.high_times} {target_cost.state=} {current_state=}"
             )
         known_power = 0
         smart_meter = "sensor.smartenergymeter_power"
@@ -560,15 +564,20 @@ class Hilo:
 
     @callback
     def fix_utility_sensor(self, entity, state):
-        """not sure why this doesn't get created with a proper device_class"""
+        """For some reason, the utility sensors are missing their
+        measurement units and device classes."""
         current_state = state.as_dict()
         attrs = current_state.get("attributes", {})
         if not attrs.get("source"):
-            LOG.debug(f"No source entity defined on {entity}: {current_state}")
+            LOG.debug(
+                f"fix_utility_sensor(): No source entity defined on {entity}: {current_state}"
+            )
             return
         parent_unit = self._hass.states.get(attrs.get("source"))
         if not parent_unit:
-            LOG.warning(f"Unable to find state for parent unit: {current_state}")
+            LOG.warning(
+                f"fix_utility_sensor(): Unable to find state for parent unit: {current_state}"
+            )
             return
         new_attrs = {
             ATTR_UNIT_OF_MEASUREMENT: parent_unit.as_dict()
@@ -578,7 +587,7 @@ class Hilo:
         }
         if not all(a in attrs.keys() for a in new_attrs.keys()):
             LOG.warning(
-                f"Fixing utility sensor: {entity} {current_state} new_attrs: {new_attrs}"
+                f"fix_utility_sensor(): Fixing utility sensor: {entity=} {current_state=} new_attrs: {new_attrs=}"
             )
             self.set_state(entity, None, new_attrs=new_attrs, keep_state=True)
 
@@ -588,7 +597,7 @@ class Hilo:
             return
         if entity.startswith("select.hilo_energy") and current != new:
             LOG.debug(
-                f"check_tarif: Changing tarif of {entity} from {current} to {new}"
+                f"set_tarif(): Changing tarif of {entity=} from {current=} to {new=}"
             )
             context = Context()
             data = {ATTR_OPTION: new, "entity_id": entity}
