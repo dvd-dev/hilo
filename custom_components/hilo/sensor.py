@@ -620,22 +620,8 @@ class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
     @property
     def state(self):
         if len(self._next_events) > 0:
-            phases = self._next_events[0].phases
-            now = datetime.now(timezone.utc)
-            if now > phases.recovery_end:
-                return "scheduled"
-            elif now > phases.recovery_start:
-                return "recovery"
-            elif now > phases.reduction_start:
-                return "reduction"
-            elif now > phases.preheat_start:
-                return "pre_heat"
-            elif now > phases.appreciation_start:
-                return "appreciation"
-            elif now > phases.pre_cold_start:
-                return "pre_cold"
-            else:
-                return "scheduled"
+            event = Event(**{**{"id": 0}, **self._next_events[0]})
+            return event.state
         else:
             return "off"
 
