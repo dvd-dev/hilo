@@ -582,10 +582,7 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
                         # No point updating events for previously completed events, they won't change.
                         event = current_history_event
                     else:
-                        # Either it is an unknown event, one that is still in progress or a recent one, get the details.
-                        details = await self._hilo._api.get_gd_events(
-                            self._hilo.devices.location_id, event_id=raw_event["id"]
-                        )
+                        details = await self._hilo.get_event_details(raw_event["id"])
                         event = Event(**details).as_dict()
 
                     events.append(event)
@@ -667,7 +664,7 @@ class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
         events = await self._hilo._api.get_gd_events(self._hilo.devices.location_id)
         LOG.debug(f"Events received from Hilo: {events}")
         for raw_event in events:
-            details = self._hilo.get_event_details(raw_event["id"])
+            details = await self._hilo.get_event_details(raw_event["id"])
             event = Event(**details)
             if self._hilo.appreciation > 0:
                 event.appreciation(self._hilo.appreciation)
