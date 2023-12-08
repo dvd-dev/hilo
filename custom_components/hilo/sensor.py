@@ -663,27 +663,17 @@ class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
             self._next_events = last_state.attributes.get("next_events", [])
 
     async def _async_update(self):
-        new_events = []
+        self._next_events = []
         events = await self._hilo._api.get_gd_events(self._hilo.devices.location_id)
         LOG.debug(f"Events received from Hilo: {events}")
         for raw_event in events:
-            details = await self._hilo._api.get_gd_events(
-                self._hilo.devices.location_id, event_id=raw_event["id"]
-            )
+            details = self._hilo.get_event_details(raw_event["id"])
             event = Event(**details)
             if self._hilo.appreciation > 0:
                 event.appreciation(self._hilo.appreciation)
-
             if self._hilo.pre_cold > 0:
                 event.pre_cold(self._hilo.pre_cold)
-            new_events.append(event.as_dict())
-
-        self._next_events = []
-
-        if len(new_events):
-            self._next_events = new_events
-            # NOTE(ic-dev21): we don't update the state here anymore,
-            # since it's now calculated in the "state"
+            self._next_events.append(event.as_dict())
 
 
 class DeviceSensor(HiloEntity, SensorEntity):
