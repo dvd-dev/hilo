@@ -30,7 +30,8 @@
           "log_traces": "Also log request data and websocket messages (requires debug log level on both the integration and pyhilo)",
           "challenge_lock": "Lock climate entities during Hilo challenges, preventing any changes when a challenge is in progress.",
           "track_unknown_sources": "Track unknown power sources in a separate energy sensor. This is a round approximation calculated when we get a reading from the Smart Energy Meter.",
-          "appreciation_phase": "Add an appreciation phase of X hours before the preheat phase."
+          "appreciation_phase": "Add an appreciation phase of X hours before the preheat phase.",
+          "pre_cold_phase": "Add a cooldown phase of X hours to reduce temperatures before the appreciation phase."
         }
       }
     }

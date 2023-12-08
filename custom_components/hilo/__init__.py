@@ -51,6 +51,7 @@ from .const import (
     CONF_HIGH_PERIODS,
     CONF_HQ_PLAN_NAME,
     CONF_LOG_TRACES,
+    CONF_PRE_COLD_PHASE,
     CONF_TARIFF,
     CONF_TRACK_UNKNOWN_SOURCES,
     CONF_UNTARIFICATED_DEVICES,
@@ -59,6 +60,7 @@ from .const import (
     DEFAULT_GENERATE_ENERGY_METERS,
     DEFAULT_HQ_PLAN_NAME,
     DEFAULT_LOG_TRACES,
+    DEFAULT_PRE_COLD_PHASE,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_TRACK_UNKNOWN_SOURCES,
     DEFAULT_UNTARIFICATED_DEVICES,
@@ -219,6 +221,9 @@ class Hilo:
         self.hq_plan_name = entry.options.get(CONF_HQ_PLAN_NAME, DEFAULT_HQ_PLAN_NAME)
         self.appreciation = entry.options.get(
             CONF_APPRECIATION_PHASE, DEFAULT_APPRECIATION_PHASE
+        )
+        self.pre_cold = entry.options.get(
+            CONF_PRE_COLD_PHASE, DEFAULT_PRE_COLD_PHASE  # this is new
         )
         self.challenge_lock = entry.options.get(
             CONF_CHALLENGE_LOCK, DEFAULT_CHALLENGE_LOCK

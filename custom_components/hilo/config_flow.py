@@ -25,6 +25,7 @@ from .const import (
     CONF_GENERATE_ENERGY_METERS,
     CONF_HQ_PLAN_NAME,
     CONF_LOG_TRACES,
+    CONF_PRE_COLD_PHASE,
     CONF_TRACK_UNKNOWN_SOURCES,
     CONF_UNTARIFICATED_DEVICES,
     DEFAULT_APPRECIATION_PHASE,
@@ -32,6 +33,7 @@ from .const import (
     DEFAULT_GENERATE_ENERGY_METERS,
     DEFAULT_HQ_PLAN_NAME,
     DEFAULT_LOG_TRACES,
+    DEFAULT_PRE_COLD_PHASE,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_TRACK_UNKNOWN_SOURCES,
     DEFAULT_UNTARIFICATED_DEVICES,
@@ -70,6 +72,10 @@ STEP_OPTION_SCHEMA = vol.Schema(
         vol.Optional(
             CONF_APPRECIATION_PHASE,
             default=DEFAULT_APPRECIATION_PHASE,
+        ): cv.positive_int,
+        vol.Optional(
+            CONF_PRE_COLD_PHASE,
+            default=DEFAULT_PRE_COLD_PHASE,
         ): cv.positive_int,
         vol.Optional(CONF_HQ_PLAN_NAME, default=DEFAULT_HQ_PLAN_NAME): cv.string,
         vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): (
@@ -235,6 +241,14 @@ class HiloOptionsFlowHandler(config_entries.OptionsFlow):
                         description={
                             "suggested_value": self.config_entry.options.get(
                                 CONF_APPRECIATION_PHASE
+                            )
+                        },
+                    ): cv.positive_int,
+                    vol.Optional(
+                        CONF_PRE_COLD_PHASE,
+                        description={
+                            "suggested_value": self.config_entry.options.get(
+                                CONF_PRE_COLD_PHASE
                             )
                         },
                     ): cv.positive_int,

@@ -600,6 +600,8 @@ class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
     - off: no ongoing or scheduled challenge
     - scheduled: A challenge is scheduled, details in the next_events
                  extra attribute
+    - pre_cold: optional phase to cool further before appreciation
+    - appreciation: optional phase to pre-heat more before challenge
     - pre_heat: Currently in the pre-heat phase
     - reduction or on: Challenge is currently active, heat is lowered
     - recovery: Challenge is completed, we're reheating.
@@ -617,7 +619,11 @@ class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
 
     @property
     def state(self):
-        return self._state
+        if len(self._next_events) > 0:
+            event = Event(**{**{"id": 0}, **self._next_events[0]})
+            return event.state
+        else:
+            return "off"
 
     @property
     def icon(self):
@@ -635,6 +641,8 @@ class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
             return "mdi:power-plug-off"
         if self.state == "recovery":
             return "mdi:calendar-check"
+        if self.state == "pre_cold":
+            return "mdi:radiator-off"
         return "mdi:battery-alert"
 
     @property
@@ -665,12 +673,17 @@ class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
             event = Event(**details)
             if self._hilo.appreciation > 0:
                 event.appreciation(self._hilo.appreciation)
+
+            if self._hilo.pre_cold > 0:
+                event.pre_cold(self._hilo.pre_cold)
             new_events.append(event.as_dict())
-        self._state = "off"
+
         self._next_events = []
+
         if len(new_events):
-            self._state = new_events[0]["state"]
             self._next_events = new_events
+            # NOTE(ic-dev21): we don't update the state here anymore,
+            # since it's now calculated in the "state"
 
 
 class DeviceSensor(HiloEntity, SensorEntity):
