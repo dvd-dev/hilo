@@ -19,6 +19,9 @@ Ceci est une version Bêta. Il y aura probablements des bogues, irritants, etc. 
 # Hilo
 Intégration pour Home Assistant d'[Hilo](https://www.hydroquebec.com/hilo/fr/)
 
+# :warning: Breaking change à venir
+L'authentification (login) de Hilo passera d'une méthode "Resource Owner Password Flow" vers une méthode "Authorization Code Flow with PKCE". Quelques semaines après ce changement, l'ancienne méthode sera fermée définitivement et les anciennes version de Hilo ne seront plus fonctionnelles. Nous recommandons donc de surveiller cette page pour une mise à jour prochainement.
+
 ## Introduction
 
 Ceci est l'intégration HACS non-officielle de Hilo sur Home Assistant. [Hilo](https://www.hiloenergie.com/fr-ca/) est une plateforme de domotique développée par une filliale d'[Hydro-Québec](https://www.hydroquebec.com/hilo/fr/).
