@@ -774,13 +774,17 @@ class HiloCostSensor(HiloEntity, SensorEntity):
             return
         if state.entity_id != f"sensor.{self._attr_unique_id}":
             return
+        now = dt_util.utcnow()
         try:
-            if state.attributes.get("hilo_update"):
+            if (
+                state.attributes.get("hilo_update")
+                and self._last_update + timedelta(seconds=30) < now
+            ):
                 LOG.debug(
                     f"Setting new state {state.state} {state=} {state.attributes=}"
                 )
                 self._cost = state.state
-                self._last_update = dt_util.utcnow()
+                self._last_update = now
         except ValueError:
             LOG.error(f"Invalidate state received for {self._attr_unique_id}: {state}")
 
