@@ -353,6 +353,13 @@ class Hilo:
             "sw_version": "0.0.1",
         }
 
+    async def get_event_details(self, event_id: int):
+        if event_id not in self._events:
+            self._events[event_id] = await self._api.get_gd_events(
+                self.devices.location_id, event_id=event_id
+            )
+        return self._events[event_id]
+
     async def async_init(self, scan_interval: int) -> None:
         """Initialize the Hilo "manager" class."""
         if TYPE_CHECKING:
@@ -647,13 +654,6 @@ class HiloEntity(CoordinatorEntity):
     def async_update_from_websocket_event(self, event: WebsocketEvent) -> None:
         """Update the entity when new data comes from the websocket."""
         raise NotImplementedError()
-
-    async def get_event_details(self, event_id: int):
-        if event_id not in self._events:
-            self._events[event_id] = await self._api.get_gd_events(
-                self.devices.location_id, event_id=event_id
-            )
-        return self._events[event_id]
 
     async def async_added_to_hass(self):
         """Call when entity is added to hass."""
