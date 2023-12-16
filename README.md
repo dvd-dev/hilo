@@ -146,7 +146,7 @@ Rapporter tout problème est une bonne manière disponible à tous de contribuer
 Si vous éprouvez des problèmes ou voyez des comportements étranges, merci de soumettre un "Issue" et d'y attach vos journaux.
 
 Pour mettre en fonction la journalisation de débogage, vous devez ajouter ceci dans votre fichier `configuration.yaml`:
-```
+```yaml
 logger:
   default: info
   logs:
@@ -156,25 +156,79 @@ logger:
 
 Si vous avez de l'expérience python ou Home Assistant et que vous souhaitez contribuer au code, n'hésitez pas à soumettre une  pull request.
 
+### Préparer un environment de développement sur MacOS / Linux
+
+1. Preparer les dossiers necessaires:
+```console
+$ HASS_DEV=~/hass-dev/
+$ HASS_RELEASE=2023.12.3
+$ mkdir -p ${HASS_DEV}/config
+$ cd $HASS_DEV
+$ git clone https://github.com/dvd-dev/hilo.git
+$ git clone https://github.com/dvd-dev/python-hilo.git
+$ git clone https://github.com/home-assistant/core.git
+$ git --git-dir core/ checkout $HASS_RELEASE
+```
+
+**NOTE**: On clone aussi le [repo](https://github.com/home-assistant/core) de home-assistant car c'est plus facile d'ajouter du debug à ce niveau.
+
+2. Lancer le container:
+
+```console
+$ docker run -d -p 8123:8123 \
+  --name hass \
+  -v ${HASS_DEV}/config:/config \
+  -v ${HASS_DEV}/python-hilo/pyhilo:/usr/local/lib/python3.11/site-packages/pyhilo:ro \
+  -v ${HASS_DEV}/hilo/custom_components/hilo/:/config/custom_components/hilo:ro \
+  -v ${HASS_DEV}/core/homeassistant:/usr/src/homeassistant/homeassistant:ro \
+  homeassistant/home-assistant:$HASS_RELEASE
+```
+
+3. Verifier que le container roule
+
+```console
+$ docker ps
+CONTAINER ID   IMAGE                                    COMMAND   CREATED       STATUS          PORTS                    NAMES
+bace2264ee54   homeassistant/home-assistant:2023.12.3   "/init"   3 hours ago   Up 28 minutes   0.0.0.0:8123->8123/tcp   hass
+```
+
+4. Verifier les logs de home-assistant
+```console
+$ less ${HASS_DEV}/config/home-assistant.log
+$ grep hilo ${HASS_DEV}/config/home-assistant.log
+```
+
+5. Activer les logs debug
+
+```console
+$ cat << EOF >> ${HASS_DEV}/config/configuration.yaml
+logger:
+  default: info
+  logs:
+     custom_components.hilo: debug
+     pyhilo: debug
+EOF
+$ docker restart hass
+```
+
 ### Avant de soumettre une Pull Request
 
-Il va sans dire qu'il est important de tester vos modifications sur une installation locale. Il est possible de modifier les fichiers .py de l'intégration directement dans votre dossier:
-```
-custom_components/hilo
-```
+Il va sans dire qu'il est important de tester vos modifications sur une installation locale. Il est possible de modifier les fichiers .py de l'intégration directement dans votre dossier `custom_components/hilo`.
+
 N'oubliez pas votre copie de sauvegarde!
 
 Si vous devez modifier python-hilo pour vos tests, il est possible d'installer votre "fork" avec la commande suivante dans votre CLI:
 
-```
-pip install -e git+https://github.com/VOTRE_FORK_ICI/python-hilo.git#egg=python-hilo
+```console
+$ pip install -e git+https://github.com/VOTRE_FORK_ICI/python-hilo.git#egg=python-hilo
 ```
 
 Vous devrez ensuite redémarrer Home Assistant pour que votre installation prenne effet. Pour revenir en arrière, il suffit de faire:
 
+```console
+$ pip install python-hilo
 ```
-pip install python-hilo
-```
+
 Et redémarrez Home Assistant
 
 ### Soumettre une Pull Request
@@ -182,22 +236,24 @@ Et redémarrez Home Assistant
 - D'abord, vous devez créer un `fork` du "repository" dans votre propre espace utilisateur.
 - Ensuite, vous pouvez en faire un `clone` sur votre ordinateur.
 - Afin de maintenir une sorte de propreté et de standard dans le code, nous avons des linters et des validateurs qui doivent être exécutés via `pre-commit` hooks:
-```
-pre-commit install --install-hooks
+```console
+$ pre-commit install --install-hooks
 ```
 - Vous pouvez mainteant procéder à votre modification au code.
 - Lorsque vous avez terminé, vous pouvez `stage` les fichiers pour un `commit`:
-```
-git add path/to/file
+```console
+$ git add path/to/file
 ```
 - Et vous pouvez créer un `commit`:
+```console
+$ git commit -m "J'ai changé ceci parce que ..."
 ```
-git commit -m "J'ai changé ceci parce que ..."
-```
+
 - Finalement, vous pouvez `push` le changement vers votre "upstream repository":
+```console
+$ git push
 ```
-git push
-```
+
 - Ensuite, si vous visitez le [upstream repository](https://github.com/dvd-dev/hilo), Github devrait vous proposer de créer un "Pull Request" (PR). Vous n'avez qu'à suivre les instructions.
 
 ### Collaborateurs initiaux
