@@ -15,16 +15,14 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_DEVICE_CLASS,
     ATTR_UNIT_OF_MEASUREMENT,
-    CONF_PASSWORD,
     CONF_SCAN_INTERVAL,
-    CONF_TOKEN,
     CONF_USERNAME,
     EVENT_HOMEASSISTANT_STOP,
     Platform,
 )
 from homeassistant.core import Context, Event, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
-from homeassistant.helpers import aiohttp_client, device_registry as dr
+from homeassistant.helpers import aiohttp_client, config_entry_oauth2_flow, device_registry as dr
 from homeassistant.helpers.dispatcher import (
     async_dispatcher_connect,
     async_dispatcher_send,
@@ -36,14 +34,14 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
 )
 from pyhilo import API
-from pyhilo.const import DEFAULT_STATE_FILE
+from pyhilo.auth.oauth2 import OAuth2Impl
 from pyhilo.device import HiloDevice
 from pyhilo.devices import Devices
 from pyhilo.exceptions import HiloError, InvalidCredentialsError, WebsocketError
 from pyhilo.util import from_utc_timestamp, time_diff
 from pyhilo.websocket import WebsocketEvent
 
-from .config_flow import STEP_OPTION_SCHEMA
+from .config_flow import HiloFlowHandler, STEP_OPTION_SCHEMA
 from .const import (
     CONF_APPRECIATION_PHASE,
     CONF_CHALLENGE_LOCK,
@@ -125,43 +123,31 @@ async def async_setup_entry(  # noqa: C901
     hass: HomeAssistant, entry: ConfigEntry
 ) -> bool:
     """Set up Hilo as config entry."""
-    _async_standardize_config_entry(hass, entry)
+    HiloFlowHandler.async_register_implementation(hass, OAuth2Impl(hass))
+
+    implementation = (
+        await config_entry_oauth2_flow.async_get_config_entry_implementation(
+            hass, entry
+        )
+    )
+
     current_options = {**entry.options}
-    log_traces = current_options.get(CONF_LOG_TRACES, DEFAULT_LOG_TRACES)
+
+    api = await API.async_create(
+        session=aiohttp_client.async_get_clientsession(hass),
+        oauth_session=config_entry_oauth2_flow.OAuth2Session(hass, entry, implementation),
+        log_traces=current_options.get(CONF_LOG_TRACES, DEFAULT_LOG_TRACES)
+    )
+    try:
+        await api.async_get_access_token()
+    except Exception as err:
+        raise ConfigEntryAuthFailed(err) from err
+
+    _async_standardize_config_entry(hass, entry)
     scan_interval = current_options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
     scan_interval = (
         scan_interval if scan_interval >= MIN_SCAN_INTERVAL else MIN_SCAN_INTERVAL
     )
-    state_yaml = hass.config.path(DEFAULT_STATE_FILE)
-
-    websession = aiohttp_client.async_get_clientsession(hass)
-
-    try:
-        if entry.data[CONF_TOKEN]:
-            LOG.debug("Trying auth with token")
-            api = await API.async_auth_refresh_token(
-                session=websession,
-                provided_refresh_token=entry.data[CONF_TOKEN],
-                log_traces=log_traces,
-                state_yaml=state_yaml,
-            )
-        else:
-            raise InvalidCredentialsError
-    except InvalidCredentialsError as err:
-        try:
-            LOG.debug(f"Trying auth with username/password: {err}")
-            api = await API.async_auth_password(
-                entry.data[CONF_USERNAME],
-                entry.data[CONF_PASSWORD],
-                session=websession,
-                log_traces=log_traces,
-                state_yaml=state_yaml,
-            )
-        except (KeyError, InvalidCredentialsError) as err:
-            raise ConfigEntryAuthFailed from err
-    except HiloError as err:
-        LOG.error("Config entry failed: %s", err)
-        raise ConfigEntryNotReady from err
 
     hilo = Hilo(hass, entry, api)
     try:

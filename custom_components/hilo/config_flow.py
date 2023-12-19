@@ -1,22 +1,22 @@
 """Config flow to configure the Hilo component."""
 from __future__ import annotations
 
+import logging
+
+from collections.abc import Mapping
 from typing import Any
 
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
-    CONF_PASSWORD,
     CONF_SCAN_INTERVAL,
-    CONF_TOKEN,
-    CONF_USERNAME,
 )
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
-from homeassistant.helpers import aiohttp_client, config_validation as cv
-from homeassistant.helpers.typing import ConfigType
-from pyhilo import API
-from pyhilo.exceptions import HiloError, InvalidCredentialsError
+from homeassistant.helpers import config_entry_oauth2_flow ,config_validation as cv
+
+from pyhilo.auth.oauth2 import OAuth2Impl
+
 import voluptuous as vol
 
 from .const import (
@@ -42,12 +42,6 @@ from .const import (
     MIN_SCAN_INTERVAL,
 )
 
-STEP_USER_SCHEMA = vol.Schema(
-    {
-        vol.Required(CONF_USERNAME): cv.string,
-        vol.Required(CONF_PASSWORD): cv.string,
-    }
-)
 STEP_OPTION_SCHEMA = vol.Schema(
     {
         vol.Optional(
@@ -84,20 +78,33 @@ STEP_OPTION_SCHEMA = vol.Schema(
     }
 )
 
-
-class HiloFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
+class HiloFlowHandler(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, domain=DOMAIN):
     """Handle a Hilo config flow."""
 
-    VERSION = 1
-    reauth_entry: ConfigEntry | None = None
+    DOMAIN = DOMAIN
 
-    def __init__(self) -> None:
-        """Initialize the config flow."""
-        self._errors: dict[str, Any] = {}
-        self._reauth: bool = False
-        self._username: str | None = None
-        self._password: str | None = None
+    async def async_step_user(self, user_input=None) -> FlowResult:
+        """Handle a flow initialized by the user."""
+        await self.async_set_unique_id(DOMAIN)
 
+        if self._async_current_entries():
+            return self.async_abort(reason="single_instance_allowed")
+
+        self.async_register_implementation(
+            self.hass,
+            OAuth2Impl(self.hass),
+        )
+
+        return await super().async_step_user(user_input)
+    
+    @property
+    def logger(self) -> logging.Logger:
+        """Return logger."""
+        return LOG
+
+    _reauth_entry: ConfigEntry | None = None
+
+    # TODO Dave still used?
     @staticmethod
     @callback
     def async_get_options_flow(
@@ -105,69 +112,45 @@ class HiloFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> HiloOptionsFlowHandler:
         """Define the config flow to handle options."""
         return HiloOptionsFlowHandler(config_entry)
-
-    async def async_step_reauth(self, config: ConfigType) -> FlowResult:
-        """Handle configuration by re-auth."""
-        self.reauth_entry = self.hass.config_entries.async_get_entry(
+    
+    #TODO Dave essayer sans le param inutilisé.
+    async def async_step_reauth(self, entry_data: Mapping[str, Any]) -> FlowResult:
+        """Perform reauth upon an API authentication error."""
+        self._reauth_entry = self.hass.config_entries.async_get_entry(
             self.context["entry_id"]
         )
         return await self.async_step_reauth_confirm()
 
-    async def async_step_reauth_confirm(self, user_input=None):
+    async def async_step_reauth_confirm(self, user_input=None) -> FlowResult:
         """Dialog that informs the user that reauth is required."""
         if user_input is None:
-            return self._async_show_form(
+            # TODO Dave essayer sans data_schema comme avant
+            return self.async_show_form(
                 step_id="reauth_confirm",
+                data_schema=vol.Schema({}),
             )
-        return await self.async_step_user(user_input)
+        user_input["implementation"] = DOMAIN
+        return await super().async_step_user(user_input)
 
-    async def async_oauth_create_entry(self, data: dict) -> dict:
+    async def async_oauth_create_entry(self, data: dict) -> FlowResult:
         """Create an oauth config entry or update existing entry for reauth."""
-        if self.reauth_entry:
-            self.hass.config_entries.async_update_entry(self.reauth_entry, data=data)
-            await self.hass.config_entries.async_reload(self.reauth_entry.entry_id)
+        if self._reauth_entry:
+            self.hass.config_entries.async_update_entry(self._reauth_entry, data=data)
+            await self.hass.config_entries.async_reload(self._reauth_entry.entry_id)
             return self.async_abort(reason="reauth_successful")
-        await self.async_set_unique_id(data["username"])
-        self._abort_if_unique_id_configured()
-        LOG.debug(f"Creating entry: {data}")
-        return self.async_create_entry(title=data["username"], data=data)
+        LOG.debug("Creating entry: %s", data)
+        return await super().async_oauth_create_entry(data)
 
-    def _async_show_form(
-        self, *, step_id: str = "user", errors: dict[str, Any] | None = None
-    ) -> FlowResult:
-        """Show the form."""
-        return self.async_show_form(
-            step_id=step_id,
-            data_schema=STEP_USER_SCHEMA,
-            errors=errors or {},
-        )
-
-    async def async_step_user(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        """Handle the start of the config flow."""
-        if user_input is None:
-            return self._async_show_form()
-        errors = {}
-        session = aiohttp_client.async_get_clientsession(self.hass)
-
-        try:
-            hilo = await API.async_auth_password(
-                user_input[CONF_USERNAME],
-                user_input[CONF_PASSWORD],
-                session=session,
-            )
-        except InvalidCredentialsError:
-            errors = {"base": "invalid_auth"}
-        except HiloError as err:
-            LOG.error("Unknown error while logging into Hilo: %s", err)
-            errors = {"base": "unknown"}
-
-        if errors:
-            return self._async_show_form(errors=errors)
-
-        data = {CONF_USERNAME: hilo._username, CONF_TOKEN: hilo._refresh_token}
-        return await self.async_oauth_create_entry(data)
+    #TODO Dave delete???
+    # def _async_show_form(
+    #     self, *, step_id: str = "user", errors: dict[str, Any] | None = None
+    # ) -> FlowResult:
+    #     """Show the form."""
+    #     return self.async_show_form(
+    #         step_id=step_id,
+    #         data_schema=STEP_USER_SCHEMA,
+    #         errors=errors or {},
+    #     )
 
 
 class HiloOptionsFlowHandler(config_entries.OptionsFlow):
