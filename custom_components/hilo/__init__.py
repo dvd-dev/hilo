@@ -34,7 +34,7 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
 )
 from pyhilo import API
-from pyhilo.auth.oauth2 import OAuth2Impl
+from pyhilo.auth.oauth2 import AuthCodeWithPKCEImplementation
 from pyhilo.device import HiloDevice
 from pyhilo.devices import Devices
 from pyhilo.exceptions import HiloError, InvalidCredentialsError, WebsocketError
@@ -123,7 +123,7 @@ async def async_setup_entry(  # noqa: C901
     hass: HomeAssistant, entry: ConfigEntry
 ) -> bool:
     """Set up Hilo as config entry."""
-    HiloFlowHandler.async_register_implementation(hass, OAuth2Impl(hass))
+    HiloFlowHandler.async_register_implementation(hass, AuthCodeWithPKCEImplementation(hass))
 
     implementation = (
         await config_entry_oauth2_flow.async_get_config_entry_implementation(
