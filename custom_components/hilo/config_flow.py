@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import logging
 
-from collections.abc import Mapping
 from typing import Any
 
 from homeassistant import config_entries
@@ -13,9 +12,10 @@ from homeassistant.const import (
 )
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
-from homeassistant.helpers import config_entry_oauth2_flow ,config_validation as cv
+from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.config_entry_oauth2_flow import AbstractOAuth2FlowHandler
 
-from pyhilo.auth.oauth2 import OAuth2Impl
+from pyhilo.auth.oauth2 import AuthCodeWithPKCEImplementation
 
 import voluptuous as vol
 
@@ -78,10 +78,12 @@ STEP_OPTION_SCHEMA = vol.Schema(
     }
 )
 
-class HiloFlowHandler(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, domain=DOMAIN):
+class HiloFlowHandler(AbstractOAuth2FlowHandler, domain=DOMAIN):
     """Handle a Hilo config flow."""
 
     DOMAIN = DOMAIN
+
+    _reauth_entry: ConfigEntry | None = None
 
     async def async_step_user(self, user_input=None) -> FlowResult:
         """Handle a flow initialized by the user."""
@@ -92,30 +94,27 @@ class HiloFlowHandler(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, domain
 
         self.async_register_implementation(
             self.hass,
-            OAuth2Impl(self.hass),
+            AuthCodeWithPKCEImplementation(self.hass),
         )
 
         return await super().async_step_user(user_input)
-    
+
     @property
     def logger(self) -> logging.Logger:
         """Return logger."""
         return LOG
 
-    _reauth_entry: ConfigEntry | None = None
-
-    # TODO Dave still used?
     @staticmethod
     @callback
     def async_get_options_flow(
         config_entry: ConfigEntry,
     ) -> HiloOptionsFlowHandler:
-        """Define the config flow to handle options."""
+        """Define the config flow to handle options."""        
         return HiloOptionsFlowHandler(config_entry)
-    
-    #TODO Dave essayer sans le param inutilisé.
-    async def async_step_reauth(self, entry_data: Mapping[str, Any]) -> FlowResult:
+
+    async def async_step_reauth(self, user_input=None) -> FlowResult:
         """Perform reauth upon an API authentication error."""
+        LOG.debug("async_step_reauth")
         self._reauth_entry = self.hass.config_entries.async_get_entry(
             self.context["entry_id"]
         )
@@ -124,7 +123,6 @@ class HiloFlowHandler(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, domain
     async def async_step_reauth_confirm(self, user_input=None) -> FlowResult:
         """Dialog that informs the user that reauth is required."""
         if user_input is None:
-            # TODO Dave essayer sans data_schema comme avant
             return self.async_show_form(
                 step_id="reauth_confirm",
                 data_schema=vol.Schema({}),
@@ -140,18 +138,6 @@ class HiloFlowHandler(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, domain
             return self.async_abort(reason="reauth_successful")
         LOG.debug("Creating entry: %s", data)
         return await super().async_oauth_create_entry(data)
-
-    #TODO Dave delete???
-    # def _async_show_form(
-    #     self, *, step_id: str = "user", errors: dict[str, Any] | None = None
-    # ) -> FlowResult:
-    #     """Show the form."""
-    #     return self.async_show_form(
-    #         step_id=step_id,
-    #         data_schema=STEP_USER_SCHEMA,
-    #         errors=errors or {},
-    #     )
-
 
 class HiloOptionsFlowHandler(config_entries.OptionsFlow):
     """Handle a Hilo options flow."""

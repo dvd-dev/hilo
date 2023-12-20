@@ -133,14 +133,13 @@ async def async_setup_entry(  # noqa: C901
 
     current_options = {**entry.options}
 
-    api = await API.async_create(
-        session=aiohttp_client.async_get_clientsession(hass),
-        oauth_session=config_entry_oauth2_flow.OAuth2Session(hass, entry, implementation),
-        log_traces=current_options.get(CONF_LOG_TRACES, DEFAULT_LOG_TRACES)
-    )
     try:
-        await api.async_get_access_token()
-    except Exception as err:
+        api = await API.async_create(
+            session=aiohttp_client.async_get_clientsession(hass),
+            oauth_session=config_entry_oauth2_flow.OAuth2Session(hass, entry, implementation),
+            log_traces=current_options.get(CONF_LOG_TRACES, DEFAULT_LOG_TRACES)
+        )
+    except Exception as err:        
         raise ConfigEntryAuthFailed(err) from err
 
     _async_standardize_config_entry(hass, entry)
