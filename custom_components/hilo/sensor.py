@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from os.path import isfile
 
 from homeassistant.components.integration.sensor import METHOD_LEFT, IntegrationSensor
 from homeassistant.components.sensor import (
@@ -29,6 +30,7 @@ import homeassistant.util.dt as dt_util
 from pyhilo.device import HiloDevice
 from pyhilo.event import Event
 from pyhilo.util import from_utc_timestamp
+import ruyaml as yaml
 
 from . import Hilo, HiloEntity
 from .const import (
@@ -507,10 +509,11 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
         super().__init__(hilo, name=self._attr_name, device=device)
         self._attr_unique_id = slugify(self._attr_name)
         LOG.debug(f"Setting up RewardSensor entity: {self._attr_name}")
+        self._history_state_yaml: str = "hilo_eventhistory_state.yaml"
         self.scan_interval = timedelta(seconds=REWARD_SCAN_INTERVAL)
         self._attr_native_unit_of_measurement = hilo._hass.config.currency
         self._state = 0
-        self._history = []
+        self._history = self._load_history()
         self.async_update = Throttle(self.scan_interval)(self._async_update)
 
     @property
@@ -589,6 +592,20 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
                 season["events"] = events
                 new_history.append(season)
             self._history = new_history
+            self._save_history(new_history)
+
+    def _load_history(self) -> list:
+        history: list = []
+        if isfile(self._history_state_yaml):
+            with open(self._history_state_yaml) as yaml_file:
+                LOG.debug("Loading history state from yaml")
+                history = yaml.load(yaml_file, Loader=yaml.Loader)
+        return history
+
+    def _save_history(self, history: list):
+        with open(self._history_state_yaml, "w") as yaml_file:
+            LOG.debug("Saving history state to yaml file")
+            yaml.dump(history, yaml_file, Dumper=yaml.RoundTripDumper)
 
 
 class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
