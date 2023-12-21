@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import logging
-
 from typing import Any
 
 from homeassistant import config_entries
@@ -143,6 +142,7 @@ class HiloFlowHandler(AbstractOAuth2FlowHandler, domain=DOMAIN):
         email = decoded_token["email"]
 
         return self.async_create_entry(title=email, data=data)
+
 
 class HiloOptionsFlowHandler(config_entries.OptionsFlow):
     """Handle a Hilo options flow."""

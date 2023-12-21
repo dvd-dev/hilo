@@ -23,8 +23,8 @@ from homeassistant.const import (
 from homeassistant.core import Context, Event, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import (
-    aiohttp_client, 
-    config_entry_oauth2_flow, 
+    aiohttp_client,
+    config_entry_oauth2_flow,
     device_registry as dr,
 )
 from homeassistant.helpers.dispatcher import (
@@ -145,7 +145,7 @@ async def async_setup_entry(  # noqa: C901
             oauth_session=config_entry_oauth2_flow.OAuth2Session(
                 hass, entry, implementation
             ),
-            log_traces=current_options.get(CONF_LOG_TRACES, DEFAULT_LOG_TRACES)
+            log_traces=current_options.get(CONF_LOG_TRACES, DEFAULT_LOG_TRACES),
         )
     except Exception as err:
         raise ConfigEntryAuthFailed(err) from err
@@ -210,7 +210,7 @@ async def async_migrate_entry(hass, config_entry: ConfigEntry):
     if config_entry.version == 1:
         config_entry.version = 2
         hass.config_entries.async_update_entry(
-            config_entry, unique_id="hilo", data={"auth_implementation" : "hilo"}
+            config_entry, unique_id="hilo", data={"auth_implementation": "hilo"}
         )
 
     LOG.debug("Migration to version %s successful", config_entry.version)
