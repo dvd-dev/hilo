@@ -22,7 +22,11 @@ from homeassistant.const import (
 )
 from homeassistant.core import Context, Event, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
-from homeassistant.helpers import aiohttp_client, config_entry_oauth2_flow, device_registry as dr
+from homeassistant.helpers import (
+    aiohttp_client, 
+    config_entry_oauth2_flow, 
+    device_registry as dr,
+)
 from homeassistant.helpers.dispatcher import (
     async_dispatcher_connect,
     async_dispatcher_send,
@@ -41,7 +45,7 @@ from pyhilo.exceptions import HiloError, InvalidCredentialsError, WebsocketError
 from pyhilo.util import from_utc_timestamp, time_diff
 from pyhilo.websocket import WebsocketEvent
 
-from .config_flow import HiloFlowHandler, STEP_OPTION_SCHEMA
+from .config_flow import STEP_OPTION_SCHEMA, HiloFlowHandler
 from .const import (
     CONF_APPRECIATION_PHASE,
     CONF_CHALLENGE_LOCK,
@@ -123,7 +127,9 @@ async def async_setup_entry(  # noqa: C901
     hass: HomeAssistant, entry: ConfigEntry
 ) -> bool:
     """Set up Hilo as config entry."""
-    HiloFlowHandler.async_register_implementation(hass, AuthCodeWithPKCEImplementation(hass))
+    HiloFlowHandler.async_register_implementation(
+        hass, AuthCodeWithPKCEImplementation(hass)
+    )
 
     implementation = (
         await config_entry_oauth2_flow.async_get_config_entry_implementation(
@@ -136,10 +142,12 @@ async def async_setup_entry(  # noqa: C901
     try:
         api = await API.async_create(
             session=aiohttp_client.async_get_clientsession(hass),
-            oauth_session=config_entry_oauth2_flow.OAuth2Session(hass, entry, implementation),
+            oauth_session=config_entry_oauth2_flow.OAuth2Session(
+                hass, entry, implementation
+            ),
             log_traces=current_options.get(CONF_LOG_TRACES, DEFAULT_LOG_TRACES)
         )
-    except Exception as err:        
+    except Exception as err:
         raise ConfigEntryAuthFailed(err) from err
 
     _async_standardize_config_entry(hass, entry)
@@ -196,19 +204,19 @@ async def async_migrate_entry(hass, config_entry: ConfigEntry):
     LOG.debug("Migrating from version %s", config_entry.version)
 
     if config_entry.version > 1:
-      # This means the user has downgraded from a future version
+        # This means the user has downgraded from a future version
         return False
 
     if config_entry.version == 1:
         config_entry.version = 2
         hass.config_entries.async_update_entry(
-            config_entry, unique_id="hilo",
-            data={"auth_implementation" : "hilo"}
+            config_entry, unique_id="hilo", data={"auth_implementation" : "hilo"}
         )
 
     LOG.debug("Migration to version %s successful", config_entry.version)
 
     return True
+
 
 class Hilo:
     """Define a Hilo data object."""

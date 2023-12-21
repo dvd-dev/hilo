@@ -7,7 +7,7 @@
       "reauth_confirm": {
         "title": "Réauthentifier l'intégration",
         "description": "L'intégration Hilo doit réauthentifier votre compte"
-      }    
+      }
     },
     "error": {
       "identifier_exists": "Compte déjà enregistré",

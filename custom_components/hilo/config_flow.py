@@ -1,24 +1,19 @@
 """Config flow to configure the Hilo component."""
 from __future__ import annotations
 
-import jwt
-
 import logging
 
 from typing import Any
 
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    CONF_SCAN_INTERVAL,
-)
+from homeassistant.const import CONF_SCAN_INTERVAL
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.config_entry_oauth2_flow import AbstractOAuth2FlowHandler
-
+import jwt
 from pyhilo.auth.oauth2 import AuthCodeWithPKCEImplementation
-
 import voluptuous as vol
 
 from .const import (
@@ -79,6 +74,7 @@ STEP_OPTION_SCHEMA = vol.Schema(
         ),
     }
 )
+
 
 class HiloFlowHandler(AbstractOAuth2FlowHandler, domain=DOMAIN):
     """Handle a Hilo config flow."""
