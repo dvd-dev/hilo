@@ -110,7 +110,7 @@ class HiloFlowHandler(AbstractOAuth2FlowHandler, domain=DOMAIN):
     def async_get_options_flow(
         config_entry: ConfigEntry,
     ) -> HiloOptionsFlowHandler:
-        """Define the config flow to handle options."""        
+        """Define the config flow to handle options."""
         return HiloOptionsFlowHandler(config_entry)
 
     async def async_step_reauth(self, user_input=None) -> FlowResult:

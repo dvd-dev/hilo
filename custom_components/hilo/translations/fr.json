@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "description": "L'intégration Hilo intéragit avec l'application Hilo. Hilo est un produit de domotique fait par une filliale de Hydro Québec."        
+        "description": "L'intégration Hilo intéragit avec l'application Hilo. Hilo est un produit de domotique fait par une filliale de Hydro Québec."
       },
       "reauth_confirm": {
         "title": "Réauthentifier l'intégration",
