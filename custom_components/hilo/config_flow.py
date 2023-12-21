@@ -1,6 +1,8 @@
 """Config flow to configure the Hilo component."""
 from __future__ import annotations
 
+import jwt
+
 import logging
 
 from typing import Any
@@ -137,8 +139,14 @@ class HiloFlowHandler(AbstractOAuth2FlowHandler, domain=DOMAIN):
             self.hass.config_entries.async_update_entry(self._reauth_entry, data=data)
             await self.hass.config_entries.async_reload(self._reauth_entry.entry_id)
             return self.async_abort(reason="reauth_successful")
+
         LOG.debug("Creating entry: %s", data)
-        return await super().async_oauth_create_entry(data)
+
+        token = data["token"]["access_token"]
+        decoded_token = jwt.decode(token, options={"verify_signature": False})
+        email = decoded_token["email"]
+
+        return self.async_create_entry(title=email, data=data)
 
 class HiloOptionsFlowHandler(config_entries.OptionsFlow):
     """Handle a Hilo options flow."""

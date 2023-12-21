@@ -203,7 +203,6 @@ async def async_migrate_entry(hass, config_entry: ConfigEntry):
         config_entry.version = 2
         hass.config_entries.async_update_entry(
             config_entry, unique_id="hilo",
-            title="Hilo",
             data={"auth_implementation" : "hilo"}
         )
 
