@@ -191,6 +191,26 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return unload_ok
 
 
+async def async_migrate_entry(hass, config_entry: ConfigEntry):
+    """Migrate old entry."""
+    LOG.debug("Migrating from version %s", config_entry.version)
+
+    if config_entry.version > 1:
+      # This means the user has downgraded from a future version
+        return False
+
+    if config_entry.version == 1:
+        config_entry.version = 2
+        hass.config_entries.async_update_entry(
+            config_entry, unique_id="hilo",
+            title="Hilo",
+            data={"auth_implementation" : "hilo"}
+        )
+
+    LOG.debug("Migration to version %s successful", config_entry.version)
+
+    return True
+
 class Hilo:
     """Define a Hilo data object."""
 

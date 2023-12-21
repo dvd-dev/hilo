@@ -82,6 +82,7 @@ class HiloFlowHandler(AbstractOAuth2FlowHandler, domain=DOMAIN):
     """Handle a Hilo config flow."""
 
     DOMAIN = DOMAIN
+    VERSION = 2
 
     _reauth_entry: ConfigEntry | None = None
 
