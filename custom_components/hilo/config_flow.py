@@ -12,7 +12,7 @@ from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.config_entry_oauth2_flow import AbstractOAuth2FlowHandler
 import jwt
-from pyhilo.auth.oauth2 import AuthCodeWithPKCEImplementation
+from pyhilo.oauth2 import AuthCodeWithPKCEImplementation
 import voluptuous as vol
 
 from .const import (
