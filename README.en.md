@@ -167,7 +167,15 @@ Other options are available under the `Configure` button in Home Assistant:
   Only 2 values are supported at this time:
   - `rate d`
   - `flex d`
+ 
+- `appreciation phase`: Integer (hours)
 
+  Add an appreciation phase of X hours before the preheat phase.
+
+- `pre_cold phase`: Integer (hours)
+
+  Add a cooldown phase of X hours to reduce temperatures before the appreciation phase
+  
 - `Scan interval (min: 60s)`: Integer
 
   Number of seconds between each device update. Defaults to 60 and it's not recommended to go below 30 as it might
