@@ -84,8 +84,7 @@ If the component is properly installed, you should be able to find the 'Hilo int
 
 ## Configuration
 
-The configuration is done in the UI. When you add the integration, you will be prompted with your
-Hilo username and password. After this, you will be prompted with assigning a room for each one of
+The configuration is done in the UI. When you add the integration, you will be redirected to Hilo's website login page to authenticate. You must then accept to link your account. After this, you will be prompted with assigning a room for each one of
 your devices.
 
 ### Energy meters
