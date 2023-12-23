@@ -84,7 +84,8 @@ If the component is properly installed, you should be able to find the 'Hilo int
 
 ## Configuration
 
-The configuration is done in the UI. When you add the integration, you will be redirected to Hilo's authentication website. You have to accept to link your account. After this, you will be prompted with assigning a room for each one of
+The configuration is done in the UI. When you add the integration, you will be prompted with your
+Hilo username and password. After this, you will be prompted with assigning a room for each one of
 your devices.
 
 ### Energy meters
@@ -207,6 +208,61 @@ logger:
 ```
 
 If you have any kind of python/home-assistant experience and want to contribute to the code, feel free to submit a pull request.
+
+### Prepare a dev  environment in MacOS / Linux
+
+1. Prepare necessary directories:
+```console
+$ HASS_DEV=~/hass-dev/
+$ HASS_RELEASE=2023.12.3
+$ mkdir -p ${HASS_DEV}/config
+$ cd $HASS_DEV
+$ git clone https://github.com/dvd-dev/hilo.git
+$ git clone https://github.com/dvd-dev/python-hilo.git
+$ git clone https://github.com/home-assistant/core.git
+$ git --git-dir core/ checkout $HASS_RELEASE
+```
+
+**NOTE**: We also clone home-assistant's core to make it easier to add logging at that level [repo](https://github.com/home-assistant/core).
+
+2. Launch the container:
+
+```console
+$ docker run -d -p 8123:8123 \
+  --name hass \
+  -v ${HASS_DEV}/config:/config \
+  -v ${HASS_DEV}/python-hilo/pyhilo:/usr/local/lib/python3.11/site-packages/pyhilo:ro \
+  -v ${HASS_DEV}/hilo/custom_components/hilo/:/config/custom_components/hilo:ro \
+  -v ${HASS_DEV}/core/homeassistant:/usr/src/homeassistant/homeassistant:ro \
+  homeassistant/home-assistant:$HASS_RELEASE
+```
+
+3. Check the container is running
+
+```console
+$ docker ps
+CONTAINER ID   IMAGE                                    COMMAND   CREATED       STATUS          PORTS                    NAMES
+bace2264ee54   homeassistant/home-assistant:2023.12.3   "/init"   3 hours ago   Up 28 minutes   0.0.0.0:8123->8123/tcp   hass
+```
+
+4. Check home-assistant logs
+```console
+$ less ${HASS_DEV}/config/home-assistant.log
+$ grep hilo ${HASS_DEV}/config/home-assistant.log
+```
+
+5. Activate debug logs
+
+```console
+$ cat << EOF >> ${HASS_DEV}/config/configuration.yaml
+logger:
+  default: info
+  logs:
+     custom_components.hilo: debug
+     pyhilo: debug
+EOF
+$ docker restart hass
+```
 
 ### Before submiting a Pull Request
 
