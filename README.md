@@ -76,7 +76,7 @@ Si l'intégration est correctement installée, vous devriez pouvoir trouver "Hil
 
 ## Configuration
 
-La configuration est faite via l'interface utilisateur. Lorsque vous ajoutez l'intégration, votre nom d'utilisateur et mot de passe Hio vous seront demandés. Après, vous devrez assigner une pièce de votre maison à chaque appareil.
+La configuration est faite via l'interface utilisateur. Lorsque vous ajoutez l'intégration, vous êtes redirigés vers le site de connexion d'Hilo afin de vous y authentifier. Vous devez ensuite accepter de lier votre compte. Après, vous devrez assigner une pièce de votre maison à chaque appareil.
 
 
 ### :warning: Compteurs de consommation électrique
