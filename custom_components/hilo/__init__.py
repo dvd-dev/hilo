@@ -38,10 +38,10 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
 )
 from pyhilo import API
-from pyhilo.oauth2 import AuthCodeWithPKCEImplementation
 from pyhilo.device import HiloDevice
 from pyhilo.devices import Devices
 from pyhilo.exceptions import HiloError, InvalidCredentialsError, WebsocketError
+from pyhilo.oauth2 import AuthCodeWithPKCEImplementation
 from pyhilo.util import from_utc_timestamp, time_diff
 from pyhilo.websocket import WebsocketEvent
 
