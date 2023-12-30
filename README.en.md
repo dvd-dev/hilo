@@ -80,12 +80,39 @@ Download and copy the `custom_components/hilo` directory from the [latest releas
 In HA, go to Settings > Devices & Services > Integrations.
 In the bottom right corner, click the '+ ADD INTEGRATION' button.
 
+![Add Integration](https://github.com/dvd-dev/hilo/assets/108159253/7906f2c9-9547-4478-a625-feaa68e62c5f)
+
 If the component is properly installed, you should be able to find the 'Hilo integration' in the list. You might need to clear you browser cache for the integration to show up.
 
-## Configuration
+![Search Integration](https://github.com/dvd-dev/hilo/assets/108159253/1b560a73-042b-46cf-963c-98e5326e98e8)
 
-The configuration is done in the UI. When you add the integration, you will be redirected to Hilo's website login page to authenticate. You must then accept to link your account. After this, you will be prompted with assigning a room for each one of
-your devices.
+
+## Configuration (new install)
+
+The configuration is done in the UI. When you add the integration, you will be redirected to Hilo's website login page to authenticate. 
+
+![Open Website](https://github.com/dvd-dev/hilo/assets/108159253/23b4fb34-f8c3-40b3-8e01-b3e737cc9d44)
+
+
+![Auth Hilo](https://github.com/dvd-dev/hilo/assets/108159253/e4e98b32-78d0-4c49-a2d7-3bd0ae95e9e0)
+
+You must then accept to link your account. To do so, you must enter your Home Assistant instance's URL or IP address and click Link Account.
+
+![Link](https://github.com/dvd-dev/hilo/assets/108159253/5eb945f7-fa5e-458f-b0fe-ef252aaadf93)
+
+![Link URL](https://github.com/dvd-dev/hilo/assets/108159253/2c54df64-2e1c-423c-89cf-0eee8f0d4b7b)
+
+After this, you will be prompted with assigning a room for each one of your devices.
+
+## Configuration (update from a version earlier than v2024.1.1)
+
+After update, you will get an error saying you must reauthenticate for the integration to work.
+
+![Reconfiguration 2](https://github.com/dvd-dev/hilo/assets/108159253/a711d011-17a9-456f-abf6-74cf099014f1)
+
+![Reath](https://github.com/dvd-dev/hilo/assets/108159253/70118e68-90b9-4667-b056-38ee2cd33133)
+
+After correctly linking your account like in the previous section, you should see a popup telling you the reauthentification was sucessful.
 
 ### Energy meters
 
