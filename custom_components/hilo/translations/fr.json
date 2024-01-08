@@ -7,6 +7,14 @@
           "username": "Nom d'utilisateur Hilo",
           "password": "Mot de passe Hilo"
         }
+      },
+      "reauth_confirm": {
+        "title": "Identifiants",
+        "description": "L'intégration doit ré-authentifier votre compte",
+        "data": {
+          "username": "Nom d'utilisateur Hilo",
+          "password": "Mot de passe Hilo"
+        }
       }
     },
     "error": {
@@ -15,7 +23,8 @@
       "unknown": "[%key:common::config_flow::error::unknown%]"
     },
     "abort": {
-      "already_configured": "Ce compte Hilo est déjà utilisé."
+      "already_configured": "Ce compte Hilo est déjà utilisé.",
+      "reauth_successful": "Ré-authentification réussie"
     }
   },
   "options": {
