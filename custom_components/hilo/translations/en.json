@@ -7,6 +7,14 @@
           "username": "Hilo Username",
           "password": "Hilo Password"
         }
+      },
+      "reauth_confirm": {
+        "title": "Credentials",
+        "description": "The integration needs to re-authenticate your account",
+        "data": {
+          "username": "Hilo Username",
+          "password": "Hilo Password"
+        }
       }
     },
     "error": {
@@ -15,7 +23,8 @@
       "unknown": "[%key:common::config_flow::error::unknown%]"
     },
     "abort": {
-      "already_configured": "This Hilo account is already in use."
+      "already_configured": "This Hilo account is already in use.",
+      "reauth_successful": "Re-authentication successful"
     }
   },
   "options": {
