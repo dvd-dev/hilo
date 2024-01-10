@@ -21,8 +21,9 @@ from homeassistant.const import (
     SOUND_PRESSURE_DB,
     TEMP_CELSIUS,
 )
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import Throttle, slugify
 import homeassistant.util.dt as dt_util
@@ -154,7 +155,11 @@ async def async_setup_entry(
             energy_entity = HILO_ENERGY_TOTAL
             tariff_list = validate_tariff_list(tariff_config)
         net_consumption = device.net_consumption
+        LOG.debug(
+            f"create_energy_entity(): {energy_entity=} {tariff_list=} {net_consumption=}"
+        )
         utility_manager.add_meter(energy_entity, tariff_list, net_consumption)
+        energy_manager.add_to_dashboard(energy_entity, tariff_list)
 
     for d in hilo.devices.all:
         LOG.debug(f"Adding device {d}")
@@ -176,8 +181,14 @@ async def async_setup_entry(
             cost_entities.append(
                 HiloCostSensor(hilo, sensor_name, hq_plan_name, amount)
             )
-    cost_entities.append(HiloCostSensor(hilo, "Hilo rate current", hq_plan_name))
+    hilo_rate_current = HiloCostSensor(hilo, "Hilo rate current", hq_plan_name)
+    cost_entities.append(hilo_rate_current)
     async_add_entities(cost_entities)
+    # hilo._hass.bus.async_listen(EVENT_STATE_CHANGED, hilo_rate_current._handle_state_change)
+    async_track_state_change_event(
+        hilo._hass, ["sensor.hilo_rate_current"], hilo_rate_current._handle_state_change
+    )
+
     # This setups the utility_meter platform
     await utility_manager.update(async_add_entities)
     # This sends the entities to the energy dashboard
@@ -235,79 +246,6 @@ class Co2Sensor(HiloEntity, SensorEntity):
         return "mdi:molecule-co2"
 
 
-class EnergySensor(IntegrationSensor):
-    """Define a Hilo energy sensor entity."""
-
-    _attr_device_class = SensorDeviceClass.ENERGY
-    _attr_native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
-    _attr_state_class = SensorStateClass.TOTAL_INCREASING
-    _attr_icon = "mdi:lightning-bolt"
-
-    def __init__(self, device):
-        self._device = device
-        self._attr_name = f"Hilo Energy {slugify(device.name)}"
-        self._attr_unique_id = f"hilo_energy_{slugify(device.name)}"
-        self._unit_of_measurement = ENERGY_KILO_WATT_HOUR
-        self._unit_prefix = None
-        if device.type == "Meter":
-            self._attr_name = HILO_ENERGY_TOTAL
-            self._unit_of_measurement = ENERGY_KILO_WATT_HOUR
-            self._unit_prefix = "k"
-        if device.type == "Thermostat" or device.type == "FloorThermostat":
-            self._unit_of_measurement = ENERGY_KILO_WATT_HOUR
-            self._unit_prefix = "k"
-        self._source = f"sensor.{slugify(device.name)}_power"
-
-        super().__init__(
-            integration_method=METHOD_LEFT,
-            name=self._attr_name,
-            round_digits=2,
-            source_entity=self._source,
-            unique_id=self._attr_unique_id,
-            unit_prefix=self._unit_prefix,
-            unit_time="h",
-        )
-        self._state = 0
-        self._last_period = 0
-        LOG.debug(
-            f"Setting up EnergySensor entity: {self._attr_name} with source {self._source}"
-        )
-
-    @property
-    def unit_of_measurement(self):
-        return self._unit_of_measurement
-
-    async def async_added_to_hass(self) -> None:
-        """Handle entity which will be added."""
-        LOG.debug(f"Added to hass: {self._attr_name}")
-        await super().async_added_to_hass()
-
-
-class NoiseSensor(HiloEntity, SensorEntity):
-    """Define a Netatmo noise sensor entity."""
-
-    _attr_native_unit_of_measurement = SOUND_PRESSURE_DB
-    _attr_state_class = SensorStateClass.MEASUREMENT
-
-    def __init__(self, hilo, device):
-        self._attr_name = f"{device.name} Noise"
-        super().__init__(hilo, name=self._attr_name, device=device)
-        self._attr_unique_id = f"{slugify(device.name)}-noise"
-        LOG.debug(f"Setting up NoiseSensor entity: {self._attr_name}")
-
-    @property
-    def state(self):
-        return str(int(self._device.get_value("noise", 0)))
-
-    @property
-    def icon(self):
-        if not self._device.available:
-            return "mdi:lan-disconnect"
-        if int(self._device.get_value("noise", 0)) > 0:
-            return "mdi:volume-vibrate"
-        return "mdi:volume-mute"
-
-
 class PowerSensor(HiloEntity, SensorEntity):
     """Define a Hilo power sensor entity."""
 
@@ -334,6 +272,100 @@ class PowerSensor(HiloEntity, SensorEntity):
         if power > 0:
             return "mdi:power-plug"
         return "mdi:power-plug-off"
+
+
+class EnergySensor(IntegrationSensor):
+    """Define a Hilo energy sensor entity."""
+
+    _attr_device_class = SensorDeviceClass.ENERGY
+    _attr_native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
+    _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    _attr_icon = "mdi:lightning-bolt"
+
+    def __init__(self, device):
+        self._device = device
+        self._attr_name = f"Hilo Energy {slugify(device.name)}"
+        self._attr_unique_id = f"hilo_energy_{slugify(device.name)}"
+        self._unit_of_measurement = ENERGY_KILO_WATT_HOUR
+        self._unit_prefix = "k"
+        if device.type == "Meter":
+            self._attr_name = HILO_ENERGY_TOTAL
+        self._source = f"sensor.{slugify(device.name)}_power"
+
+        super().__init__(
+            integration_method=METHOD_LEFT,
+            name=self._attr_name,
+            round_digits=2,
+            source_entity=self._source,
+            unique_id=self._attr_unique_id,
+            unit_prefix=self._unit_prefix,
+            unit_time="h",
+        )
+        self._state = 0
+        self._last_period = 0
+        LOG.debug(
+            f"Setting up EnergySensor entity: {self._attr_name} with source {self._source}"
+        )
+
+    @property
+    def unit_of_measurement(self):
+        return self._unit_of_measurement
+
+    async def async_added_to_hass(self) -> None:
+        """Handle entity which will be added."""
+        LOG.debug(
+            f"async_added_to_hass(): Adding to hass: {self._attr_name=} {self._attr_native_value=} {self._unit_of_measurement=} {self._last_valid_state=} {self._state=} {self._attr_device_class=}"
+        )
+        await super().async_added_to_hass()
+        LOG.debug(
+            f"async_added_to_hass(): Adding to hass: {self._attr_name=} {self._attr_native_value=} {self._unit_of_measurement=} {self._last_valid_state=} {self._state=} {self._attr_device_class=}"
+        )
+        if state := await self.async_get_last_state():
+            self._state = state.state
+
+    async def async_get_last_sensor_data(self):
+        last_sensor_data = await super().async_get_last_sensor_data()
+        LOG.debug(f"async_get_last_sensor_data(): {last_sensor_data=}")
+        if last_sensor_data:
+            LOG.debug(
+                f"async_get_last_sensor_data(): {last_sensor_data.native_value=} {last_sensor_data.last_valid_state=}"
+            )
+        return last_sensor_data
+
+    async def async_get_last_state(self):
+        last_state = await super().async_get_last_state()
+        LOG.debug(f"async_get_last_state(): {last_state=}")
+        return last_state
+
+    @callback
+    def calc_integration(event):
+        LOG.debug(f"calc_integration(): {event=}")
+        super().calc_integration(event)
+
+
+class NoiseSensor(HiloEntity, SensorEntity):
+    """Define a Netatmo noise sensor entity."""
+
+    _attr_native_unit_of_measurement = SOUND_PRESSURE_DB
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    def __init__(self, hilo, device):
+        self._attr_name = f"{device.name} Noise"
+        super().__init__(hilo, name=self._attr_name, device=device)
+        self._attr_unique_id = f"{slugify(device.name)}-noise"
+        LOG.debug(f"Setting up NoiseSensor entity: {self._attr_name}")
+
+    @property
+    def state(self):
+        return str(int(self._device.get_value("noise", 0)))
+
+    @property
+    def icon(self):
+        if not self._device.available:
+            return "mdi:lan-disconnect"
+        if int(self._device.get_value("noise", 0)) > 0:
+            return "mdi:volume-vibrate"
+        return "mdi:volume-mute"
 
 
 class TemperatureSensor(HiloEntity, SensorEntity):
@@ -541,36 +573,52 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
 
     async def _async_update(self):
         seasons = await self._hilo._api.get_seasons(self._hilo.devices.location_id)
-        if seasons:
-            current_history = self._history
-            new_history = []
+        if not seasons:
+            return
+        current_history = self._history
+        new_history = []
+        for idx, season in enumerate(seasons):
+            current_history_season = next(
+                (
+                    item
+                    for item in current_history
+                    if item.get("season") == season.get("season")
+                ),
+                None,
+            )
 
-            for idx, season in enumerate(seasons):
-                current_history_season = next(
-                    (
-                        item
-                        for item in current_history
-                        if item.get("season") == season.get("season")
-                    ),
-                    None,
-                )
+            if idx == 0:
+                self._state = season.get("totalReward", 0)
+            events = []
+            for raw_event in season.get("events", []):
+                current_history_event = None
+                event = None
 
-                if idx == 0:
-                    self._state = season.get("totalReward", 0)
-                events = []
-                for raw_event in season.get("events", []):
-                    current_history_event = None
-                    event = None
+                if current_history_season:
+                    current_history_event = next(
+                        (
+                            ev
+                            for ev in current_history_season["events"]
+                            if ev["event_id"] == raw_event["id"]
+                        ),
+                        None,
+                    )
 
-                    if current_history_season:
-                        current_history_event = next(
-                            (
-                                ev
-                                for ev in current_history_season["events"]
-                                if ev["event_id"] == raw_event["id"]
-                            ),
-                            None,
-                        )
+                start_date_utc = datetime.fromisoformat(raw_event["startDateUtc"])
+                event_age = datetime.now(timezone.utc) - start_date_utc
+                if (
+                    current_history_event
+                    and current_history_event.get("state") == "completed"
+                    and event_age > timedelta(days=1)
+                ):
+                    # No point updating events for previously completed events, they won't change.
+                    event = current_history_event
+                else:
+                    # Either it is an unknown event, one that is still in progress or a recent one, get the details.
+                    details = await self._hilo._api.get_gd_events(
+                        self._hilo.devices.location_id, event_id=raw_event["id"]
+                    )
+                    event = Event(**details).as_dict()
 
                     start_date_utc = datetime.fromisoformat(raw_event["startDateUtc"])
                     event_age = datetime.now(timezone.utc) - start_date_utc
@@ -702,43 +750,60 @@ class DeviceSensor(HiloEntity, SensorEntity):
         return "mdi:access-point-network"
 
 
-class HiloCostSensor(HiloEntity, RestoreEntity, SensorEntity):
+class HiloCostSensor(HiloEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.MONETARY
     _attr_native_unit_of_measurement = f"{CURRENCY_DOLLAR}/{ENERGY_KILO_WATT_HOUR}"
-    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_state_class = SensorStateClass.TOTAL
     _attr_icon = "mdi:cash"
 
     def __init__(self, hilo, name, plan_name, amount=0):
-        for d in hilo.devices.all:
-            if d.type == "Gateway":
-                device = d
+        device = next((d for d in hilo.devices.all if d.type == "Gateway"), None)
         if "low_threshold" in name:
             self._attr_device_class = SensorDeviceClass.ENERGY
             self._attr_native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
-        self.data = None
         self._attr_name = name
         self.plan_name = plan_name
-        self._amount = amount
         self._attr_unique_id = slugify(self._attr_name)
         self._last_update = dt_util.utcnow()
+        self._cost = amount
         super().__init__(hilo, name=self._attr_name, device=device)
         LOG.info(f"Initializing energy cost sensor {name} {plan_name} Amount: {amount}")
 
+    def _handle_state_change(self, event):
+        if (state := event.data.get("new_state")) is None:
+            return
+        if state.entity_id != f"sensor.{self._attr_unique_id}":
+            return
+        now = dt_util.utcnow()
+        try:
+            if (
+                state.attributes.get("hilo_update")
+                and self._last_update + timedelta(seconds=30) < now
+            ):
+                LOG.debug(
+                    f"Setting new state {state.state} {state=} {state.attributes=}"
+                )
+                self._cost = state.state
+                self._last_update = now
+        except ValueError:
+            LOG.error(f"Invalidate state received for {self._attr_unique_id}: {state}")
+
     @property
     def state(self):
-        return self._amount
+        return self._cost
+
+    @property
+    def extra_state_attributes(self):
+        return {
+            "Cost": self._cost,
+            "Plan": self.plan_name,
+            "last_update": self._last_update,
+        }
 
     @property
     def should_poll(self) -> bool:
         return False
 
-    @property
-    def extra_state_attributes(self):
-        return {"last_update": self._last_update, "Cost": self.state}
-
-    async def async_added_to_hass(self):
-        """Handle entity about to be added to hass event."""
-        await super().async_added_to_hass()
-
     async def async_update(self):
-        return
+        self._last_update = dt_util.utcnow()
+        return super().async_update()
