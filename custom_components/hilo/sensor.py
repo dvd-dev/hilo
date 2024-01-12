@@ -254,8 +254,10 @@ class EnergySensor(IntegrationSensor):
         if device.type == "Meter":
             self._attr_name = HILO_ENERGY_TOTAL
             self._unit_of_measurement = ENERGY_KILO_WATT_HOUR
+            self._unit_prefix = "k"
         if device.type == "Thermostat" or device.type == "FloorThermostat":
             self._unit_of_measurement = ENERGY_KILO_WATT_HOUR
+            self._unit_prefix = "k"
         self._source = f"sensor.{slugify(device.name)}_power"
 
         super().__init__(
