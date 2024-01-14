@@ -65,6 +65,7 @@ from .const import (
     DEFAULT_TRACK_UNKNOWN_SOURCES,
     DEFAULT_UNTARIFICATED_DEVICES,
     DOMAIN,
+    EVENT_SCAN_INTERVAL,
     EVENT_SCAN_INTERVAL_REDUCTION,
     HILO_ENERGY_TOTAL,
     LOG,
@@ -362,9 +363,9 @@ class Hilo:
         allowed_kWh, etc values.
         """
         if event := self._events.get(event_id):
-            if event.state == "pre_heat" and event.last_update <= event.preheat_start:
+            if event.invalid:
                 LOG.debug(
-                    f"Invalidating cache for event {event_id} during pre_heat phase ({event.last_update=})"
+                    f"Invalidating cache for event {event_id} during {event.state} phase ({event.current_phase_times=} {event.last_update=})"
                 )
                 del self._events[event_id]
             if (
@@ -376,6 +377,14 @@ class Hilo:
                     f"Invalidating cache for event {event_id} during reduction phase ({event.last_update=})"
                 )
                 del self._events[event_id]
+            if event.last_update <= datetime.now() - timedelta(
+                seconds=EVENT_SCAN_INTERVAL
+            ):
+                LOG.debug(
+                    f"Invalidating cache for event {event_id} ({event.last_update=}): Older then {EVENT_SCAN_INTERVAL=}"
+                )
+                del self._events[event_id]
+
         if event_id not in self._events:
             self._events[event_id] = await self._api.get_gd_events(
                 self.devices.location_id, event_id=event_id
