@@ -354,6 +354,15 @@ class Hilo:
         }
 
     async def get_event_details(self, event_id: int):
+        """Getting events from Hilo only when necessary.
+        Otherwise, we hit the cache.
+        When preheat is started and our last update is before
+        the preheat_start, we refresh. This should update the
+        allowed_kWh, etc values.
+        """
+        if event := self._events.get(event_id):
+            if event.state == "pre_heat" and event.last_update <= event.preheat_start:
+                del self._events[event_id]
         if event_id not in self._events:
             self._events[event_id] = await self._api.get_gd_events(
                 self.devices.location_id, event_id=event_id
