@@ -14,12 +14,12 @@ from homeassistant.const import (
     CONCENTRATION_PARTS_PER_MILLION,
     CONF_SCAN_INTERVAL,
     CURRENCY_DOLLAR,
-    ENERGY_KILO_WATT_HOUR,
     PERCENTAGE,
-    POWER_WATT,
     SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
-    SOUND_PRESSURE_DB,
-    TEMP_CELSIUS,
+    UnitOfEnergy,
+    UnitOfPower,
+    UnitOfSoundPressure,
+    UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -239,7 +239,7 @@ class EnergySensor(IntegrationSensor):
     """Define a Hilo energy sensor entity."""
 
     _attr_device_class = SensorDeviceClass.ENERGY
-    _attr_native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
+    _attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
     _attr_icon = "mdi:lightning-bolt"
 
@@ -247,15 +247,13 @@ class EnergySensor(IntegrationSensor):
         self._device = device
         self._attr_name = f"Hilo Energy {slugify(device.name)}"
         self._attr_unique_id = f"hilo_energy_{slugify(device.name)}"
-        self._unit_of_measurement = ENERGY_KILO_WATT_HOUR
+        self._unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
         self._unit_prefix = None
         if device.type == "Meter":
             self._attr_name = HILO_ENERGY_TOTAL
-            self._unit_of_measurement = ENERGY_KILO_WATT_HOUR
-            self._unit_prefix = "k"
+            self._unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
         if device.type == "Thermostat" or device.type == "FloorThermostat":
-            self._unit_of_measurement = ENERGY_KILO_WATT_HOUR
-            self._unit_prefix = "k"
+            self._unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
         self._source = f"sensor.{slugify(device.name)}_power"
 
         super().__init__(
@@ -264,7 +262,7 @@ class EnergySensor(IntegrationSensor):
             round_digits=2,
             source_entity=self._source,
             unique_id=self._attr_unique_id,
-            unit_prefix=self._unit_prefix,
+            unit_prefix="k",
             unit_time="h",
         )
         self._state = 0
@@ -286,7 +284,7 @@ class EnergySensor(IntegrationSensor):
 class NoiseSensor(HiloEntity, SensorEntity):
     """Define a Netatmo noise sensor entity."""
 
-    _attr_native_unit_of_measurement = SOUND_PRESSURE_DB
+    _attr_native_unit_of_measurement = UnitOfSoundPressure.DECIBEL
     _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(self, hilo, device):
@@ -312,7 +310,7 @@ class PowerSensor(HiloEntity, SensorEntity):
     """Define a Hilo power sensor entity."""
 
     _attr_device_class = SensorDeviceClass.POWER
-    _attr_native_unit_of_measurement = POWER_WATT
+    _attr_native_unit_of_measurement = UnitOfPower.WATT
     _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(self, hilo: Hilo, device: HiloDevice) -> None:
@@ -340,7 +338,7 @@ class TemperatureSensor(HiloEntity, SensorEntity):
     """Define a Hilo temperature sensor entity."""
 
     _attr_device_class = SensorDeviceClass.TEMPERATURE
-    _attr_native_unit_of_measurement = TEMP_CELSIUS
+    _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
     _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(self, hilo, device):
@@ -371,7 +369,7 @@ class TargetTemperatureSensor(HiloEntity, SensorEntity):
     """Define a Hilo target temperature sensor entity."""
 
     _attr_device_class = SensorDeviceClass.TEMPERATURE
-    _attr_native_unit_of_measurement = TEMP_CELSIUS
+    _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
     _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(self, hilo, device):
@@ -704,7 +702,9 @@ class DeviceSensor(HiloEntity, SensorEntity):
 
 class HiloCostSensor(HiloEntity, RestoreEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.MONETARY
-    _attr_native_unit_of_measurement = f"{CURRENCY_DOLLAR}/{ENERGY_KILO_WATT_HOUR}"
+    _attr_native_unit_of_measurement = (
+        f"{CURRENCY_DOLLAR}/{UnitOfEnergy.KILO_WATT_HOUR}"
+    )
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_icon = "mdi:cash"
 
@@ -714,7 +714,7 @@ class HiloCostSensor(HiloEntity, RestoreEntity, SensorEntity):
                 device = d
         if "low_threshold" in name:
             self._attr_device_class = SensorDeviceClass.ENERGY
-            self._attr_native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
+            self._attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
         self.data = None
         self._attr_name = name
         self.plan_name = plan_name
