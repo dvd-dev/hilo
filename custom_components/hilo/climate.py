@@ -7,7 +7,7 @@ from homeassistant.components.climate.const import (
     HVACMode,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import ATTR_TEMPERATURE, PRECISION_TENTHS, TEMP_CELSIUS
+from homeassistant.const import ATTR_TEMPERATURE, PRECISION_TENTHS, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import slugify
@@ -50,7 +50,7 @@ async def async_setup_entry(
 
 class HiloClimate(HiloEntity, ClimateEntity):
     _attr_hvac_modes = [HVACMode.HEAT]
-    _attr_temperature_unit: str = TEMP_CELSIUS
+    _attr_temperature_unit: str = UnitOfTemperature.CELSIUS
     _attr_precision: float = PRECISION_TENTHS
     _attr_supported_features: int = ClimateEntityFeature.TARGET_TEMPERATURE
 
