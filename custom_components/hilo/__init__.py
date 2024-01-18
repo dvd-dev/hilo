@@ -39,6 +39,7 @@ from pyhilo import API
 from pyhilo.const import DEFAULT_STATE_FILE
 from pyhilo.device import HiloDevice
 from pyhilo.devices import Devices
+from pyhilo.event import Event
 from pyhilo.exceptions import HiloError, InvalidCredentialsError, WebsocketError
 from pyhilo.util import from_utc_timestamp, time_diff
 from pyhilo.websocket import WebsocketEvent
@@ -362,7 +363,8 @@ class Hilo:
         the preheat_start, we refresh. This should update the
         allowed_kWh, etc values.
         """
-        if event := self._events.get(event_id):
+        if event_data := self._events.get(event_id):
+            event = Event(**event_data)
             if event.invalid:
                 LOG.debug(
                     f"Invalidating cache for event {event_id} during {event.state} phase ({event.current_phase_times=} {event.last_update=})"
