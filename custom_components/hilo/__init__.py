@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING, Union
 
 from homeassistant.components.select import (
@@ -373,13 +373,13 @@ class Hilo:
             if (
                 event.state == "reduction"
                 and event.last_update
-                <= datetime.now() - timedelta(seconds=EVENT_SCAN_INTERVAL_REDUCTION)
+                <= datetime.now(timezone.utc).astimezone() - timedelta(seconds=EVENT_SCAN_INTERVAL_REDUCTION)
             ):
                 LOG.debug(
                     f"Invalidating cache for event {event_id} during reduction phase ({event.last_update=})"
                 )
                 del self._events[event_id]
-            if event.last_update <= datetime.now() - timedelta(
+            if event.last_update <= datetime.now(timezone.utc).astimezone() - timedelta(
                 seconds=EVENT_SCAN_INTERVAL
             ):
                 LOG.debug(
