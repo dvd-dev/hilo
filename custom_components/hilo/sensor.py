@@ -43,7 +43,7 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_UNTARIFICATED_DEVICES,
     DOMAIN,
-    EVENT_SCAN_INTERVAL,
+    EVENT_SCAN_INTERVAL_REDUCTION,
     HILO_ENERGY_TOTAL,
     HILO_SENSOR_CLASSES,
     LOG,
@@ -607,7 +607,8 @@ class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
         super().__init__(hilo, name=self._attr_name, device=device)
         self._attr_unique_id = slugify(self._attr_name)
         LOG.debug(f"Setting up ChallengeSensor entity: {self._attr_name}")
-        self.scan_interval = timedelta(seconds=EVENT_SCAN_INTERVAL)
+        # note ic-dev21: scan time at 5 minutes (300s) will force local update
+        self.scan_interval = timedelta(seconds=EVENT_SCAN_INTERVAL_REDUCTION)
         self._state = "off"
         self._next_events = []
         self.async_update = Throttle(self.scan_interval)(self._async_update)

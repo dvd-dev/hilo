@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Union
 
 from homeassistant.components.select import (
@@ -66,8 +66,6 @@ from .const import (
     DEFAULT_TRACK_UNKNOWN_SOURCES,
     DEFAULT_UNTARIFICATED_DEVICES,
     DOMAIN,
-    EVENT_SCAN_INTERVAL,
-    EVENT_SCAN_INTERVAL_REDUCTION,
     HILO_ENERGY_TOTAL,
     LOG,
     MIN_SCAN_INTERVAL,
@@ -370,20 +368,16 @@ class Hilo:
                     f"Invalidating cache for event {event_id} during {event.state} phase ({event.current_phase_times=} {event.last_update=})"
                 )
                 del self._events[event_id]
-            if (
-                event.state == "reduction"
-                and event.last_update
-                <= datetime.now(timezone.utc).astimezone() - timedelta(seconds=EVENT_SCAN_INTERVAL_REDUCTION)
-            ):
+            """
+            Note ic-dev21: temp fix until we an make it prettier.
+            During reduction we delete the event attributes and reload
+            them with the next if, the rest of time time we're reading
+            it from cache
+            """
+
+            if event.state == "reduction":
                 LOG.debug(
                     f"Invalidating cache for event {event_id} during reduction phase ({event.last_update=})"
-                )
-                del self._events[event_id]
-            if event.last_update <= datetime.now(timezone.utc).astimezone() - timedelta(
-                seconds=EVENT_SCAN_INTERVAL
-            ):
-                LOG.debug(
-                    f"Invalidating cache for event {event_id} ({event.last_update=}): Older then {EVENT_SCAN_INTERVAL=}"
                 )
                 del self._events[event_id]
 
