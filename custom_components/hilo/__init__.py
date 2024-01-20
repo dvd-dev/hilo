@@ -39,6 +39,7 @@ from pyhilo import API
 from pyhilo.const import DEFAULT_STATE_FILE
 from pyhilo.device import HiloDevice
 from pyhilo.devices import Devices
+from pyhilo.event import Event
 from pyhilo.exceptions import HiloError, InvalidCredentialsError, WebsocketError
 from pyhilo.util import from_utc_timestamp, time_diff
 from pyhilo.websocket import WebsocketEvent
@@ -354,6 +355,32 @@ class Hilo:
         }
 
     async def get_event_details(self, event_id: int):
+        """Getting events from Hilo only when necessary.
+        Otherwise, we hit the cache.
+        When preheat is started and our last update is before
+        the preheat_start, we refresh. This should update the
+        allowed_kWh, etc values.
+        """
+        if event_data := self._events.get(event_id):
+            event = Event(**event_data)
+            if event.invalid:
+                LOG.debug(
+                    f"Invalidating cache for event {event_id} during {event.state} phase ({event.current_phase_times=} {event.last_update=})"
+                )
+                del self._events[event_id]
+            """
+            Note ic-dev21: temp fix until we an make it prettier.
+            During reduction we delete the event attributes and reload
+            them with the next if, the rest of time time we're reading
+            it from cache
+            """
+
+            if event.state == "reduction":
+                LOG.debug(
+                    f"Invalidating cache for event {event_id} during reduction phase ({event.last_update=})"
+                )
+                del self._events[event_id]
+
         if event_id not in self._events:
             self._events[event_id] = await self._api.get_gd_events(
                 self.devices.location_id, event_id=event_id
