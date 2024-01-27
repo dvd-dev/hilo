@@ -26,6 +26,8 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import Throttle, slugify
 import homeassistant.util.dt as dt_util
+
+from pyhilo.const import UNMONITORED_DEVICES
 from pyhilo.device import HiloDevice
 from pyhilo.event import Event
 from pyhilo.util import from_utc_timestamp
@@ -103,7 +105,7 @@ def generate_entities_from_device(device, hilo, scan_interval):
         entities.append(DeviceSensor(hilo, device))
     if device.has_attribute("noise"):
         entities.append(NoiseSensor(hilo, device))
-    if device.has_attribute("power"):
+    if device.has_attribute("power") and device.model not in UNMONITORED_DEVICES:
         entities.append(PowerSensor(hilo, device))
     if device.has_attribute("target_temperature"):
         entities.append(TargetTemperatureSensor(hilo, device))
@@ -159,7 +161,7 @@ async def async_setup_entry(
     for d in hilo.devices.all:
         LOG.debug(f"Adding device {d}")
         new_entities.extend(generate_entities_from_device(d, hilo, scan_interval))
-        if d.has_attribute("power"):
+        if d.has_attribute("power") and d.model not in UNMONITORED_DEVICES:
             # If we opt out the geneneration of meters we just create the power sensors
             if generate_energy_meters:
                 create_energy_entity(d)
