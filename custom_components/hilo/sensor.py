@@ -26,7 +26,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import Throttle, slugify
 import homeassistant.util.dt as dt_util
-
 from pyhilo.const import UNMONITORED_DEVICES
 from pyhilo.device import HiloDevice
 from pyhilo.event import Event
