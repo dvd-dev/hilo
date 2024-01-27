@@ -570,7 +570,7 @@ class Hilo:
                     pass
             if not entity.startswith("sensor.hilo_energy") or entity.endswith("_cost"):
                 continue
-            self.fix_utility_sensor(entity, state)
+            #self.fix_utility_sensor(entity, state) note ic-dev21: commented this out as this method does not work properly right now
         if self.track_unknown_sources:
             total_power = self._hass.states.get(smart_meter)
             if not total_power:

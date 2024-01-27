@@ -241,19 +241,16 @@ class EnergySensor(IntegrationSensor):
     _attr_device_class = SensorDeviceClass.ENERGY
     _attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    _attr_suggested_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+    _attr_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
     _attr_icon = "mdi:lightning-bolt"
 
     def __init__(self, device):
         self._device = device
         self._attr_name = f"Hilo Energy {slugify(device.name)}"
         self._attr_unique_id = f"hilo_energy_{slugify(device.name)}"
-        self._unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
-        self._unit_prefix = None
         if device.type == "Meter":
             self._attr_name = HILO_ENERGY_TOTAL
-            self._unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
-        if device.type == "Thermostat" or device.type == "FloorThermostat":
-            self._unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
         self._source = f"sensor.{slugify(device.name)}_power"
 
         super().__init__(
@@ -273,7 +270,7 @@ class EnergySensor(IntegrationSensor):
 
     @property
     def unit_of_measurement(self):
-        return self._unit_of_measurement
+        return self._attr_unit_of_measurement
 
     async def async_added_to_hass(self) -> None:
         """Handle entity which will be added."""
@@ -499,6 +496,7 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
 
     _attr_device_class = SensorDeviceClass.MONETARY
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    _attr_suggested_unit_of_measurement = "CAD"
 
     def __init__(self, hilo, device, scan_interval):
         self._attr_name = "Recompenses Hilo"
