@@ -500,11 +500,19 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
 
     def __init__(self, hilo, device, scan_interval):
         self._attr_name = "Recompenses Hilo"
+
+        # Check if currency is configured, set a default if not
+        currency = hilo._hass.config.currency
+        if currency:
+            self._attr_native_unit_of_measurement = currency
+        else:
+            # Set a default currency or handle the case where currency is not configured
+            self._attr_native_unit_of_measurement = "CAD"
+
         super().__init__(hilo, name=self._attr_name, device=device)
         self._attr_unique_id = slugify(self._attr_name)
         LOG.debug(f"Setting up RewardSensor entity: {self._attr_name}")
         self.scan_interval = timedelta(seconds=REWARD_SCAN_INTERVAL)
-        self._attr_native_unit_of_measurement = hilo._hass.config.currency
         self._state = 0
         self._history = []
         self.async_update = Throttle(self.scan_interval)(self._async_update)
