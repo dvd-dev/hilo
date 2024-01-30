@@ -712,6 +712,10 @@ class HiloEntity(CoordinatorEntity):
             }
         except AttributeError:
             pass
+        try:
+            self._attr_device_info["sw_version"] = device.sw_version
+        except AttributeError:
+            pass
         if not name:
             name = device.name
         self._attr_name = name
