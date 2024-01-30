@@ -252,6 +252,11 @@ class EnergySensor(IntegrationSensor):
         if device.type == "Meter":
             self._attr_name = HILO_ENERGY_TOTAL
         self._source = f"sensor.{slugify(device.name)}_power"
+        # ic-dev21: Set initial state and last_valid_state, removes log errors and unavailable states
+        initial_state = 0
+        self._attr_native_value = initial_state
+        self._attr_last_valid_state = initial_state
+        self._attr_last_reset = dt_util.utcnow()
 
         super().__init__(
             integration_method=METHOD_LEFT,
@@ -262,8 +267,6 @@ class EnergySensor(IntegrationSensor):
             unit_prefix="k",
             unit_time="h",
         )
-        self._state = 0
-        self._last_period = 0
         LOG.debug(
             f"Setting up EnergySensor entity: {self._attr_name} with source {self._source}"
         )
