@@ -13,6 +13,7 @@ from homeassistant.components.select import (
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
+    ATTR_CONNECTIONS,
     ATTR_DEVICE_CLASS,
     ATTR_UNIT_OF_MEASUREMENT,
     CONF_PASSWORD,
@@ -704,6 +705,13 @@ class HiloEntity(CoordinatorEntity):
             name=device.name,
             via_device=(DOMAIN, gateway),
         )
+        try:
+            mac_address = dr.format_mac(device.sdi)
+            self._attr_device_info[ATTR_CONNECTIONS] = {
+                (dr.CONNECTION_NETWORK_MAC, mac_address)
+            }
+        except AttributeError:
+            pass
         if not name:
             name = device.name
         self._attr_name = name
