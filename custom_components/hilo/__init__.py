@@ -24,7 +24,11 @@ from homeassistant.const import (
 )
 from homeassistant.core import Context, Event, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
-from homeassistant.helpers import aiohttp_client, device_registry as dr
+from homeassistant.helpers import (
+    aiohttp_client,
+    device_registry as dr,
+    entity_registry as er,
+)
 from homeassistant.helpers.dispatcher import (
     async_dispatcher_connect,
     async_dispatcher_send,
@@ -631,6 +635,49 @@ class Hilo:
                     SELECT_DOMAIN, SERVICE_SELECT_OPTION, data, context=context
                 )
             )
+
+    @callback
+    def async_migrate_unique_id(
+        self, old_unique_id: str, new_unique_id: str | None, platform: str
+    ) -> None:
+        """Migrate legacy unique IDs to new format."""
+        assert new_unique_id is not None
+        LOG.debug(
+            "Checking if unique ID %s on %s needs to be migrated",
+            old_unique_id,
+            platform,
+        )
+        entity_registry = er.async_get(self._hass)
+        # async_get_entity_id wants the "HILO" domain
+        # in the platform field and the actual platform in the domain
+        # field for historical reasons since everything used to be
+        # PLATFORM.INTEGRATION instead of INTEGRATION.PLATFORM
+        if (
+            entity_id := entity_registry.async_get_entity_id(
+                platform, DOMAIN, old_unique_id
+            )
+        ) is None:
+            LOG.debug("Unique ID %s does not need to be migrated", old_unique_id)
+            return
+        if new_entity_id := entity_registry.async_get_entity_id(
+            platform, DOMAIN, new_unique_id
+        ):
+            LOG.debug(
+                (
+                    "Unique ID %s is already in use by %s (system may have been"
+                    " downgraded)"
+                ),
+                new_unique_id,
+                new_entity_id,
+            )
+            return
+        LOG.debug(
+            "Migrating unique ID for entity %s (%s -> %s)",
+            entity_id,
+            old_unique_id,
+            new_unique_id,
+        )
+        entity_registry.async_update_entity(entity_id, new_unique_id=new_unique_id)
 
 
 class HiloEntity(CoordinatorEntity):
