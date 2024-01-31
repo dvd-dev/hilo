@@ -241,20 +241,22 @@ class EnergySensor(IntegrationSensor):
     _attr_device_class = SensorDeviceClass.ENERGY
     _attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    _attr_suggested_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+    _attr_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
     _attr_icon = "mdi:lightning-bolt"
 
     def __init__(self, device):
         self._device = device
         self._attr_name = f"Hilo Energy {slugify(device.name)}"
         self._attr_unique_id = f"hilo_energy_{slugify(device.name)}"
-        self._unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
-        self._unit_prefix = None
         if device.type == "Meter":
             self._attr_name = HILO_ENERGY_TOTAL
-            self._unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
-        if device.type == "Thermostat" or device.type == "FloorThermostat":
-            self._unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
         self._source = f"sensor.{slugify(device.name)}_power"
+        # ic-dev21: Set initial state and last_valid_state, removes log errors and unavailable states
+        initial_state = 0
+        self._attr_native_value = initial_state
+        self._attr_last_valid_state = initial_state
+        self._attr_last_reset = dt_util.utcnow()
 
         super().__init__(
             integration_method=METHOD_LEFT,
@@ -265,15 +267,13 @@ class EnergySensor(IntegrationSensor):
             unit_prefix="k",
             unit_time="h",
         )
-        self._state = 0
-        self._last_period = 0
         LOG.debug(
             f"Setting up EnergySensor entity: {self._attr_name} with source {self._source}"
         )
 
     @property
     def unit_of_measurement(self):
-        return self._unit_of_measurement
+        return self._attr_unit_of_measurement
 
     async def async_added_to_hass(self) -> None:
         """Handle entity which will be added."""
@@ -499,14 +499,23 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
 
     _attr_device_class = SensorDeviceClass.MONETARY
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    _attr_suggested_unit_of_measurement = "CAD"
 
     def __init__(self, hilo, device, scan_interval):
         self._attr_name = "Recompenses Hilo"
+
+        # Check if currency is configured, set a default if not
+        currency = hilo._hass.config.currency
+        if currency:
+            self._attr_native_unit_of_measurement = currency
+        else:
+            # Set a default currency or handle the case where currency is not configured
+            self._attr_native_unit_of_measurement = "CAD"
+
         super().__init__(hilo, name=self._attr_name, device=device)
         self._attr_unique_id = slugify(self._attr_name)
         LOG.debug(f"Setting up RewardSensor entity: {self._attr_name}")
         self.scan_interval = timedelta(seconds=REWARD_SCAN_INTERVAL)
-        self._attr_native_unit_of_measurement = hilo._hass.config.currency
         self._state = 0
         self._history = []
         self.async_update = Throttle(self.scan_interval)(self._async_update)
