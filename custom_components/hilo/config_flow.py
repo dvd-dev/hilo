@@ -35,7 +35,6 @@ from .const import (
     DEFAULT_HQ_PLAN_NAME,
     DEFAULT_LOG_TRACES,
     DEFAULT_PRE_COLD_PHASE,
-    DEFAULT_SCAN_INTERVAL,
     DEFAULT_TRACK_UNKNOWN_SOURCES,
     DEFAULT_UNTARIFICATED_DEVICES,
     DOMAIN,
@@ -83,7 +82,7 @@ STEP_OPTION_SCHEMA = vol.Schema(
             CONF_PRE_COLD_PHASE,
             default=DEFAULT_PRE_COLD_PHASE,
         ): cv.positive_int,
-        vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): (
+        vol.Optional(CONF_SCAN_INTERVAL): (
             vol.All(cv.positive_int, vol.Range(min=MIN_SCAN_INTERVAL))
         ),
     }
