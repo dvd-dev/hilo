@@ -195,7 +195,11 @@ class BatterySensor(HiloEntity, SensorEntity):
     def __init__(self, hilo, device):
         self._attr_name = f"{device.name} Battery"
         super().__init__(hilo, name=self._attr_name, device=device)
-        self._attr_unique_id = f"{slugify(device.name)}-battery"
+        old_unique_id = f"{slugify(device.name)}-battery"
+        self._attr_unique_id = f"{slugify(device.identifier)}-battery"
+        hilo.async_migrate_unique_id(
+            old_unique_id, self._attr_unique_id, Platform.SENSOR
+        )
         LOG.debug(f"Setting up BatterySensor entity: {self._attr_name}")
 
     @property
@@ -222,7 +226,11 @@ class Co2Sensor(HiloEntity, SensorEntity):
     def __init__(self, hilo, device):
         self._attr_name = f"{device.name} CO2"
         super().__init__(hilo, name=self._attr_name, device=device)
-        self._attr_unique_id = f"{slugify(device.name)}-co2"
+        old_unique_id = f"{slugify(device.name)}-co2"
+        self._attr_unique_id = f"{slugify(device.identifier)}-co2"
+        hilo.async_migrate_unique_id(
+            old_unique_id, self._attr_unique_id, Platform.SENSOR
+        )
         LOG.debug(f"Setting up CO2Sensor entity: {self._attr_name}")
 
     @property
@@ -298,7 +306,11 @@ class NoiseSensor(HiloEntity, SensorEntity):
     def __init__(self, hilo, device):
         self._attr_name = f"{device.name} Noise"
         super().__init__(hilo, name=self._attr_name, device=device)
-        self._attr_unique_id = f"{slugify(device.name)}-noise"
+        old_unique_id = f"{slugify(device.name)}-noise"
+        self._attr_unique_id = f"{slugify(device.identifier)}-noise"
+        hilo.async_migrate_unique_id(
+            old_unique_id, self._attr_unique_id, Platform.SENSOR
+        )
         LOG.debug(f"Setting up NoiseSensor entity: {self._attr_name}")
 
     @property
