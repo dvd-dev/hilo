@@ -9,8 +9,8 @@ from homeassistant.components.climate.const import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_TEMPERATURE,
-    Platform,
     PRECISION_TENTHS,
+    Platform,
     UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant
