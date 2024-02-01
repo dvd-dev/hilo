@@ -13,7 +13,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
-from homeassistant.helpers import aiohttp_client, config_validation as cv
+from homeassistant.helpers import aiohttp_client, config_validation as cv, selector
 from homeassistant.helpers.typing import ConfigType
 from pyhilo import API
 from pyhilo.exceptions import HiloError, InvalidCredentialsError
@@ -26,6 +26,7 @@ from .const import (
     CONF_HQ_PLAN_NAME,
     CONF_LOG_TRACES,
     CONF_PRE_COLD_PHASE,
+    CONF_TARIFF,
     CONF_TRACK_UNKNOWN_SOURCES,
     CONF_UNTARIFICATED_DEVICES,
     DEFAULT_APPRECIATION_PHASE,
@@ -70,6 +71,11 @@ STEP_OPTION_SCHEMA = vol.Schema(
             default=DEFAULT_TRACK_UNKNOWN_SOURCES,
         ): cv.boolean,
         vol.Optional(
+            CONF_HQ_PLAN_NAME, default=DEFAULT_HQ_PLAN_NAME
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(options=list(CONF_TARIFF.keys()), mode="list")
+        ),
+        vol.Optional(
             CONF_APPRECIATION_PHASE,
             default=DEFAULT_APPRECIATION_PHASE,
         ): cv.positive_int,
@@ -77,7 +83,6 @@ STEP_OPTION_SCHEMA = vol.Schema(
             CONF_PRE_COLD_PHASE,
             default=DEFAULT_PRE_COLD_PHASE,
         ): cv.positive_int,
-        vol.Optional(CONF_HQ_PLAN_NAME, default=DEFAULT_HQ_PLAN_NAME): cv.string,
         vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): (
             vol.All(cv.positive_int, vol.Range(min=MIN_SCAN_INTERVAL))
         ),
@@ -186,80 +191,7 @@ class HiloOptionsFlowHandler(config_entries.OptionsFlow):
 
         return self.async_show_form(
             step_id="init",
-            data_schema=vol.Schema(
-                {
-                    vol.Optional(
-                        CONF_GENERATE_ENERGY_METERS,
-                        description={
-                            "suggested_value": self.config_entry.options.get(
-                                CONF_GENERATE_ENERGY_METERS
-                            )
-                        },
-                    ): cv.boolean,
-                    vol.Optional(
-                        CONF_UNTARIFICATED_DEVICES,
-                        description={
-                            "suggested_value": self.config_entry.options.get(
-                                CONF_UNTARIFICATED_DEVICES
-                            )
-                        },
-                    ): cv.boolean,
-                    vol.Optional(
-                        CONF_LOG_TRACES,
-                        description={
-                            "suggested_value": self.config_entry.options.get(
-                                CONF_LOG_TRACES
-                            )
-                        },
-                    ): cv.boolean,
-                    vol.Optional(
-                        CONF_CHALLENGE_LOCK,
-                        description={
-                            "suggested_value": self.config_entry.options.get(
-                                CONF_CHALLENGE_LOCK
-                            )
-                        },
-                    ): cv.boolean,
-                    vol.Optional(
-                        CONF_TRACK_UNKNOWN_SOURCES,
-                        description={
-                            "suggested_value": self.config_entry.options.get(
-                                CONF_TRACK_UNKNOWN_SOURCES
-                            )
-                        },
-                    ): cv.boolean,
-                    vol.Optional(
-                        CONF_HQ_PLAN_NAME,
-                        description={
-                            "suggested_value": self.config_entry.options.get(
-                                CONF_HQ_PLAN_NAME
-                            )
-                        },
-                    ): cv.string,
-                    vol.Optional(
-                        CONF_APPRECIATION_PHASE,
-                        description={
-                            "suggested_value": self.config_entry.options.get(
-                                CONF_APPRECIATION_PHASE
-                            )
-                        },
-                    ): cv.positive_int,
-                    vol.Optional(
-                        CONF_PRE_COLD_PHASE,
-                        description={
-                            "suggested_value": self.config_entry.options.get(
-                                CONF_PRE_COLD_PHASE
-                            )
-                        },
-                    ): cv.positive_int,
-                    vol.Optional(
-                        CONF_SCAN_INTERVAL,
-                        description={
-                            "suggested_value": self.config_entry.options.get(
-                                CONF_SCAN_INTERVAL
-                            )
-                        },
-                    ): (vol.All(cv.positive_int, vol.Range(min=MIN_SCAN_INTERVAL))),
-                }
+            data_schema=self.add_suggested_values_to_schema(
+                STEP_OPTION_SCHEMA, self.config_entry.options
             ),
         )
