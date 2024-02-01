@@ -605,14 +605,19 @@ class Hilo:
         if not attrs.get("source"):
             LOG.debug(f"No source entity defined on {entity}: {current_state}")
             return
-        parent_unit = self._hass.states.get(attrs.get("source"))
+
+        parent_unit_state = self._hass.states.get(attrs.get("source"))
+        parent_unit = (
+            "kWh"
+            if parent_unit_state is None
+            else parent_unit_state.attributes.get("unit_of_measurement")
+        )
         if not parent_unit:
             LOG.warning(f"Unable to find state for parent unit: {current_state}")
             return
+
         new_attrs = {
-            ATTR_UNIT_OF_MEASUREMENT: parent_unit.as_dict()
-            .get("attributes", {})
-            .get(ATTR_UNIT_OF_MEASUREMENT),
+            ATTR_UNIT_OF_MEASUREMENT: parent_unit,  # note ic-dev21: now uses parent_unit directly
             ATTR_DEVICE_CLASS: SensorDeviceClass.ENERGY,
         }
         if not all(a in attrs.keys() for a in new_attrs.keys()):
