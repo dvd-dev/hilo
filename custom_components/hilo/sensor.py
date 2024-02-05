@@ -500,6 +500,7 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.MONETARY
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
     _attr_suggested_unit_of_measurement = "CAD"
+    _entity_component_unrecorded_attributes = frozenset({"history"})
 
     def __init__(self, hilo, device, scan_interval):
         self._attr_name = "Recompenses Hilo"
