@@ -273,7 +273,6 @@ class EnergySensor(IntegrationSensor):
         initial_state = 0
         self._attr_native_value = initial_state
         self._attr_last_valid_state = initial_state
-        self._attr_last_reset = dt_util.utcnow()
 
         super().__init__(
             integration_method=METHOD_LEFT,
