@@ -375,14 +375,14 @@ class Hilo:
                 del self._events[event_id]
             """
             Note ic-dev21: temp fix until we an make it prettier.
-            During reduction we delete the event attributes and reload
-            them with the next if, the rest of time time we're reading
-            it from cache
+            During appreciation, pre-heat and reduction we delete
+            the event attributes and reload them with the next if,
+            the rest of time time we're reading it from cache
             """
 
-            if event.state == "reduction":
+            if event.state in ["appreciation", "pre_heat", "reduction"]:
                 LOG.debug(
-                    f"Invalidating cache for event {event_id} during reduction phase ({event.last_update=})"
+                    f"Invalidating cache for event {event_id} during appreciation, pre_heat or reduction phase ({event.last_update=})"
                 )
                 del self._events[event_id]
 
