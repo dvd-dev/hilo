@@ -7,9 +7,10 @@ from homeassistant.components.utility_meter.const import DOMAIN as UTILITY_DOMAI
 from homeassistant.components.utility_meter.sensor import (
     async_setup_platform as utility_setup_platform,
 )
+from homeassistant.helpers.entity_registry import async_get as async_get_registry
 
 from .const import HILO_ENERGY_TOTAL, LOG
-from homeassistant.helpers.entity_registry import async_get as async_get_registry
+
 
 class UtilityManager:
     """Class that maps to the utility_meters"""
