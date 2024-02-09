@@ -9,7 +9,7 @@ from homeassistant.components.utility_meter.sensor import (
 )
 
 from .const import HILO_ENERGY_TOTAL, LOG
-
+from homeassistant.helpers.entity_registry import async_get as async_get_registry
 
 class UtilityManager:
     """Class that maps to the utility_meters"""
@@ -21,23 +21,28 @@ class UtilityManager:
         self.meter_entities = {}
         self.new_entities = 0
 
-    def add_meter(self, entity, tariff_list, net_consumption=False):
-        self.add_meter_entity(entity, tariff_list)
+    async def entity_exists(self, entity):
+        """Check if the entity already exists."""
+        registry = await async_get_registry(self.hass)
+        return registry.async_is_registered(entity)
+
+    async def add_meter(self, entity, tariff_list, net_consumption=False):
+        await self.add_meter_entity(entity, tariff_list)
         self.add_meter_config(entity, tariff_list, net_consumption)
 
-    def add_meter_entity(self, entity, tariff_list):
-        if entity in self.hass.data.get("utility_meter_data", {}):
+    async def add_meter_entity(self, entity, tariff_list):
+        if await self.entity_exists(entity):
             LOG.debug(f"Entity {entity} is already in the utility meters")
             return
         self.new_entities += 1
-        for tarif in tariff_list:
+        for tariff in tariff_list:
             name = f"{entity}_{self.period}"
-            meter_name = f"{name} {tarif}"
+            meter_name = f"{name} {tariff}"
             LOG.debug(f"Creating UtilityMeter entity for {entity}: {meter_name}")
             self.meter_entities[meter_name] = {
                 "meter": entity,
                 "name": meter_name,
-                "tariff": tarif,
+                "tariff": tariff,
             }
 
     def add_meter_config(self, entity, tariff_list, net_consumption):
