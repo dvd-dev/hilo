@@ -7,7 +7,6 @@ from homeassistant.components.utility_meter.const import DOMAIN as UTILITY_DOMAI
 from homeassistant.components.utility_meter.sensor import (
     async_setup_platform as utility_setup_platform,
 )
-from homeassistant.helpers.entity_registry import async_get as async_get_registry
 
 from .const import HILO_ENERGY_TOTAL, LOG
 
@@ -21,29 +20,58 @@ class UtilityManager:
         self.meter_configs = OrderedDict()
         self.meter_entities = {}
         self.new_entities = 0
+        self.get_entity_registry(hass)
+        self.filtered_entity_dict = {}
 
-    async def entity_exists(self, entity):
-        """Check if the entity already exists."""
-        registry = await async_get_registry(self.hass)
-        return registry.async_is_registered(entity)
+    def get_entity_registry(self, hass):
+        entity_registry_dict = {}
 
-    async def add_meter(self, entity, tariff_list, net_consumption=False):
-        await self.add_meter_entity(entity, tariff_list)
+        # ic-dev21 on interroge le entity registry de hass.data ici:
+        registry = hass.data.get("entity_registry")
+
+        if registry is None:
+            return entity_registry_dict
+
+        # ic-dev21: on va chercher le nom, peut-être qu'on devrait pogner la platform pour ramasser tout hilo?
+        for entity_id, entity_entry in registry.entities.items():
+            entity_registry_dict[entity_id] = {
+                "name": entity_entry.entity_id,
+            }
+
+        # ic-dev21 sort the result, not necessary but is eaiser to read
+        sorted_entity_registry_dict = OrderedDict(sorted(entity_registry_dict.items()))
+        LOG.debug(f"Hil0 Ordered dict is {sorted_entity_registry_dict}")
+
+        # ic-dev21 on va chercher juste les hilo_energy, étape peut-être superflue?
+        filtered_entity_dict = {}
+
+        for entity_id, entity_data in sorted_entity_registry_dict.items():
+            if "hilo_energy" in entity_data["name"]:
+                filtered_entity_dict[entity_id] = entity_data
+        LOG.debug(f"Hil0 Filtered entity dict is {filtered_entity_dict}")
+
+        return sorted_entity_registry_dict, filtered_entity_dict
+
+    def add_meter(self, entity, tariff_list, net_consumption=False):
+        self.add_meter_entity(entity, tariff_list)
         self.add_meter_config(entity, tariff_list, net_consumption)
 
-    async def add_meter_entity(self, entity, tariff_list):
-        if await self.entity_exists(entity):
+    def add_meter_entity(self, entity, tariff_list):
+        # ic-dev21 debug logging ici, c'est là que je bloque, hilo_energy est à la fin des string dans le dict
+        # mais au début des string dans les entités... d'après moi si on peut arranger ça, ça marche.
+        LOG.debug(f"Hil0 Entity is {entity}")
+        if entity in self.filtered_entity_dict:
             LOG.debug(f"Entity {entity} is already in the utility meters")
             return
         self.new_entities += 1
-        for tariff in tariff_list:
+        for tarif in tariff_list:
             name = f"{entity}_{self.period}"
-            meter_name = f"{name} {tariff}"
+            meter_name = f"{name} {tarif}"
             LOG.debug(f"Creating UtilityMeter entity for {entity}: {meter_name}")
             self.meter_entities[meter_name] = {
                 "meter": entity,
                 "name": meter_name,
-                "tariff": tariff,
+                "tariff": tarif,
             }
 
     def add_meter_config(self, entity, tariff_list, net_consumption):
