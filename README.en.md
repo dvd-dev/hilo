@@ -64,6 +64,10 @@ rewrite it. Hilo is now pushing device readings via websocket from SignalR.
 
 ## Installation
 
+### Step 0: Compatible install
+
+This custom component has been tested to worked by various users on HA OS (as bare metal or VM), Docker with the official (ghcr.io) image and Podman. Other types of install may cause permissions issues during creation of a few files by the custom component.
+
 ### Step 1: Download files
 
 #### Option 1: Via HACS
