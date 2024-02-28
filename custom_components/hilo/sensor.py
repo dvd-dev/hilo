@@ -15,18 +15,20 @@ from homeassistant.const import (
     CONCENTRATION_PARTS_PER_MILLION,
     CONF_SCAN_INTERVAL,
     CURRENCY_DOLLAR,
-    ENERGY_KILO_WATT_HOUR,
     PERCENTAGE,
-    POWER_WATT,
     SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
-    SOUND_PRESSURE_DB,
-    TEMP_CELSIUS,
+    Platform,
+    UnitOfEnergy,
+    UnitOfPower,
+    UnitOfSoundPressure,
+    UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import Throttle, slugify
 import homeassistant.util.dt as dt_util
+from pyhilo.const import UNMONITORED_DEVICES
 from pyhilo.device import HiloDevice
 from pyhilo.event import Event
 from pyhilo.util import from_utc_timestamp
@@ -45,7 +47,7 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_UNTARIFICATED_DEVICES,
     DOMAIN,
-    EVENT_SCAN_INTERVAL,
+    EVENT_SCAN_INTERVAL_REDUCTION,
     HILO_ENERGY_TOTAL,
     HILO_SENSOR_CLASSES,
     LOG,
@@ -105,7 +107,7 @@ def generate_entities_from_device(device, hilo, scan_interval):
         entities.append(DeviceSensor(hilo, device))
     if device.has_attribute("noise"):
         entities.append(NoiseSensor(hilo, device))
-    if device.has_attribute("power"):
+    if device.has_attribute("power") and device.model not in UNMONITORED_DEVICES:
         entities.append(PowerSensor(hilo, device))
     if device.has_attribute("target_temperature"):
         entities.append(TargetTemperatureSensor(hilo, device))
@@ -141,8 +143,8 @@ async def async_setup_entry(
         energy_manager = await EnergyManager().init(hass, energy_meter_period)
         utility_manager = UtilityManager(hass, energy_meter_period)
 
-    def create_energy_entity(device):
-        device._energy_entity = EnergySensor(device)
+    def create_energy_entity(hilo, device):
+        device._energy_entity = EnergySensor(hilo, device)
         new_entities.append(device._energy_entity)
         energy_entity = f"hilo_energy_{slugify(device.name)}"
         if energy_entity == HILO_ENERGY_TOTAL:
@@ -161,10 +163,10 @@ async def async_setup_entry(
     for d in hilo.devices.all:
         LOG.debug(f"Adding device {d}")
         new_entities.extend(generate_entities_from_device(d, hilo, scan_interval))
-        if d.has_attribute("power"):
+        if d.has_attribute("power") and d.model not in UNMONITORED_DEVICES:
             # If we opt out the geneneration of meters we just create the power sensors
             if generate_energy_meters:
-                create_energy_entity(d)
+                create_energy_entity(hilo, d)
 
     async_add_entities(new_entities)
     if not generate_energy_meters:
@@ -196,7 +198,11 @@ class BatterySensor(HiloEntity, SensorEntity):
     def __init__(self, hilo, device):
         self._attr_name = f"{device.name} Battery"
         super().__init__(hilo, name=self._attr_name, device=device)
-        self._attr_unique_id = f"{slugify(device.name)}-battery"
+        old_unique_id = f"{slugify(device.name)}-battery"
+        self._attr_unique_id = f"{slugify(device.identifier)}-battery"
+        hilo.async_migrate_unique_id(
+            old_unique_id, self._attr_unique_id, Platform.SENSOR
+        )
         LOG.debug(f"Setting up BatterySensor entity: {self._attr_name}")
 
     @property
@@ -223,7 +229,11 @@ class Co2Sensor(HiloEntity, SensorEntity):
     def __init__(self, hilo, device):
         self._attr_name = f"{device.name} CO2"
         super().__init__(hilo, name=self._attr_name, device=device)
-        self._attr_unique_id = f"{slugify(device.name)}-co2"
+        old_unique_id = f"{slugify(device.name)}-co2"
+        self._attr_unique_id = f"{slugify(device.identifier)}-co2"
+        hilo.async_migrate_unique_id(
+            old_unique_id, self._attr_unique_id, Platform.SENSOR
+        )
         LOG.debug(f"Setting up CO2Sensor entity: {self._attr_name}")
 
     @property
@@ -241,24 +251,30 @@ class EnergySensor(IntegrationSensor):
     """Define a Hilo energy sensor entity."""
 
     _attr_device_class = SensorDeviceClass.ENERGY
-    _attr_native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
+    _attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    _attr_suggested_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+    _attr_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
     _attr_icon = "mdi:lightning-bolt"
 
-    def __init__(self, device):
+    def __init__(self, hilo, device):
         self._device = device
-        self._attr_name = f"Hilo Energy {slugify(device.name)}"
-        self._attr_unique_id = f"hilo_energy_{slugify(device.name)}"
-        self._unit_of_measurement = ENERGY_KILO_WATT_HOUR
+        self._attr_name = f"{device.name} Hilo Energy"
+        old_unique_id = f"hilo_energy_{slugify(device.name)}"
+        self._attr_unique_id = f"{slugify(device.identifier)}-energy"
+        hilo.async_migrate_unique_id(
+            old_unique_id, self._attr_unique_id, Platform.SENSOR
+        )
+        self._unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
         self._unit_prefix = None
+
         if device.type == "Meter":
             self._attr_name = HILO_ENERGY_TOTAL
-            self._unit_of_measurement = ENERGY_KILO_WATT_HOUR
-            self._unit_prefix = "k"
-        if device.type == "Thermostat" or device.type == "FloorThermostat":
-            self._unit_of_measurement = ENERGY_KILO_WATT_HOUR
-            self._unit_prefix = "k"
         self._source = f"sensor.{slugify(device.name)}_power"
+        # ic-dev21: Set initial state and last_valid_state, removes log errors and unavailable states
+        initial_state = 0
+        self._attr_native_value = initial_state
+        self._attr_last_valid_state = initial_state
 
         super().__init__(
             integration_method=METHOD_LEFT,
@@ -266,18 +282,16 @@ class EnergySensor(IntegrationSensor):
             round_digits=2,
             source_entity=self._source,
             unique_id=self._attr_unique_id,
-            unit_prefix=self._unit_prefix,
+            unit_prefix="k",
             unit_time="h",
         )
-        self._state = 0
-        self._last_period = 0
         LOG.debug(
             f"Setting up EnergySensor entity: {self._attr_name} with source {self._source}"
         )
 
     @property
     def unit_of_measurement(self):
-        return self._unit_of_measurement
+        return self._attr_unit_of_measurement
 
     async def async_added_to_hass(self) -> None:
         """Handle entity which will be added."""
@@ -288,13 +302,17 @@ class EnergySensor(IntegrationSensor):
 class NoiseSensor(HiloEntity, SensorEntity):
     """Define a Netatmo noise sensor entity."""
 
-    _attr_native_unit_of_measurement = SOUND_PRESSURE_DB
+    _attr_native_unit_of_measurement = UnitOfSoundPressure.DECIBEL
     _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(self, hilo, device):
         self._attr_name = f"{device.name} Noise"
         super().__init__(hilo, name=self._attr_name, device=device)
-        self._attr_unique_id = f"{slugify(device.name)}-noise"
+        old_unique_id = f"{slugify(device.name)}-noise"
+        self._attr_unique_id = f"{slugify(device.identifier)}-noise"
+        hilo.async_migrate_unique_id(
+            old_unique_id, self._attr_unique_id, Platform.SENSOR
+        )
         LOG.debug(f"Setting up NoiseSensor entity: {self._attr_name}")
 
     @property
@@ -314,14 +332,18 @@ class PowerSensor(HiloEntity, SensorEntity):
     """Define a Hilo power sensor entity."""
 
     _attr_device_class = SensorDeviceClass.POWER
-    _attr_native_unit_of_measurement = POWER_WATT
+    _attr_native_unit_of_measurement = UnitOfPower.WATT
     _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(self, hilo: Hilo, device: HiloDevice) -> None:
         """Initialize."""
         self._attr_name = f"{device.name} Power"
         super().__init__(hilo, name=self._attr_name, device=device)
-        self._attr_unique_id = f"{slugify(device.name)}-power"
+        old_unique_id = f"{slugify(device.name)}-power"
+        self._attr_unique_id = f"{slugify(device.identifier)}-power"
+        hilo.async_migrate_unique_id(
+            old_unique_id, self._attr_unique_id, Platform.SENSOR
+        )
         LOG.debug(f"Setting up PowerSensor entity: {self._attr_name}")
 
     @property
@@ -342,13 +364,17 @@ class TemperatureSensor(HiloEntity, SensorEntity):
     """Define a Hilo temperature sensor entity."""
 
     _attr_device_class = SensorDeviceClass.TEMPERATURE
-    _attr_native_unit_of_measurement = TEMP_CELSIUS
+    _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
     _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(self, hilo, device):
         self._attr_name = f"{device.name} Temperature"
         super().__init__(hilo, name=self._attr_name, device=device)
-        self._attr_unique_id = f"{slugify(device.name)}-temperature"
+        old_unique_id = f"{slugify(device.name)}-temperature"
+        self._attr_unique_id = f"{slugify(device.identifier)}-temperature"
+        hilo.async_migrate_unique_id(
+            old_unique_id, self._attr_unique_id, Platform.SENSOR
+        )
         LOG.debug(f"Setting up TemperatureSensor entity: {self._attr_name}")
 
     @property
@@ -373,13 +399,17 @@ class TargetTemperatureSensor(HiloEntity, SensorEntity):
     """Define a Hilo target temperature sensor entity."""
 
     _attr_device_class = SensorDeviceClass.TEMPERATURE
-    _attr_native_unit_of_measurement = TEMP_CELSIUS
+    _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
     _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(self, hilo, device):
         self._attr_name = f"{device.name} Target Temperature"
         super().__init__(hilo, name=self._attr_name, device=device)
-        self._attr_unique_id = f"{slugify(device.name)}-target-temperature"
+        old_unique_id = f"{slugify(device.name)}-target-temperature"
+        self._attr_unique_id = f"{slugify(device.identifier)}-target-temperature"
+        hilo.async_migrate_unique_id(
+            old_unique_id, self._attr_unique_id, Platform.SENSOR
+        )
         LOG.debug(f"Setting up TargetTemperatureSensor entity: {self._attr_name}")
 
     @property
@@ -438,7 +468,13 @@ class HiloNotificationSensor(HiloEntity, RestoreEntity, SensorEntity):
     def __init__(self, hilo, device, scan_interval):
         self._attr_name = "Notifications Hilo"
         super().__init__(hilo, name=self._attr_name, device=device)
-        self._attr_unique_id = slugify(self._attr_name)
+        old_unique_id = slugify(self._attr_name)
+        self._attr_unique_id = (
+            f"{slugify(device.identifier)}-{slugify(self._attr_name)}"
+        )
+        hilo.async_migrate_unique_id(
+            old_unique_id, self._attr_unique_id, Platform.SENSOR
+        )
         LOG.debug(f"Setting up NotificationSensor entity: {self._attr_name}")
         self.scan_interval = timedelta(seconds=NOTIFICATION_SCAN_INTERVAL)
         self._state = 0
@@ -503,15 +539,31 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
 
     _attr_device_class = SensorDeviceClass.MONETARY
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    _attr_suggested_unit_of_measurement = "CAD"
+    _entity_component_unrecorded_attributes = frozenset({"history"})
 
     def __init__(self, hilo, device, scan_interval):
         self._attr_name = "Recompenses Hilo"
+
+        # Check if currency is configured, set a default if not
+        currency = hilo._hass.config.currency
+        if currency:
+            self._attr_native_unit_of_measurement = currency
+        else:
+            # Set a default currency or handle the case where currency is not configured
+            self._attr_native_unit_of_measurement = "CAD"
+
         super().__init__(hilo, name=self._attr_name, device=device)
-        self._attr_unique_id = slugify(self._attr_name)
+        old_unique_id = slugify(self._attr_name)
+        self._attr_unique_id = (
+            f"{slugify(device.identifier)}-{slugify(self._attr_name)}"
+        )
+        hilo.async_migrate_unique_id(
+            old_unique_id, self._attr_unique_id, Platform.SENSOR
+        )
         LOG.debug(f"Setting up RewardSensor entity: {self._attr_name}")
         self._history_state_yaml: str = "hilo_eventhistory_state.yaml"
         self.scan_interval = timedelta(seconds=REWARD_SCAN_INTERVAL)
-        self._attr_native_unit_of_measurement = hilo._hass.config.currency
         self._state = 0
         self._history = self._load_history()
         self.async_update = Throttle(self.scan_interval)(self._async_update)
@@ -624,9 +676,16 @@ class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
     def __init__(self, hilo, device, scan_interval):
         self._attr_name = "Defi Hilo"
         super().__init__(hilo, name=self._attr_name, device=device)
-        self._attr_unique_id = slugify(self._attr_name)
+        old_unique_id = slugify(self._attr_name)
+        self._attr_unique_id = (
+            f"{slugify(device.identifier)}-{slugify(self._attr_name)}"
+        )
+        hilo.async_migrate_unique_id(
+            old_unique_id, self._attr_unique_id, Platform.SENSOR
+        )
         LOG.debug(f"Setting up ChallengeSensor entity: {self._attr_name}")
-        self.scan_interval = timedelta(seconds=EVENT_SCAN_INTERVAL)
+        # note ic-dev21: scan time at 5 minutes (300s) will force local update
+        self.scan_interval = timedelta(seconds=EVENT_SCAN_INTERVAL_REDUCTION)
         self._state = "off"
         self._next_events = []
         self.async_update = Throttle(self.scan_interval)(self._async_update)
@@ -699,7 +758,11 @@ class DeviceSensor(HiloEntity, SensorEntity):
     def __init__(self, hilo, device):
         self._attr_name = device.name
         super().__init__(hilo, name=self._attr_name, device=device)
-        self._attr_unique_id = slugify(device.name)
+        old_unique_id = slugify(device.name)
+        self._attr_unique_id = f"{slugify(device.identifier)}-{slugify(device.name)}"
+        hilo.async_migrate_unique_id(
+            old_unique_id, self._attr_unique_id, Platform.SENSOR
+        )
         LOG.debug(f"Setting up DeviceSensor entity: {self._attr_name}")
 
     @property
@@ -721,7 +784,9 @@ class DeviceSensor(HiloEntity, SensorEntity):
 
 class HiloCostSensor(HiloEntity, RestoreEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.MONETARY
-    _attr_native_unit_of_measurement = f"{CURRENCY_DOLLAR}/{ENERGY_KILO_WATT_HOUR}"
+    _attr_native_unit_of_measurement = (
+        f"{CURRENCY_DOLLAR}/{UnitOfEnergy.KILO_WATT_HOUR}"
+    )
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_icon = "mdi:cash"
 
@@ -731,12 +796,18 @@ class HiloCostSensor(HiloEntity, RestoreEntity, SensorEntity):
                 device = d
         if "low_threshold" in name:
             self._attr_device_class = SensorDeviceClass.ENERGY
-            self._attr_native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
+            self._attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
         self.data = None
         self._attr_name = name
         self.plan_name = plan_name
         self._amount = amount
-        self._attr_unique_id = slugify(self._attr_name)
+        old_unique_id = slugify(self._attr_name)
+        self._attr_unique_id = (
+            f"{slugify(device.identifier)}-{slugify(self._attr_name)}"
+        )
+        hilo.async_migrate_unique_id(
+            old_unique_id, self._attr_unique_id, Platform.SENSOR
+        )
         self._last_update = dt_util.utcnow()
         super().__init__(hilo, name=self._attr_name, device=device)
         LOG.info(f"Initializing energy cost sensor {name} {plan_name} Amount: {amount}")

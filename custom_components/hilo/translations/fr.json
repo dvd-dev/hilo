@@ -6,7 +6,7 @@
       },
       "reauth_confirm": {
         "title": "Réauthentifier l'intégration",
-        "description": "L'intégration Hilo doit réauthentifier votre compte"
+        "description": "L'intégration doit réauthentifier votre compte"
       }
     },
     "error": {
@@ -16,7 +16,7 @@
     },
     "abort": {
       "already_configured": "Ce compte Hilo est déjà utilisé.",
-      "reauth_successful": "Réauthentifié avec succès",
+      "reauth_successful": "Ré-authentification réussie",
       "user_rejected_authorize" : "Association du compte refusée",
       "single_instance_allowed" : "Déjà configurée. Une seule configuration possible."
     }

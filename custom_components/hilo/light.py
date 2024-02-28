@@ -5,6 +5,7 @@ from homeassistant.components.light import (
     LightEntity,
 )
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.debounce import Debouncer
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -30,7 +31,11 @@ async def async_setup_entry(
 class HiloLight(HiloEntity, LightEntity):
     def __init__(self, hass: HomeAssistant, hilo: Hilo, device):
         super().__init__(hilo, device=device, name=device.name)
-        self._attr_unique_id = f"{slugify(device.name)}-light"
+        old_unique_id = f"{slugify(device.name)}-light"
+        self._attr_unique_id = f"{slugify(device.identifier)}-light"
+        hilo.async_migrate_unique_id(
+            old_unique_id, self._attr_unique_id, Platform.LIGHT
+        )
         self._debounced_turn_on = Debouncer(
             hass,
             LOG,
