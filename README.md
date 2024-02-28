@@ -56,6 +56,9 @@ J'ai décidé de déplacer l'intégration ici car la dernière mise à jour de H
 
 ## Installation
 
+### Étape 0: Avoir une installation compatible
+Cette intégration a été testée par des utilisateurs sous HA OS (bare metal et VM), Docker avec l'image officielle (ghcr.io), Podman. Tout autre type d'installation peut mener à des problèmes de permission pour certains fichiers créés lors de l'installation initiale du custom_component.
+
 ### Étape 1: Télécharger les fichiers
 
 #### Option 1: Via HACS
@@ -95,7 +98,7 @@ D'autres options sont disponibles sous le bouton "Configurer" dans Home Assistan
 
 - `Générer seulement les compteurs totaux pour chaque appareil`: Case à cocher
 
-  Calculez uniquement le total d'énergie sans diviser entre le coût faible et le coût élevé
+  Calculez uniquement le total d'énergie sans diviser entre le coût faible et le coût élevé(les entités seront créées quand même sans être populée par des données).
 
 - `Enregistrer également les données de demande et les messages Websocket (nécessite un niveau de journal de débogage à la fois sur l'intégration et sur pyhilo)`: Case à cocher
 
