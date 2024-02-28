@@ -89,7 +89,7 @@ If the component is properly installed, you should be able to find the 'Hilo int
 
 ## Configuration (new install)
 
-The configuration is done in the UI. When you add the integration, you will be redirected to Hilo's website login page to authenticate. 
+The configuration is done in the UI. When you add the integration, you will be redirected to Hilo's website login page to authenticate.
 
 ![Open Website](https://github.com/dvd-dev/hilo/assets/108159253/23b4fb34-f8c3-40b3-8e01-b3e737cc9d44)
 
@@ -193,7 +193,7 @@ Other options are available under the `Configure` button in Home Assistant:
   Only 2 values are supported at this time:
   - `rate d`
   - `flex d`
- 
+
 - `appreciation phase`: Integer (hours)
 
   Add an appreciation phase of X hours before the preheat phase.
@@ -201,7 +201,7 @@ Other options are available under the `Configure` button in Home Assistant:
 - `pre_cold phase`: Integer (hours)
 
   Add a cooldown phase of X hours to reduce temperatures before the appreciation phase
-  
+
 - `Scan interval (min: 60s)`: Integer
 
   Number of seconds between each device update. Defaults to 60 and it's not recommended to go below 30 as it might

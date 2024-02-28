@@ -37,6 +37,10 @@ DEFAULT_UNTARIFICATED_DEVICES = False
 
 DEFAULT_SCAN_INTERVAL = 300
 EVENT_SCAN_INTERVAL = 1800
+# During reduction phase, let's refresh the current challenge event
+# more often to get the reward numbers
+# Note ic-dev21: we'll stay at 300 until proper fix
+EVENT_SCAN_INTERVAL_REDUCTION = 300
 NOTIFICATION_SCAN_INTERVAL = 1800
 MIN_SCAN_INTERVAL = 60
 REWARD_SCAN_INTERVAL = 7200

@@ -56,6 +56,7 @@ class UtilityManager:
                 "offset": timedelta(0),
                 "delta_values": False,
                 "periodically_resetting": True,
+                "always_available": True,
             }
         )
 

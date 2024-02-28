@@ -13,6 +13,7 @@ from homeassistant.components.select import (
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
+    ATTR_CONNECTIONS,
     ATTR_DEVICE_CLASS,
     ATTR_UNIT_OF_MEASUREMENT,
     CONF_SCAN_INTERVAL,
@@ -26,6 +27,7 @@ from homeassistant.helpers import (
     aiohttp_client,
     config_entry_oauth2_flow,
     device_registry as dr,
+    entity_registry as er,
 )
 from homeassistant.helpers.dispatcher import (
     async_dispatcher_connect,
@@ -40,6 +42,7 @@ from homeassistant.helpers.update_coordinator import (
 from pyhilo import API
 from pyhilo.device import HiloDevice
 from pyhilo.devices import Devices
+from pyhilo.event import Event
 from pyhilo.exceptions import HiloError, InvalidCredentialsError, WebsocketError
 from pyhilo.oauth2 import AuthCodeWithPKCEImplementation
 from pyhilo.util import from_utc_timestamp, time_diff
@@ -366,6 +369,32 @@ class Hilo:
         }
 
     async def get_event_details(self, event_id: int):
+        """Getting events from Hilo only when necessary.
+        Otherwise, we hit the cache.
+        When preheat is started and our last update is before
+        the preheat_start, we refresh. This should update the
+        allowed_kWh, etc values.
+        """
+        if event_data := self._events.get(event_id):
+            event = Event(**event_data)
+            if event.invalid:
+                LOG.debug(
+                    f"Invalidating cache for event {event_id} during {event.state} phase ({event.current_phase_times=} {event.last_update=})"
+                )
+                del self._events[event_id]
+            """
+            Note ic-dev21: temp fix until we an make it prettier.
+            During appreciation, pre-heat and reduction we delete
+            the event attributes and reload them with the next if,
+            the rest of time time we're reading it from cache
+            """
+
+            if event.state in ["appreciation", "pre_heat", "reduction"]:
+                LOG.debug(
+                    f"Invalidating cache for event {event_id} during appreciation, pre_heat or reduction phase ({event.last_update=})"
+                )
+                del self._events[event_id]
+
         if event_id not in self._events:
             self._events[event_id] = await self._api.get_gd_events(
                 self.devices.location_id, event_id=event_id
@@ -585,14 +614,19 @@ class Hilo:
         if not attrs.get("source"):
             LOG.debug(f"No source entity defined on {entity}: {current_state}")
             return
-        parent_unit = self._hass.states.get(attrs.get("source"))
+
+        parent_unit_state = self._hass.states.get(attrs.get("source"))
+        parent_unit = (
+            "kWh"
+            if parent_unit_state is None
+            else parent_unit_state.attributes.get("unit_of_measurement")
+        )
         if not parent_unit:
             LOG.warning(f"Unable to find state for parent unit: {current_state}")
             return
+
         new_attrs = {
-            ATTR_UNIT_OF_MEASUREMENT: parent_unit.as_dict()
-            .get("attributes", {})
-            .get(ATTR_UNIT_OF_MEASUREMENT),
+            ATTR_UNIT_OF_MEASUREMENT: parent_unit,  # note ic-dev21: now uses parent_unit directly
             ATTR_DEVICE_CLASS: SensorDeviceClass.ENERGY,
         }
         if not all(a in attrs.keys() for a in new_attrs.keys()):
@@ -616,6 +650,49 @@ class Hilo:
                     SELECT_DOMAIN, SERVICE_SELECT_OPTION, data, context=context
                 )
             )
+
+    @callback
+    def async_migrate_unique_id(
+        self, old_unique_id: str, new_unique_id: str | None, platform: str
+    ) -> None:
+        """Migrate legacy unique IDs to new format."""
+        assert new_unique_id is not None
+        LOG.debug(
+            "Checking if unique ID %s on %s needs to be migrated",
+            old_unique_id,
+            platform,
+        )
+        entity_registry = er.async_get(self._hass)
+        # async_get_entity_id wants the "HILO" domain
+        # in the platform field and the actual platform in the domain
+        # field for historical reasons since everything used to be
+        # PLATFORM.INTEGRATION instead of INTEGRATION.PLATFORM
+        if (
+            entity_id := entity_registry.async_get_entity_id(
+                platform, DOMAIN, old_unique_id
+            )
+        ) is None:
+            LOG.debug("Unique ID %s does not need to be migrated", old_unique_id)
+            return
+        if new_entity_id := entity_registry.async_get_entity_id(
+            platform, DOMAIN, new_unique_id
+        ):
+            LOG.debug(
+                (
+                    "Unique ID %s is already in use by %s (system may have been"
+                    " downgraded)"
+                ),
+                new_unique_id,
+                new_entity_id,
+            )
+            return
+        LOG.debug(
+            "Migrating unique ID for entity %s (%s -> %s)",
+            entity_id,
+            old_unique_id,
+            new_unique_id,
+        )
+        entity_registry.async_update_entity(entity_id, new_unique_id=new_unique_id)
 
 
 class HiloEntity(CoordinatorEntity):
@@ -642,6 +719,17 @@ class HiloEntity(CoordinatorEntity):
             name=device.name,
             via_device=(DOMAIN, gateway),
         )
+        try:
+            mac_address = dr.format_mac(device.sdi)
+            self._attr_device_info[ATTR_CONNECTIONS] = {
+                (dr.CONNECTION_NETWORK_MAC, mac_address)
+            }
+        except AttributeError:
+            pass
+        try:
+            self._attr_device_info["sw_version"] = device.sw_version
+        except AttributeError:
+            pass
         if not name:
             name = device.name
         self._attr_name = name
