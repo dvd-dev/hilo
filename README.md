@@ -19,7 +19,7 @@ Ceci est une version Bêta. Il y aura probablements des bogues, irritants, etc. 
 # Hilo
 Intégration pour Home Assistant d'[Hilo](https://www.hydroquebec.com/hilo/fr/)
 
-# :warning: Breaking change (v2023.12.2 et antérieures)
+# :warning: Breaking change (v2024.2.2 et antérieures)
 L'authentification (login) de Hilo passera d'une méthode "Resource Owner Password Flow" vers une méthode "Authorization Code Flow with PKCE". Quelques semaines après ce changement, l'ancienne méthode sera fermée définitivement et les anciennes version de Hilo ne seront plus fonctionnelles. Nous recommandons donc de surveiller cette page pour une mise à jour prochainement.
 
 ## Introduction
@@ -55,6 +55,9 @@ J'ai décidé de déplacer l'intégration ici car la dernière mise à jour de H
 - Ajout automatique des compteurs de consommation électrique
 
 ## Installation
+
+### Étape 0: Avoir une installation compatible
+ Cette intégration a été testée par des utilisateurs sous HA OS (bare metal et VM), Docker avec l'image officielle (ghcr.io), Podman. Tout autre type d'installation peut mener à des problèmes de permission pour certains fichiers créés lors de l'installation initiale du custom_component.
 
 ### Étape 1: Télécharger les fichiers
 

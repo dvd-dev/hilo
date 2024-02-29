@@ -19,7 +19,7 @@ This is a beta release. There will be some bugs, issues, etc. Please bear with u
 # Hilo
 [Hilo](https://www.hydroquebec.com/hilo/en/) integration for Home Assistant
 
-# :warning: Breaking change (v2023.12.2 and lower)
+# :warning: Breaking change (v2024.2.2 and lower)
 Hilo's login will stop using "Resource Owner Password Flow" and start using "Authorization Code Flow with PKCE". A few weeks after this change, the current login method will be permanently closed and unusable. We recommend watching this page for updates as previous versions of this integration will no longer work.
 
 ## Introduction
@@ -63,6 +63,10 @@ rewrite it. Hilo is now pushing device readings via websocket from SignalR.
 
 
 ## Installation
+
+### Step 0: Compatible install
+
+ This custom component has been tested to worked by various users on HA OS (as bare metal or VM), Docker with the official (ghcr.io) image and Podman. Other types of install may cause permissions issues during creation of a few files by the custom component.
 
 ### Step 1: Download files
 
