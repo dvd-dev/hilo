@@ -95,7 +95,7 @@ Vous devez ensuite accepter de lier votre compte. Pour se faire, saisir l'addres
 
 Après, vous devrez assigner une pièce de votre maison à chaque appareil.
 
-## Configuration (mise à jour depuis une version antérieure à v2024.1.1)
+## Configuration (mise à jour depuis une version antérieure à v2024.3.1)
 
 Après la mise à jour, vous obtiendrez une erreur comme quoi vous devez vous réauthentifier pour que l'intégration fonctionne.
 

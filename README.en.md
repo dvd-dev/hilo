@@ -108,7 +108,7 @@ You must then accept to link your account. To do so, you must enter your Home As
 
 After this, you will be prompted with assigning a room for each one of your devices.
 
-## Configuration (update from a version earlier than v2024.1.1)
+## Configuration (update from a version earlier than v2024.3.1)
 
 After update, you will get an error saying you must reauthenticate for the integration to work.
 
