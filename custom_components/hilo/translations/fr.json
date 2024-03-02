@@ -2,19 +2,11 @@
   "config": {
     "step": {
       "user": {
-        "description": "L'intégration Hilo intéragit avec l'application Hilo. Hilo est un produit de domotique fait par une filliale de Hydro Québec.",
-        "data": {
-          "username": "Nom d'utilisateur Hilo",
-          "password": "Mot de passe Hilo"
-        }
+        "description": "L'intégration Hilo intéragit avec l'application Hilo. Hilo est un produit de domotique fait par une filliale de Hydro Québec."
       },
       "reauth_confirm": {
-        "title": "Identifiants",
-        "description": "L'intégration doit ré-authentifier votre compte",
-        "data": {
-          "username": "Nom d'utilisateur Hilo",
-          "password": "Mot de passe Hilo"
-        }
+        "title": "Réauthentifier l'intégration",
+        "description": "L'intégration doit réauthentifier votre compte"
       }
     },
     "error": {
@@ -24,7 +16,9 @@
     },
     "abort": {
       "already_configured": "Ce compte Hilo est déjà utilisé.",
-      "reauth_successful": "Ré-authentification réussie"
+      "reauth_successful": "Ré-authentification réussie",
+      "user_rejected_authorize" : "Association du compte refusée",
+      "single_instance_allowed" : "Déjà configurée. Une seule configuration possible."
     }
   },
   "options": {

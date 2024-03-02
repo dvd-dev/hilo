@@ -43,8 +43,8 @@ developers.
 
 ## Configuration
 
-The configuration is done in the UI. When you add the integration, you will be prompted with your
-Hilo username and password. After this, you will be prompted with assigning a room for each one of
+The configuration is done in the UI. When you add the integration, you will be redirected to Hilo's authentication website.
+You have to accept to link your account. After this, you will be prompted with assigning a room for each one of
 your devices.
 
 ### Energy meters
