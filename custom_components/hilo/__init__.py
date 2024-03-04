@@ -557,8 +557,8 @@ class Hilo:
                 f"check_tarif: Current plan: {plan_name} Target Tarif: {tarif} Energy used: {energy_used.state} Peak: {self.high_times}"
             )
         known_power = 0
-        smart_meter = "sensor.smartenergymeter_power"
-        smart_meter_alternate = "sensor.meter00_power"
+        smart_meter = "sensor.meter00_power"
+        #smart_meter_alternate = "sensor.meter00_power"
         unknown_source_tracker = "sensor.unknown_source_tracker_power"
         for state in self._hass.states.async_all():
             entity = state.entity_id
@@ -567,7 +567,7 @@ class Hilo:
             if entity.endswith("_power") and entity not in [
                 unknown_source_tracker,
                 smart_meter,
-                smart_meter_alternate,
+                #smart_meter_alternate,
             ]:
                 try:
                     known_power += int(float(state.state))
@@ -578,9 +578,14 @@ class Hilo:
             self.fix_utility_sensor(entity, state)
         if self.track_unknown_sources:
             total_power = self._hass.states.get(smart_meter)
-            if not total_power:
-                total_power = self._hass.states.get(smart_meter_alternate)
-            unknown_power = int(total_power.state) - known_power
+            #if not total_power:
+                #total_power = self._hass.states.get(smart_meter_alternate)
+            try:
+                unknown_power = int(total_power.state) - known_power
+            except ValueError:
+                unknown_power = known_power
+                LOG.warning(f"value of total_power ({total_power} not initialized correctly)")
+                
             self.devices.parse_values_received(
                 [
                     {
