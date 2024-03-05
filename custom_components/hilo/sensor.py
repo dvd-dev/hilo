@@ -146,7 +146,7 @@ async def async_setup_entry(
     def create_energy_entity(hilo, device):
         device._energy_entity = EnergySensor(hilo, device)
         new_entities.append(device._energy_entity)
-        energy_entity = f"hilo_energy_{slugify(device.name)}"
+        energy_entity = f"{slugify(device.name)}_hilo_energy"
         if energy_entity == HILO_ENERGY_TOTAL:
             LOG.error(
                 "An hilo entity can't be named 'total' because it conflicts "
