@@ -19,8 +19,8 @@ Ceci est une version Bêta. Il y aura probablements des bogues, irritants, etc. 
 # Hilo
 Intégration pour Home Assistant d'[Hilo](https://www.hydroquebec.com/hilo/fr/)
 
-# :warning: Breaking change à venir
-L'authentification (login) de Hilo passera d'une méthode "Resource Owner Password Flow" vers une méthode "Authorization Code Flow with PKCE". Quelques semaines après ce changement, l'ancienne méthode sera fermée définitivement et les anciennes version de Hilo ne seront plus fonctionnelles. Nous recommandons donc de surveiller cette page pour une mise à jour prochainement.
+# :warning: Breaking change (v2024.2.2 et antérieures deviendront non-fonctionnelles)
+L'authentification (login) de Hilo passera d'une méthode "Resource Owner Password Flow" vers une méthode "Authorization Code Flow with PKCE". Quelques semaines après ce changement, l'ancienne méthode sera fermée définitivement et les anciennes version de Hilo ne seront plus fonctionnelles.
 
 ## Introduction
 
@@ -56,6 +56,9 @@ J'ai décidé de déplacer l'intégration ici car la dernière mise à jour de H
 
 ## Installation
 
+### Étape 0: Avoir une installation compatible
+ Cette intégration a été testée par des utilisateurs sous HA OS (bare metal et VM), Docker avec l'image officielle (ghcr.io), Podman. Tout autre type d'installation peut mener à des problèmes de permission pour certains fichiers créés lors de l'installation initiale du custom_component.
+
 ### Étape 1: Télécharger les fichiers
 
 #### Option 1: Via HACS
@@ -72,12 +75,37 @@ Télécharger et copier le dossier `custom_components/hilo` de la [dernière ver
 Dans HA, aller à  Paramètres > Appareils et services > Intégrations.
 Dans le coin inférieur droit, cliquer sur le bouton '+ AJOUTER UNE INTÉGRATION'.
 
+![Ajout intégration](https://github.com/dvd-dev/hilo/assets/108159253/e0529aca-9b13-40e0-9be4-29e347b980ab)
+
 Si l'intégration est correctement installée, vous devriez pouvoir trouver "Hilo" dans la list. Il est possible d'avoir besoin de vider la mémoire cache de votre navigateur pour que l'intégration s'affiche.
 
-## Configuration
+![Recherche intégration](https://github.com/dvd-dev/hilo/assets/108159253/7003a402-9369-4063-ac02-709bd0294e42)
 
-La configuration est faite via l'interface utilisateur. Lorsque vous ajoutez l'intégration, votre nom d'utilisateur et mot de passe Hio vous seront demandés. Après, vous devrez assigner une pièce de votre maison à chaque appareil.
+## Configuration (initiale)
 
+La configuration est faite via l'interface utilisateur. Lorsque vous ajoutez l'intégration, vous êtes redirigés vers le site de connexion d'Hilo afin de vous y authentifier.
+
+![Auth step 1](https://github.com/dvd-dev/hilo/assets/108159253/d2e396ea-e6df-40e6-9a14-626ef3be87c8)
+
+![Auth Hilo](https://github.com/dvd-dev/hilo/assets/108159253/e4e98b32-78d0-4c49-a2d7-3bd0ae95e9e0)
+
+Vous devez ensuite accepter de lier votre compte. Pour se faire, saisir l'addresse (URL ou IP) de votre instance Home Assistant et appuyez sur Link Account.
+
+![Link](https://github.com/dvd-dev/hilo/assets/108159253/5eb945f7-fa5e-458f-b0fe-ef252aaadf93)
+
+Après, vous devrez assigner une pièce de votre maison à chaque appareil.
+
+## Configuration (mise à jour depuis une version antérieure à v2024.3.1)
+
+Après la mise à jour, vous obtiendrez une erreur comme quoi vous devez vous réauthentifier pour que l'intégration fonctionne.
+
+![Reconfigurer](https://github.com/dvd-dev/hilo/assets/108159253/5b69da7f-d547-4ba7-8b64-8eb1d8f28bdb)
+
+![Réauthentifier](https://github.com/dvd-dev/hilo/assets/108159253/6b1bf2c3-0d7a-4eb8-815b-594401fc09ef)
+
+Après avoir lié votre compte comme montré à la section configuration initale, le message suivant apparaîtra.
+
+![Réauthentifié succès](https://github.com/dvd-dev/hilo/assets/108159253/7708b449-24c3-43c1-843b-8697ae192db1)
 
 ### :warning: Compteurs de consommation électrique
 
