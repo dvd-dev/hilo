@@ -3,7 +3,7 @@ from datetime import timedelta
 
 from homeassistant.components.energy.data import async_get_manager
 from homeassistant.components.utility_meter import async_setup as utility_setup
-from homeassistant.components.utility_meter.const import DOMAIN as UTILITY_DOMAIN
+from homeassistant.components.utility_meter.const import DOMAIN as UTILITY_DOMAIN, CONF_TARIFFS
 from homeassistant.components.utility_meter.sensor import (
     async_setup_platform as utility_setup_platform,
 )
@@ -14,7 +14,8 @@ from .const import HILO_ENERGY_TOTAL, LOG
 class UtilityManager:
     """Class that maps to the utility_meters"""
 
-    def __init__(self, hass, period):
+    def __init__(self, hass, period, tariffs):
+        self.tariffs = tariffs
         self.hass = hass
         self.period = period
         self.meter_configs = OrderedDict()
@@ -50,7 +51,7 @@ class UtilityManager:
                 "source": f"sensor.{entity}",
                 "name": name,
                 "cycle": self.period,
-                "tariffs": tariff_list,
+                CONF_TARIFFS: tariff_list,
                 "net_consumption": net_consumption,
                 "utility_meter_sensors": [],
                 "offset": timedelta(0),
@@ -65,14 +66,12 @@ class UtilityManager:
         if self.new_entities == 0:
             LOG.debug("No new entities, not setting up again")
             return
-        config = {}
-        config[UTILITY_DOMAIN] = OrderedDict(
-            {**self.hass.data.get("utility_meter_data", {}), **self.meter_configs}
-        )
+        config = {
+            UTILITY_DOMAIN: OrderedDict({**self.hass.data.get("utility_meter_data", {}), **self.meter_configs}),
+            CONF_TARIFFS: self.tariffs,
+        }
         await utility_setup(self.hass, config)
-        await utility_setup_platform(
-            self.hass, config, async_add_entities, self.meter_entities
-        )
+        await utility_setup_platform(self.hass, config, async_add_entities, self.meter_entities)
 
 
 class EnergyManager:
