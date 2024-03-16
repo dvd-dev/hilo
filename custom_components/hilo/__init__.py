@@ -583,7 +583,7 @@ class Hilo:
                     known_power += int(float(state.state))
                 except ValueError:
                     pass
-            if not entity.startswith("sensor.hilo_energy") or entity.endswith("_cost"):
+            if not entity.endswith("_hilo_energy") or entity.endswith("_cost"):
                 continue
             self.fix_utility_sensor(entity, state)
         if self.track_unknown_sources:
@@ -648,6 +648,21 @@ class Hilo:
         if self.untarificated_devices and entity != f"select.{HILO_ENERGY_TOTAL}":
             return
         if entity.startswith("select.hilo_energy") and current != new:
+            LOG.debug(
+                f"check_tarif: Changing tarif of {entity} from {current} to {new}"
+            )
+            context = Context()
+            data = {ATTR_OPTION: new, "entity_id": entity}
+            self._hass.async_create_task(
+                self._hass.services.async_call(
+                    SELECT_DOMAIN, SERVICE_SELECT_OPTION, data, context=context
+                )
+            )
+        if (
+            entity.startswith("select.")
+            and entity.endswith("_hilo_energy")
+            and current != new
+        ):
             LOG.debug(
                 f"check_tarif: Changing tarif of {entity} from {current} to {new}"
             )

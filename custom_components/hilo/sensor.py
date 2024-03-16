@@ -141,7 +141,7 @@ async def async_setup_entry(
         default_tariff_list = validate_tariff_list(tariff_config)
     if generate_energy_meters:
         energy_manager = await EnergyManager().init(hass, energy_meter_period)
-        utility_manager = UtilityManager(hass, energy_meter_period)
+        utility_manager = UtilityManager(hass, energy_meter_period, default_tariff_list)
 
     def create_energy_entity(hilo, device):
         device._energy_entity = EnergySensor(hilo, device)
