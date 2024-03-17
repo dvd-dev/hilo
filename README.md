@@ -20,12 +20,12 @@ Ceci est une version Bêta. Il y aura probablements des bogues, irritants, etc. 
 Intégration pour Home Assistant d'[Hilo](https://www.hydroquebec.com/hilo/fr/)
 
 # :warning: Breaking change (v2024.2.2 et antérieures deviendront non-fonctionnelles)
-L'authentification (login) de Hilo passera d'une méthode "Resource Owner Password Flow" vers une méthode "Authorization Code Flow with PKCE". Quelques semaines après ce changement, l'ancienne méthode sera fermée définitivement et les anciennes version de Hilo ne seront plus fonctionnelles.
+L'authentification (login) de Hilo passera d'une méthode "Resource Owner Password Flow" vers une méthode "Authorization Code Flow with PKCE". Quelques semaines après ce changement, l'ancienne méthode sera fermée définitivement et les anciennes versions de Hilo ne seront plus fonctionnelles.
 
 ## Introduction
 
 Ceci est l'intégration HACS non-officielle de Hilo sur Home Assistant. [Hilo](https://www.hiloenergie.com/fr-ca/) est une plateforme de domotique développée par une filliale d'[Hydro-Québec](https://www.hydroquebec.com/hilo/fr/).
-Cette intégration n'a aucun liens direct avec Hilo ou Hydro Québec. C'est une initiative communautaire. Merci de ne pas contacter Hilo ou Hydro-Québec pour tout problèmes avec cette intégration Home Assistant. Vous pouvez ouvrir un "issue" dans ce "repository" github à la place.
+Cette intégration n'a aucun liens direct avec Hilo ou Hydro Québec. C'est une initiative communautaire. Merci de ne pas contacter Hilo ou Hydro-Québec pour tout problème avec cette intégration Home Assistant. Vous pouvez ouvrir un "issue" dans ce "repository" github à la place.
 
 Si vous souhaitez aider avec le développement de cette intégration, vous pouvez toujours soumettre vos commentaires à partir du formulaire de l'app Hilo et demander à ce qu'ils ouvrent leur API publiquement et qu'ils fournissent un environnement de test pour les développeurs.
 
@@ -33,19 +33,19 @@ Si vous souhaitez aider avec le développement de cette intégration, vous pouve
 
 Gros merci à [Francis Poisson](https://github.com/francispoisson/) qui est l'auteur de l'intégration originale. Sans le travail qu'il a fait sur cette intégration, je n'aurais probablement jamais considéré utiliser Hilo.
 
-Un autre gros merci à @ic-dev21 pour son implication à plusieurs niveau.
+Un autre gros merci à @ic-dev21 pour son implication à plusieurs niveaux.
 
-J'ai décidé de déplacer l'intégration ici car la dernière mise à jour de Hilo a brisé l'original et j'ai pris le temps de complètement la récrire. Hilo pousse maintenant les lectures des appareils via websocket de SignalR.
+J'ai décidé de déplacer l'intégration ici, car la dernière mise à jour de Hilo a brisé l'original et j'ai pris le temps de complètement la récrire. Hilo pousse maintenant les lectures des appareils via websocket de SignalR.
 
 ### Caractéristiques.
 - Supporte les interrupteurs et gradateurs en tant que lumières.
-- Voir la température actuelle et changer la consigne des thermostat.
+- Voir la température actuelle et changer la consigne des thermostats.
 - Obtenir la consommation énergétique des tous les appareils Hilo.
 - Générer les "sensor" de puissance et d'énergie consommée.
 - Sensor pour les Défis.
 - Sensor pour la passerelle Hilo
 - **NOUVEAU**: Configuration est maintenant faite via l'interface utilisateur
-- **NOUVEAU**: Mise à jours des lectures plus près du temps réel.
+- **NOUVEAU**: Mise à jour des lectures plus près du temps réel.
 
 ### À faire:
 - Ajouter la fonctionnalité pour d'autres appareils.
@@ -72,7 +72,7 @@ Télécharger et copier le dossier `custom_components/hilo` de la [dernière ver
 
 ### Étape 2: Ajouter l'intégration à HA (<--- étape souvent oubliée)
 
-Dans HA, aller à  Paramètres > Appareils et services > Intégrations.
+Dans HA, aller à Paramètres > Appareils et services > Intégrations.
 Dans le coin inférieur droit, cliquer sur le bouton '+ AJOUTER UNE INTÉGRATION'.
 
 ![Ajout intégration](https://github.com/dvd-dev/hilo/assets/108159253/e0529aca-9b13-40e0-9be4-29e347b980ab)
@@ -89,7 +89,7 @@ La configuration est faite via l'interface utilisateur. Lorsque vous ajoutez l'i
 
 ![Auth Hilo](https://github.com/dvd-dev/hilo/assets/108159253/e4e98b32-78d0-4c49-a2d7-3bd0ae95e9e0)
 
-Vous devez ensuite accepter de lier votre compte. Pour se faire, saisir l'addresse (URL ou IP) de votre instance Home Assistant et appuyez sur Link Account.
+Vous devez ensuite accepter de lier votre compte. Pour ce faire, saisir l'addresse (URL ou IP) de votre instance Home Assistant et appuyez sur Link Account.
 
 ![Link](https://github.com/dvd-dev/hilo/assets/108159253/5eb945f7-fa5e-458f-b0fe-ef252aaadf93)
 
@@ -109,7 +109,7 @@ Après avoir lié votre compte comme montré à la section configuration initale
 
 ### :warning: Compteurs de consommation électrique
 
-La génération automatique des compteurs de consommation électrique est actuellement brisée. J'avais codé ça quand le panneau d'énergie de Homeassistant venait d'être rendu disponible et malheureusement, cette parti du code a changé énormément. Je n'ai plus le temps pour le moment de me remettre la tête là dedans mais si quelqu'un est assez brave pour se pencher là dessus en détail, ça va me faire plaisir de merger les patchs.
+La génération automatique des compteurs de consommation électrique est actuellement brisée. J'avais codé ça quand le panneau d'énergie de Homeassistant venait d'être rendu disponible et malheureusement, cette partie du code a changé énormément. Je n'ai plus le temps pour le moment de me remettre la tête là-dedans mais si quelqu'un est assez brave pour se pencher là-dessus en détail, ça va me faire plaisir de merger les patchs.
 
 Voir les issues #204 #281 #292
 
@@ -146,7 +146,7 @@ D'autres options sont disponibles sous le bouton "Configurer" dans Home Assistan
 
 - `Intervalle de mise à jour (min: 60s)`: Nombre entier
 
-  Nombre de secondes entre chaque mise à jour de l'appareil. Par défaut à 60s. Il n'est pas recommandé d'aller en dessous de 30 car cela pourrait entraîner une suspension de Hilo. Depuis [2023.11.1](https://github.com/dvd-dev/hilo/releases/tag/v2023.11.1) le minimum est passé de 15s à 60s.
+  Nombre de secondes entre chaque mise à jour de l'appareil. Par défaut à 60s. Il n'est pas recommandé d'aller en dessous de 30, car cela pourrait entraîner une suspension de Hilo. Depuis [2023.11.1](https://github.com/dvd-dev/hilo/releases/tag/v2023.11.1) le minimum est passé de 15s à 60s.
 
 ## Exemples d'intégrations Lovelace et d'automatisations
 
@@ -165,7 +165,7 @@ Pour l'instant, voici les liens Swagger que nous avons trouvés:
 
 ## FAQ
 
-Vous pouvez trouver le FAQ dans le wiki du projet: https://github.com/dvd-dev/hilo/wiki/FAQ
+Vous pouvez trouver la FAQ dans le wiki du projet: https://github.com/dvd-dev/hilo/wiki/FAQ
 
 ## Contribuer
 
@@ -182,7 +182,7 @@ logger:
      pyhilo: debug
 ```
 
-Si vous avez de l'expérience python ou Home Assistant et que vous souhaitez contribuer au code, n'hésitez pas à soumettre une  pull request.
+Si vous avez de l'expérience python ou Home Assistant et que vous souhaitez contribuer au code, n'hésitez pas à soumettre une pull request.
 
 ### Préparer un environment de développement sur MacOS / Linux
 
@@ -290,7 +290,7 @@ $ git push
 * [David Vallee Delisle](https://github.com/valleedelisle/)
 
 ### Mentions très honorables
-* [Ian Couture](https://github.com/ic-dev21/): Il tiens cet addon du bout de ces bras depuis un certain temps
+* [Ian Couture](https://github.com/ic-dev21/): Il tient cet addon du bout de ces bras depuis un certain temps
 * [Hilo](https://www.hiloenergie.com): Merci à Hilo pour son support et ses contributions.
 
 ---

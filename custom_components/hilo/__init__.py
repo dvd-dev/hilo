@@ -301,7 +301,7 @@ class Hilo:
                 event.arguments[0]
             )
         elif event.target == "DeviceListUpdatedValuesReceived":
-            # This message only contains display informations, such as the Device's name (as set in the app), it's groupid, icon, etc.
+            # This message only contains display information, such as the Device's name (as set in the app), it's groupid, icon, etc.
             # Updating the device name causes issues in the integration, it detects it as a new device and creates a new entity.
             # Ignore this call, for now... (update_devicelist_from_signalr does work, but causes the issue above)
             # await self.devices.update_devicelist_from_signalr(event.arguments[0])
@@ -373,7 +373,7 @@ class Hilo:
         Otherwise, we hit the cache.
         When preheat is started and our last update is before
         the preheat_start, we refresh. This should update the
-        allowed_kWh, etc values.
+        allowed_kWh, etc. values.
         """
         if event_data := self._events.get(event_id):
             event = Event(**event_data)

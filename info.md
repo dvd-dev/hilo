@@ -49,7 +49,7 @@ your devices.
 
 ### Energy meters
 
-Energy meters are a new feature of this integration. We used to manually generate them with template sensors and automation
+Energy meters are a new feature of this integration. We used to manually generate them with template sensors and automation,
 but they now have been fully integrated into the Hilo integration.
 
 #### Warning
@@ -198,7 +198,7 @@ Here's an example on how to add the energy data to Lovelace.
 
 ## Credits
 
-Credits to to [Francis Poisson](https://github.com/francispoisson/) who's the original author of this integration.
+Credits to [Francis Poisson](https://github.com/francispoisson/) who's the original author of this integration.
 
 ---
 
