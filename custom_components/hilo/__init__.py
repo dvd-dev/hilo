@@ -301,7 +301,7 @@ class Hilo:
                 event.arguments[0]
             )
         elif event.target == "DeviceListUpdatedValuesReceived":
-            # This message only contains display informations, such as the Device's name (as set in the app), it's groupid, icon, etc.
+            # This message only contains display information, such as the Device's name (as set in the app), it's groupid, icon, etc.
             # Updating the device name causes issues in the integration, it detects it as a new device and creates a new entity.
             # Ignore this call, for now... (update_devicelist_from_signalr does work, but causes the issue above)
             # await self.devices.update_devicelist_from_signalr(event.arguments[0])
@@ -373,7 +373,7 @@ class Hilo:
         Otherwise, we hit the cache.
         When preheat is started and our last update is before
         the preheat_start, we refresh. This should update the
-        allowed_kWh, etc values.
+        allowed_kWh, etc. values.
         """
         if event_data := self._events.get(event_id):
             event = Event(**event_data)
@@ -567,8 +567,6 @@ class Hilo:
             )
         known_power = 0
         smart_meter = "sensor.meter00_power"
-        # smart_meter_alternate = "sensor.meter00_power"
-        # ic-dev21 TODO: Remove comment in later version
         unknown_source_tracker = "sensor.unknown_source_tracker_power"
         for state in self._hass.states.async_all():
             entity = state.entity_id
@@ -577,7 +575,6 @@ class Hilo:
             if entity.endswith("_power") and entity not in [
                 unknown_source_tracker,
                 smart_meter,
-                # smart_meter_alternate,
             ]:
                 try:
                     known_power += int(float(state.state))
@@ -588,10 +585,11 @@ class Hilo:
             self.fix_utility_sensor(entity, state)
         if self.track_unknown_sources:
             total_power = self._hass.states.get(smart_meter)
-            # if not total_power:
-            # total_power = self._hass.states.get(smart_meter_alternate)
             try:
-                unknown_power = int(total_power.state) - known_power
+                if known_power <= int(total_power.state):
+                    unknown_power = int(total_power.state) - known_power
+                else:
+                    unknown_power = 0
             except ValueError:
                 unknown_power = known_power
                 LOG.warning(

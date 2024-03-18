@@ -27,7 +27,7 @@ Hilo's login will stop using "Resource Owner Password Flow" and start using "Aut
 This is the unofficial HACS Hilo integration for Home Assistant. [Hilo](https://www.hiloenergie.com/en-ca/) is a smart home platform developed
 by an [Hydro Quebec](https://www.hydroquebec.com/hilo/en/) subsidiary.
 This integration has no direct tie with Hilo or Hydro Quebec. This is a community initiative. Please don't contact
-Hilo or Hydro-Quebec with issues with this Home Assistant integration, you can open an issue in the github repository
+Hilo or Hydro-Quebec with issues with this Home Assistant integration, you can open an issue in the GitHub repository
 instead.
 
 If you want to help with the development of this integration, you can always submit a feedback form from the Hilo
@@ -47,7 +47,7 @@ rewrite it. Hilo is now pushing device readings via websocket from SignalR.
 ### Features
 - Support for switches and dimmers as light devices
 - Get current and set target temperature of thermostat
-- Get energy usage of pretty much each devices
+- Get energy usage of pretty much each device
 - Generates energy meters and sensors
 - Sensor for Hilo Events (challenges)
 - Sensor for Hilo Gateway
@@ -309,7 +309,7 @@ It goes without saying you must test your modifications on your local install fo
 custom_components/hilo
 ```
 
-If you need to modify python-hilo for your tests tests, you can pull your own fork into Home Assistant with the following on the CLI:
+If you need to modify python-hilo for your tests, you can pull your own fork into Home Assistant with the following on the CLI:
 
 ```
 pip install -e git+https://github.com/YOUR_FORK_HERE/python-hilo.git#egg=python-hilo
@@ -343,7 +343,7 @@ git commit -m "I changed this because blabla"
 ```
 git push
 ```
-- At this point, if you visit the [upstream repository](https://github.com/dvd-dev/hilo), Github should prompt you to create a Pull Request (aka PR). Just follow the instructions.
+- At this point, if you visit the [upstream repository](https://github.com/dvd-dev/hilo), GitHub should prompt you to create a Pull Request (aka PR). Just follow the instructions.
 
 ### Initial collaborators
 

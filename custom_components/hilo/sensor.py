@@ -67,7 +67,7 @@ WIFI_STRENGTH = {
 
 # From netatmo integration
 def process_wifi(strength: int) -> str:
-    """Process wifi signal strength and return string for display."""
+    """Process Wi-Fi signal strength and return string for display."""
     if strength >= 86:
         return "Low"
     if strength >= 71:
@@ -116,6 +116,7 @@ def generate_entities_from_device(device, hilo, scan_interval):
     return entities
 
 
+# noinspection GrazieInspection
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
@@ -164,7 +165,7 @@ async def async_setup_entry(
         LOG.debug(f"Adding device {d}")
         new_entities.extend(generate_entities_from_device(d, hilo, scan_interval))
         if d.has_attribute("power") and d.model not in UNMONITORED_DEVICES:
-            # If we opt out the geneneration of meters we just create the power sensors
+            # If we opt out the generation of meters we just create the power sensors
             if generate_energy_meters:
                 create_energy_entity(hilo, d)
 
@@ -431,7 +432,7 @@ class TargetTemperatureSensor(HiloEntity, SensorEntity):
 
 
 class WifiStrengthSensor(HiloEntity, SensorEntity):
-    """Define a Wifi strength sensor entity."""
+    """Define a Wi-Fi strength sensor entity."""
 
     _attr_device_class = SensorDeviceClass.SIGNAL_STRENGTH
     _attr_native_unit_of_measurement = SIGNAL_STRENGTH_DECIBELS_MILLIWATT
@@ -750,8 +751,8 @@ class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
 
 
 class DeviceSensor(HiloEntity, SensorEntity):
-    """Devices like the gateway or Smoke Detectors don't have much attributes,
-    except for the "disonnected" attributes. These entities are monitoring
+    """Devices like the gateway or Smoke Detectors don't have many attributes,
+    except for the "disconnected" attribute. These entities are monitoring
     this state.
     """
 
