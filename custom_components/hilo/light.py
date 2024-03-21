@@ -73,13 +73,14 @@ class HiloLight(HiloEntity, LightEntity):
     @property
     def supported_color_modes(self) -> set:
         """Flag supported modes."""
-        supports = set()
-        supports.add(ColorMode.ONOFF)
-        if self._device.has_attribute("intensity"):
-            supports.add(ColorMode.BRIGHTNESS)
+        color_modes = set()
         if self._device.has_attribute("hue"):
-            supports.add(ColorMode.HS)
-        return supports
+            color_modes.add(ColorMode.HS)
+        if not color_modes and self._device.has_attribute("intensity"):
+            color_modes.add(ColorMode.BRIGHTNESS)
+        if not color_modes:
+            color_modes.add(ColorMode.ONOFF)
+        return color_modes
 
     async def async_turn_off(self, **kwargs):
         LOG.info(f"{self._device._tag} Turning off")
