@@ -1,5 +1,118 @@
 # Some Hilo automation ideas
 
+## Notification défis Hilo pendant le défi
+Prérequis: sensors template de @Francoloco
+
+Petite notification à part pour ma femme pour qu'elle sache quand elle peut recommencer à vivre.
+```
+alias: Défi Hilo Notification En Cours
+description: ""
+trigger:
+  - platform: state
+    entity_id:
+      - sensor.defi_hilo
+    from: scheduled
+    to: appreciation
+    id: appreciation
+  - platform: state
+    entity_id:
+      - sensor.defi_hilo
+    from: appreciation
+    to: pre_heat
+    id: pre_heat
+  - platform: state
+    entity_id:
+      - sensor.defi_hilo
+    from: pre_heat
+    to: reduction
+    id: reduction
+  - platform: state
+    entity_id:
+      - sensor.defi_hilo
+    from: reduction
+    to: recovery
+    id: recovery
+  - platform: state
+    entity_id:
+      - sensor.defi_hilo
+    from: recovery
+    to: completed
+    id: completed
+condition:
+  - condition: not
+    conditions:
+      - condition: state
+        entity_id: sensor.defi_hilo
+        state: scheduled
+  - condition: template
+    value_template: >
+      {{ states('input_text.defi_hilo_last_state_notification') !=
+      states('sensor.defi_hilo') }}
+action:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id:
+              - appreciation
+              - pre_heat
+              - completed
+        sequence:
+          - service: notify.mobile_app_REDACTED
+            data:
+              title: Défi Hilo
+              message: Le sensor défi est passé à {{ states('sensor.defi_hilo') }}
+          - service: input_text.set_value
+            metadata: {}
+            data:
+              value: "{{states('sensor.defi_hilo')}}"
+            target:
+              entity_id: input_text.defi_hilo_last_state_notification
+      - conditions:
+          - condition: trigger
+            id:
+              - reduction
+        sequence:
+          - service: notify.mobile_app_REDACTED
+            data:
+              title: Défi Hilo
+              message: >-
+                Le sensor défi est passé à {{ states('sensor.defi_hilo') }}, le
+                montant maximal possible est de
+                {{states('sensor.defi_hilo_allowed_cash')}}$
+          - service: input_text.set_value
+            metadata: {}
+            data:
+              value: "{{states('sensor.defi_hilo')}}"
+            target:
+              entity_id: input_text.defi_hilo_last_state_notification
+      - conditions:
+          - condition: trigger
+            id:
+              - recovery
+        sequence:
+          - service: notify.mobile_app_iphone_ian
+            data:
+              title: Défi Hilo
+              message: >-
+                Le sensor défi est passé à {{states('sensor.defi_hilo')}}, le
+                montant obtenu estimé est de
+                {{states('sensor.defi_hilo_remaining_cash')}}$
+          - service: notify.mobile_app_REDACTED
+            data:
+              title: Défi Hilo
+              message: >-
+                Le sensor défi est passé à {{ states('sensor.defi_hilo') }} plus
+                besoin de faire attention
+          - service: input_text.set_value
+            metadata: {}
+            data:
+              value: "{{states('sensor.defi_hilo')}}"
+            target:
+              entity_id: input_text.defi_hilo_last_state_notification
+mode: single
+
+```
+
 ## Défi Hilo Ancrage AM avec détection de présence
 
 Des appareils ont été enlevés pour simplifier.
