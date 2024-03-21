@@ -57,7 +57,9 @@ J'ai décidé de déplacer l'intégration ici, car la dernière mise à jour de 
 ## Installation
 
 ### Étape 0: Avoir une installation compatible
- Cette intégration a été testée par des utilisateurs sous HA OS (bare metal et VM), Docker avec l'image officielle (ghcr.io), Podman. Tout autre type d'installation peut mener à des problèmes de permission pour certains fichiers créés lors de l'installation initiale du custom_component.
+L'intégration nécessite que l'installation du matériel Hilo soit complétée à votre domicile. Il ne sera pas possible de faire l'installation si ça n'est pas fait.
+
+Cette intégration a été testée par des utilisateurs sous HA OS (bare metal et VM), Docker avec l'image officielle (ghcr.io), Podman. Tout autre type d'installation peut mener à des problèmes de permission pour certains fichiers créés lors de l'installation initiale du custom_component.
 
 ### Étape 1: Télécharger les fichiers
 
