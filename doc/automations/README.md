@@ -24,6 +24,7 @@ trigger:
     entity_id:
       - sensor.defi_hilo
     to: appreciation
+    from: scheduled
 condition:
   - condition: template
     value_template: "{{'am' in state_attr('sensor.defi_hilo','next_events')[0]['period'] }}"
@@ -89,6 +90,7 @@ trigger:
     entity_id:
       - sensor.defi_hilo
     to: appreciation
+    from: scheduled
 condition:
   - condition: template
     value_template: "{{'pm' in state_attr('sensor.defi_hilo','next_events')[0]['period'] }}"
@@ -147,6 +149,7 @@ trigger:
     entity_id:
       - sensor.defi_hilo
     to: pre_heat
+    from: appreciation
     enabled: true
   - platform: time
     at: "04:00:00"
@@ -187,6 +190,7 @@ trigger:
     entity_id:
       - sensor.defi_hilo
     to: reduction
+    from: pre_heat
     enabled: true
   - platform: time
     at: "06:00:00"
@@ -229,6 +233,7 @@ trigger:
     entity_id:
       - sensor.defi_hilo
     to: reduction
+    from: pre_heat
     enabled: true
     id: Sensor
   - platform: time
@@ -290,6 +295,7 @@ trigger:
     entity_id:
       - sensor.defi_hilo
     to: recovery
+    from: reduction
   - platform: time
     at: "10:00:00"
 condition:
@@ -382,6 +388,7 @@ trigger:
     entity_id:
       - sensor.defi_hilo
     to: recovery
+    from: reduction
   - platform: time
     at: "21:00:00"
 condition:
