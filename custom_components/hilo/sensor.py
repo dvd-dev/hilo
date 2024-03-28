@@ -263,7 +263,7 @@ class PowerSensor(HiloEntity, SensorEntity):
     """Define a Hilo power sensor entity."""
 
     _attr_device_class = SensorDeviceClass.POWER
-    _attr_native_unit_of_measurement = UnitOfPower.Watt
+    _attr_native_unit_of_measurement = UnitOfPower.WATT
     _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(self, hilo: Hilo, device: HiloDevice) -> None:
