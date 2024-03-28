@@ -19,12 +19,15 @@ This is a beta release. There will be some bugs, issues, etc. Please bear with u
 # Hilo
 [Hilo](https://www.hydroquebec.com/hilo/en/) integration for Home Assistant
 
+# :warning: Breaking change (v2024.2.2 and lower will become unusable)
+Hilo's login will stop using "Resource Owner Password Flow" and start using "Authorization Code Flow with PKCE". A few weeks after this change, the current login method will be permanently closed and unusable.
+
 ## Introduction
 
 This is the unofficial HACS Hilo integration for Home Assistant. [Hilo](https://www.hiloenergie.com/en-ca/) is a smart home platform developed
 by an [Hydro Quebec](https://www.hydroquebec.com/hilo/en/) subsidiary.
 This integration has no direct tie with Hilo or Hydro Quebec. This is a community initiative. Please don't contact
-Hilo or Hydro-Quebec with issues with this Home Assistant integration, you can open an issue in the github repository
+Hilo or Hydro-Quebec with issues with this Home Assistant integration, you can open an issue in the GitHub repository
 instead.
 
 If you want to help with the development of this integration, you can always submit a feedback form from the Hilo
@@ -44,7 +47,7 @@ rewrite it. Hilo is now pushing device readings via websocket from SignalR.
 ### Features
 - Support for switches and dimmers as light devices
 - Get current and set target temperature of thermostat
-- Get energy usage of pretty much each devices
+- Get energy usage of pretty much each device
 - Generates energy meters and sensors
 - Sensor for Hilo Events (challenges)
 - Sensor for Hilo Gateway
@@ -60,6 +63,11 @@ rewrite it. Hilo is now pushing device readings via websocket from SignalR.
 
 
 ## Installation
+
+### Step 0: Compatible install
+This custom component requires that Hilo has carried out the install in your home. It will not be possible to set it up otherwise.
+
+This custom component has been tested to work by various users on HA OS (as bare metal or VM), Docker with the official (ghcr.io) image and Podman. Other types of install may cause permissions issues during creation of a few files by the custom component.
 
 ### Step 1: Download files
 
@@ -77,13 +85,39 @@ Download and copy the `custom_components/hilo` directory from the [latest releas
 In HA, go to Settings > Devices & Services > Integrations.
 In the bottom right corner, click the '+ ADD INTEGRATION' button.
 
+![Add Integration](https://github.com/dvd-dev/hilo/assets/108159253/7906f2c9-9547-4478-a625-feaa68e62c5f)
+
 If the component is properly installed, you should be able to find the 'Hilo integration' in the list. You might need to clear you browser cache for the integration to show up.
 
-## Configuration
+![Search Integration](https://github.com/dvd-dev/hilo/assets/108159253/1b560a73-042b-46cf-963c-98e5326e98e8)
 
-The configuration is done in the UI. When you add the integration, you will be prompted with your
-Hilo username and password. After this, you will be prompted with assigning a room for each one of
-your devices.
+
+## Configuration (new install)
+
+The configuration is done in the UI. When you add the integration, you will be redirected to Hilo's website login page to authenticate.
+
+![Open Website](https://github.com/dvd-dev/hilo/assets/108159253/23b4fb34-f8c3-40b3-8e01-b3e737cc9d44)
+
+
+![Auth Hilo](https://github.com/dvd-dev/hilo/assets/108159253/e4e98b32-78d0-4c49-a2d7-3bd0ae95e9e0)
+
+You must then accept to link your account. To do so, you must enter your Home Assistant instance's URL or IP address and click Link Account.
+
+![Link](https://github.com/dvd-dev/hilo/assets/108159253/5eb945f7-fa5e-458f-b0fe-ef252aaadf93)
+
+![Link URL](https://github.com/dvd-dev/hilo/assets/108159253/2c54df64-2e1c-423c-89cf-0eee8f0d4b7b)
+
+After this, you will be prompted with assigning a room for each one of your devices.
+
+## Configuration (update from a version earlier than v2024.3.1)
+
+After update, you will get an error saying you must reauthenticate for the integration to work.
+
+![Reconfiguration 2](https://github.com/dvd-dev/hilo/assets/108159253/a711d011-17a9-456f-abf6-74cf099014f1)
+
+![Reath](https://github.com/dvd-dev/hilo/assets/108159253/70118e68-90b9-4667-b056-38ee2cd33133)
+
+After correctly linking your account like in the previous section, you should see a popup telling you the reauthentification was sucessful.
 
 ### Energy meters
 
@@ -165,6 +199,14 @@ Other options are available under the `Configure` button in Home Assistant:
   - `rate d`
   - `flex d`
 
+- `appreciation phase`: Integer (hours)
+
+  Add an appreciation phase of X hours before the preheat phase.
+
+- `pre_cold phase`: Integer (hours)
+
+  Add a cooldown phase of X hours to reduce temperatures before the appreciation phase
+
 - `Scan interval (min: 60s)`: Integer
 
   Number of seconds between each device update. Defaults to 60 and it's not recommended to go below 30 as it might
@@ -206,6 +248,61 @@ logger:
 
 If you have any kind of python/home-assistant experience and want to contribute to the code, feel free to submit a pull request.
 
+### Prepare a dev  environment in MacOS / Linux
+
+1. Prepare necessary directories:
+```console
+$ HASS_DEV=~/hass-dev/
+$ HASS_RELEASE=2023.12.3
+$ mkdir -p ${HASS_DEV}/config
+$ cd $HASS_DEV
+$ git clone https://github.com/dvd-dev/hilo.git
+$ git clone https://github.com/dvd-dev/python-hilo.git
+$ git clone https://github.com/home-assistant/core.git
+$ git --git-dir core/ checkout $HASS_RELEASE
+```
+
+**NOTE**: We also clone home-assistant's core to make it easier to add logging at that level [repo](https://github.com/home-assistant/core).
+
+2. Launch the container:
+
+```console
+$ docker run -d -p 8123:8123 \
+  --name hass \
+  -v ${HASS_DEV}/config:/config \
+  -v ${HASS_DEV}/python-hilo/pyhilo:/usr/local/lib/python3.11/site-packages/pyhilo:ro \
+  -v ${HASS_DEV}/hilo/custom_components/hilo/:/config/custom_components/hilo:ro \
+  -v ${HASS_DEV}/core/homeassistant:/usr/src/homeassistant/homeassistant:ro \
+  homeassistant/home-assistant:$HASS_RELEASE
+```
+
+3. Check the container is running
+
+```console
+$ docker ps
+CONTAINER ID   IMAGE                                    COMMAND   CREATED       STATUS          PORTS                    NAMES
+bace2264ee54   homeassistant/home-assistant:2023.12.3   "/init"   3 hours ago   Up 28 minutes   0.0.0.0:8123->8123/tcp   hass
+```
+
+4. Check home-assistant logs
+```console
+$ less ${HASS_DEV}/config/home-assistant.log
+$ grep hilo ${HASS_DEV}/config/home-assistant.log
+```
+
+5. Activate debug logs
+
+```console
+$ cat << EOF >> ${HASS_DEV}/config/configuration.yaml
+logger:
+  default: info
+  logs:
+     custom_components.hilo: debug
+     pyhilo: debug
+EOF
+$ docker restart hass
+```
+
 ### Before submiting a Pull Request
 
 It goes without saying you must test your modifications on your local install for problems. You may modify the .py files inside the following folder. Don't forget a backup!
@@ -213,7 +310,7 @@ It goes without saying you must test your modifications on your local install fo
 custom_components/hilo
 ```
 
-If you need to modify python-hilo for your tests tests, you can pull your own fork into Home Assistant with the following on the CLI:
+If you need to modify python-hilo for your tests, you can pull your own fork into Home Assistant with the following on the CLI:
 
 ```
 pip install -e git+https://github.com/YOUR_FORK_HERE/python-hilo.git#egg=python-hilo
@@ -247,7 +344,7 @@ git commit -m "I changed this because blabla"
 ```
 git push
 ```
-- At this point, if you visit the [upstream repository](https://github.com/dvd-dev/hilo), Github should prompt you to create a Pull Request (aka PR). Just follow the instructions.
+- At this point, if you visit the [upstream repository](https://github.com/dvd-dev/hilo), GitHub should prompt you to create a Pull Request (aka PR). Just follow the instructions.
 
 ### Initial collaborators
 

@@ -19,10 +19,13 @@ Ceci est une version Bêta. Il y aura probablements des bogues, irritants, etc. 
 # Hilo
 Intégration pour Home Assistant d'[Hilo](https://www.hydroquebec.com/hilo/fr/)
 
+# :warning: Breaking change (v2024.2.2 et antérieures deviendront non-fonctionnelles)
+L'authentification (login) de Hilo passera d'une méthode "Resource Owner Password Flow" vers une méthode "Authorization Code Flow with PKCE". Quelques semaines après ce changement, l'ancienne méthode sera fermée définitivement et les anciennes versions de Hilo ne seront plus fonctionnelles.
+
 ## Introduction
 
 Ceci est l'intégration HACS non-officielle de Hilo sur Home Assistant. [Hilo](https://www.hiloenergie.com/fr-ca/) est une plateforme de domotique développée par une filliale d'[Hydro-Québec](https://www.hydroquebec.com/hilo/fr/).
-Cette intégration n'a aucun liens direct avec Hilo ou Hydro Québec. C'est une initiative communautaire. Merci de ne pas contacter Hilo ou Hydro-Québec pour tout problèmes avec cette intégration Home Assistant. Vous pouvez ouvrir un "issue" dans ce "repository" github à la place.
+Cette intégration n'a aucun liens direct avec Hilo ou Hydro Québec. C'est une initiative communautaire. Merci de ne pas contacter Hilo ou Hydro-Québec pour tout problème avec cette intégration Home Assistant. Vous pouvez ouvrir un "issue" dans ce "repository" github à la place.
 
 Si vous souhaitez aider avec le développement de cette intégration, vous pouvez toujours soumettre vos commentaires à partir du formulaire de l'app Hilo et demander à ce qu'ils ouvrent leur API publiquement et qu'ils fournissent un environnement de test pour les développeurs.
 
@@ -30,19 +33,19 @@ Si vous souhaitez aider avec le développement de cette intégration, vous pouve
 
 Gros merci à [Francis Poisson](https://github.com/francispoisson/) qui est l'auteur de l'intégration originale. Sans le travail qu'il a fait sur cette intégration, je n'aurais probablement jamais considéré utiliser Hilo.
 
-Un autre gros merci à @ic-dev21 pour son implication à plusieurs niveau.
+Un autre gros merci à @ic-dev21 pour son implication à plusieurs niveaux.
 
-J'ai décidé de déplacer l'intégration ici car la dernière mise à jour de Hilo a brisé l'original et j'ai pris le temps de complètement la récrire. Hilo pousse maintenant les lectures des appareils via websocket de SignalR.
+J'ai décidé de déplacer l'intégration ici, car la dernière mise à jour de Hilo a brisé l'original et j'ai pris le temps de complètement la récrire. Hilo pousse maintenant les lectures des appareils via websocket de SignalR.
 
 ### Caractéristiques.
 - Supporte les interrupteurs et gradateurs en tant que lumières.
-- Voir la température actuelle et changer la consigne des thermostat.
+- Voir la température actuelle et changer la consigne des thermostats.
 - Obtenir la consommation énergétique des tous les appareils Hilo.
 - Générer les "sensor" de puissance et d'énergie consommée.
 - Sensor pour les Défis.
 - Sensor pour la passerelle Hilo
 - **NOUVEAU**: Configuration est maintenant faite via l'interface utilisateur
-- **NOUVEAU**: Mise à jours des lectures plus près du temps réel.
+- **NOUVEAU**: Mise à jour des lectures plus près du temps réel.
 
 ### À faire:
 - Ajouter la fonctionnalité pour d'autres appareils.
@@ -52,6 +55,11 @@ J'ai décidé de déplacer l'intégration ici car la dernière mise à jour de H
 - Ajout automatique des compteurs de consommation électrique
 
 ## Installation
+
+### Étape 0: Avoir une installation compatible
+L'intégration nécessite que l'installation du matériel Hilo soit complétée à votre domicile. Il ne sera pas possible de faire l'installation si ça n'est pas fait.
+
+Cette intégration a été testée par des utilisateurs sous HA OS (bare metal et VM), Docker avec l'image officielle (ghcr.io), Podman. Tout autre type d'installation peut mener à des problèmes de permission pour certains fichiers créés lors de l'installation initiale du custom_component.
 
 ### Étape 1: Télécharger les fichiers
 
@@ -66,19 +74,44 @@ Télécharger et copier le dossier `custom_components/hilo` de la [dernière ver
 
 ### Étape 2: Ajouter l'intégration à HA (<--- étape souvent oubliée)
 
-Dans HA, aller à  Paramètres > Appareils et services > Intégrations.
+Dans HA, aller à Paramètres > Appareils et services > Intégrations.
 Dans le coin inférieur droit, cliquer sur le bouton '+ AJOUTER UNE INTÉGRATION'.
+
+![Ajout intégration](https://github.com/dvd-dev/hilo/assets/108159253/e0529aca-9b13-40e0-9be4-29e347b980ab)
 
 Si l'intégration est correctement installée, vous devriez pouvoir trouver "Hilo" dans la list. Il est possible d'avoir besoin de vider la mémoire cache de votre navigateur pour que l'intégration s'affiche.
 
-## Configuration
+![Recherche intégration](https://github.com/dvd-dev/hilo/assets/108159253/7003a402-9369-4063-ac02-709bd0294e42)
 
-La configuration est faite via l'interface utilisateur. Lorsque vous ajoutez l'intégration, votre nom d'utilisateur et mot de passe Hio vous seront demandés. Après, vous devrez assigner une pièce de votre maison à chaque appareil.
+## Configuration (initiale)
 
+La configuration est faite via l'interface utilisateur. Lorsque vous ajoutez l'intégration, vous êtes redirigés vers le site de connexion d'Hilo afin de vous y authentifier.
+
+![Auth step 1](https://github.com/dvd-dev/hilo/assets/108159253/d2e396ea-e6df-40e6-9a14-626ef3be87c8)
+
+![Auth Hilo](https://github.com/dvd-dev/hilo/assets/108159253/e4e98b32-78d0-4c49-a2d7-3bd0ae95e9e0)
+
+Vous devez ensuite accepter de lier votre compte. Pour ce faire, saisir l'addresse (URL ou IP) de votre instance Home Assistant et appuyez sur Link Account.
+
+![Link](https://github.com/dvd-dev/hilo/assets/108159253/5eb945f7-fa5e-458f-b0fe-ef252aaadf93)
+
+Après, vous devrez assigner une pièce de votre maison à chaque appareil.
+
+## Configuration (mise à jour depuis une version antérieure à v2024.3.1)
+
+Après la mise à jour, vous obtiendrez une erreur comme quoi vous devez vous réauthentifier pour que l'intégration fonctionne.
+
+![Reconfigurer](https://github.com/dvd-dev/hilo/assets/108159253/5b69da7f-d547-4ba7-8b64-8eb1d8f28bdb)
+
+![Réauthentifier](https://github.com/dvd-dev/hilo/assets/108159253/6b1bf2c3-0d7a-4eb8-815b-594401fc09ef)
+
+Après avoir lié votre compte comme montré à la section configuration initale, le message suivant apparaîtra.
+
+![Réauthentifié succès](https://github.com/dvd-dev/hilo/assets/108159253/7708b449-24c3-43c1-843b-8697ae192db1)
 
 ### :warning: Compteurs de consommation électrique
 
-La génération automatique des compteurs de consommation électrique est actuellement brisée. J'avais codé ça quand le panneau d'énergie de Homeassistant venait d'être rendu disponible et malheureusement, cette parti du code a changé énormément. Je n'ai plus le temps pour le moment de me remettre la tête là dedans mais si quelqu'un est assez brave pour se pencher là dessus en détail, ça va me faire plaisir de merger les patchs.
+La génération automatique des compteurs de consommation électrique est actuellement brisée. J'avais codé ça quand le panneau d'énergie de Homeassistant venait d'être rendu disponible et malheureusement, cette partie du code a changé énormément. Je n'ai plus le temps pour le moment de me remettre la tête là-dedans mais si quelqu'un est assez brave pour se pencher là-dessus en détail, ça va me faire plaisir de merger les patchs.
 
 Voir les issues #204 #281 #292
 
@@ -115,7 +148,7 @@ D'autres options sont disponibles sous le bouton "Configurer" dans Home Assistan
 
 - `Intervalle de mise à jour (min: 60s)`: Nombre entier
 
-  Nombre de secondes entre chaque mise à jour de l'appareil. Par défaut à 60s. Il n'est pas recommandé d'aller en dessous de 30 car cela pourrait entraîner une suspension de Hilo. Depuis [2023.11.1](https://github.com/dvd-dev/hilo/releases/tag/v2023.11.1) le minimum est passé de 15s à 60s.
+  Nombre de secondes entre chaque mise à jour de l'appareil. Par défaut à 60s. Il n'est pas recommandé d'aller en dessous de 30, car cela pourrait entraîner une suspension de Hilo. Depuis [2023.11.1](https://github.com/dvd-dev/hilo/releases/tag/v2023.11.1) le minimum est passé de 15s à 60s.
 
 ## Exemples d'intégrations Lovelace et d'automatisations
 
@@ -134,7 +167,7 @@ Pour l'instant, voici les liens Swagger que nous avons trouvés:
 
 ## FAQ
 
-Vous pouvez trouver le FAQ dans le wiki du projet: https://github.com/dvd-dev/hilo/wiki/FAQ
+Vous pouvez trouver la FAQ dans le wiki du projet: https://github.com/dvd-dev/hilo/wiki/FAQ
 
 ## Contribuer
 
@@ -143,7 +176,7 @@ Rapporter tout problème est une bonne manière disponible à tous de contribuer
 Si vous éprouvez des problèmes ou voyez des comportements étranges, merci de soumettre un "Issue" et d'y attach vos journaux.
 
 Pour mettre en fonction la journalisation de débogage, vous devez ajouter ceci dans votre fichier `configuration.yaml`:
-```
+```yaml
 logger:
   default: info
   logs:
@@ -151,27 +184,81 @@ logger:
      pyhilo: debug
 ```
 
-Si vous avez de l'expérience python ou Home Assistant et que vous souhaitez contribuer au code, n'hésitez pas à soumettre une  pull request.
+Si vous avez de l'expérience python ou Home Assistant et que vous souhaitez contribuer au code, n'hésitez pas à soumettre une pull request.
+
+### Préparer un environment de développement sur MacOS / Linux
+
+1. Preparer les dossiers necessaires:
+```console
+$ HASS_DEV=~/hass-dev/
+$ HASS_RELEASE=2023.12.3
+$ mkdir -p ${HASS_DEV}/config
+$ cd $HASS_DEV
+$ git clone https://github.com/dvd-dev/hilo.git
+$ git clone https://github.com/dvd-dev/python-hilo.git
+$ git clone https://github.com/home-assistant/core.git
+$ git --git-dir core/ checkout $HASS_RELEASE
+```
+
+**NOTE**: On clone aussi le [repo](https://github.com/home-assistant/core) de home-assistant car c'est plus facile d'ajouter du debug à ce niveau.
+
+2. Lancer le container:
+
+```console
+$ docker run -d -p 8123:8123 \
+  --name hass \
+  -v ${HASS_DEV}/config:/config \
+  -v ${HASS_DEV}/python-hilo/pyhilo:/usr/local/lib/python3.11/site-packages/pyhilo:ro \
+  -v ${HASS_DEV}/hilo/custom_components/hilo/:/config/custom_components/hilo:ro \
+  -v ${HASS_DEV}/core/homeassistant:/usr/src/homeassistant/homeassistant:ro \
+  homeassistant/home-assistant:$HASS_RELEASE
+```
+
+3. Verifier que le container roule
+
+```console
+$ docker ps
+CONTAINER ID   IMAGE                                    COMMAND   CREATED       STATUS          PORTS                    NAMES
+bace2264ee54   homeassistant/home-assistant:2023.12.3   "/init"   3 hours ago   Up 28 minutes   0.0.0.0:8123->8123/tcp   hass
+```
+
+4. Verifier les logs de home-assistant
+```console
+$ less ${HASS_DEV}/config/home-assistant.log
+$ grep hilo ${HASS_DEV}/config/home-assistant.log
+```
+
+5. Activer les logs debug
+
+```console
+$ cat << EOF >> ${HASS_DEV}/config/configuration.yaml
+logger:
+  default: info
+  logs:
+     custom_components.hilo: debug
+     pyhilo: debug
+EOF
+$ docker restart hass
+```
 
 ### Avant de soumettre une Pull Request
 
-Il va sans dire qu'il est important de tester vos modifications sur une installation locale. Il est possible de modifier les fichiers .py de l'intégration directement dans votre dossier:
-```
-custom_components/hilo
-```
+Il va sans dire qu'il est important de tester vos modifications sur une installation locale. Il est possible de modifier les fichiers .py de l'intégration directement dans votre dossier `custom_components/hilo`.
+
 N'oubliez pas votre copie de sauvegarde!
 
 Si vous devez modifier python-hilo pour vos tests, il est possible d'installer votre "fork" avec la commande suivante dans votre CLI:
 
-```
-pip install -e git+https://github.com/VOTRE_FORK_ICI/python-hilo.git#egg=python-hilo
+```console
+$ pip install -e git+https://github.com/VOTRE_FORK_ICI/python-hilo.git#egg=python-hilo
 ```
 
 Vous devrez ensuite redémarrer Home Assistant pour que votre installation prenne effet. Pour revenir en arrière, il suffit de faire:
 
+```console
+$ pip install python-hilo
 ```
-pip install python-hilo
-```
+
 Et redémarrez Home Assistant
 
 ### Soumettre une Pull Request
@@ -179,22 +266,24 @@ Et redémarrez Home Assistant
 - D'abord, vous devez créer un `fork` du "repository" dans votre propre espace utilisateur.
 - Ensuite, vous pouvez en faire un `clone` sur votre ordinateur.
 - Afin de maintenir une sorte de propreté et de standard dans le code, nous avons des linters et des validateurs qui doivent être exécutés via `pre-commit` hooks:
-```
-pre-commit install --install-hooks
+```console
+$ pre-commit install --install-hooks
 ```
 - Vous pouvez mainteant procéder à votre modification au code.
 - Lorsque vous avez terminé, vous pouvez `stage` les fichiers pour un `commit`:
-```
-git add path/to/file
+```console
+$ git add path/to/file
 ```
 - Et vous pouvez créer un `commit`:
+```console
+$ git commit -m "J'ai changé ceci parce que ..."
 ```
-git commit -m "J'ai changé ceci parce que ..."
-```
+
 - Finalement, vous pouvez `push` le changement vers votre "upstream repository":
+```console
+$ git push
 ```
-git push
-```
+
 - Ensuite, si vous visitez le [upstream repository](https://github.com/dvd-dev/hilo), Github devrait vous proposer de créer un "Pull Request" (PR). Vous n'avez qu'à suivre les instructions.
 
 ### Collaborateurs initiaux
@@ -203,7 +292,7 @@ git push
 * [David Vallee Delisle](https://github.com/valleedelisle/)
 
 ### Mentions très honorables
-* [Ian Couture](https://github.com/ic-dev21/): Il tiens cet addon du bout de ces bras depuis un certain temps
+* [Ian Couture](https://github.com/ic-dev21/): Il tient cet addon du bout de ces bras depuis un certain temps
 * [Hilo](https://www.hiloenergie.com): Merci à Hilo pour son support et ses contributions.
 
 ---

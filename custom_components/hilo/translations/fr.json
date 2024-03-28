@@ -2,11 +2,11 @@
   "config": {
     "step": {
       "user": {
-        "description": "L'intégration Hilo intéragit avec l'application Hilo. Hilo est un produit de domotique fait par une filliale de Hydro Québec.",
-        "data": {
-          "username": "Nom d'utilisateur Hilo",
-          "password": "Mot de passe Hilo"
-        }
+        "description": "L'intégration Hilo intéragit avec l'application Hilo. Hilo est un produit de domotique fait par une filliale de Hydro Québec."
+      },
+      "reauth_confirm": {
+        "title": "Réauthentifier l'intégration",
+        "description": "L'intégration doit réauthentifier votre compte"
       }
     },
     "error": {
@@ -15,7 +15,10 @@
       "unknown": "[%key:common::config_flow::error::unknown%]"
     },
     "abort": {
-      "already_configured": "Ce compte Hilo est déjà utilisé."
+      "already_configured": "Ce compte Hilo est déjà utilisé.",
+      "reauth_successful": "Ré-authentification réussie",
+      "user_rejected_authorize" : "Association du compte refusée",
+      "single_instance_allowed" : "Déjà configurée. Une seule configuration possible."
     }
   },
   "options": {
@@ -30,8 +33,8 @@
           "log_traces": "Enregistrer aussi les requêtes et messages websocket (requiert le niveau de journalisation debug sur L'intégration et pyhilo)",
           "challenge_lock": "Vérouiller les entités climate lors de défis Hilo, empêchant tout changement lorsqu'un défi est en cours.",
           "track_unknown_sources": "Suivre des sources de consommation inconnues dans un compteur séparé. Ceci est une approximation calculée à partir de la lecture du compteur intelligent.",
-          "appreciation_phase": "Ajouter une période d'appréciation de X heures avant la phase de préchauffage.",
-          "pre_cold_phase": "Ajouter une période de refroidissement de X heures avant la phase d'appréciation."
+          "appreciation_phase": "Ajouter une période d'ancrage de X heures avant la phase de préchauffage.",
+          "pre_cold_phase": "Ajouter une période de refroidissement de X heures avant la phase d'ancrage."
         }
       }
     }

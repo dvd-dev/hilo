@@ -43,13 +43,13 @@ developers.
 
 ## Configuration
 
-The configuration is done in the UI. When you add the integration, you will be prompted with your
-Hilo username and password. After this, you will be prompted with assigning a room for each one of
+The configuration is done in the UI. When you add the integration, you will be redirected to Hilo's authentication website.
+You have to accept to link your account. After this, you will be prompted with assigning a room for each one of
 your devices.
 
 ### Energy meters
 
-Energy meters are a new feature of this integration. We used to manually generate them with template sensors and automation
+Energy meters are a new feature of this integration. We used to manually generate them with template sensors and automation,
 but they now have been fully integrated into the Hilo integration.
 
 #### Warning
@@ -198,7 +198,7 @@ Here's an example on how to add the energy data to Lovelace.
 
 ## Credits
 
-Credits to to [Francis Poisson](https://github.com/francispoisson/) who's the original author of this integration.
+Credits to [Francis Poisson](https://github.com/francispoisson/) who's the original author of this integration.
 
 ---
 
