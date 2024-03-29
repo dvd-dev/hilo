@@ -263,7 +263,7 @@ class PowerSensor(HiloEntity, SensorEntity):
     """Define a Hilo power sensor entity."""
 
     _attr_device_class = SensorDeviceClass.POWER
-    _attr_native_unit_of_measurement = UnitOfPower.Watt
+    _attr_native_unit_of_measurement = POWER_WATT
     _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(self, hilo: Hilo, device: HiloDevice) -> None:
@@ -832,9 +832,7 @@ class DeviceSensor(HiloEntity, SensorEntity):
 
 class HiloCostSensor(HiloEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.MONETARY
-    _attr_native_unit_of_measurement = (
-        f"{CURRENCY_DOLLAR}/{UnitOfEnergy.KILO_WATT_HOUR}"
-    )
+    _attr_native_unit_of_measurement = f"{CURRENCY_DOLLAR}/{UnitOfEnergy.KILO_WATT_HOUR}"
     _attr_state_class = SensorStateClass.TOTAL
     _attr_icon = "mdi:cash"
 
