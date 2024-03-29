@@ -27,8 +27,7 @@ from .const import HILO_ENERGY_TOTAL, LOG
 class UtilityManager:
     """Class that maps to the utility_meters"""
 
-    def __init__(self, hass, period, tariffs):
-        self.tariffs = tariffs
+    def __init__(self, hass, period):
         self.hass = hass
         self.period = period
         self.meter_configs = OrderedDict()
@@ -59,32 +58,34 @@ class UtilityManager:
         LOG.debug(
             f"Creating UtilityMeter config: {name} {tariff_list} (Net Consumption: {net_consumption})"
         )
-        self.meter_configs[entity] = OrderedDict(
-            {
-                "source": f"sensor.{entity}",
-                "name": name,
-                "cycle": self.period,
-                CONF_TARIFFS: tariff_list,
-                "net_consumption": net_consumption,
-                "utility_meter_sensors": [],
-                "offset": timedelta(0),
-                "delta_values": False,
-                "periodically_resetting": True,
-                "always_available": True,
-            }
-        )
+        self.meter_configs[entity] = {
+            CONF_SOURCE_SENSOR: f"sensor.{entity}",
+            "name": name,
+            CONF_METER_TYPE: self.period,
+            CONF_TARIFFS: tariff_list,
+            CONF_METER_NET_CONSUMPTION: net_consumption,
+            DATA_TARIFF_SENSORS: [],
+            CONF_METER_OFFSET: timedelta(0),
+            CONF_METER_DELTA_VALUES: False,
+            CONF_METER_PERIODICALLY_RESETTING: True,
+        }
 
     async def update(self, async_add_entities):
         LOG.debug(f"Setting up UtilityMeter entities {UTILITY_DOMAIN}")
         if self.new_entities == 0:
             LOG.debug("No new entities, not setting up again")
             return
-        config = {
-            UTILITY_DOMAIN: OrderedDict(
-                {**self.hass.data.get("utility_meter_data", {}), **self.meter_configs}
-            ),
-            CONF_TARIFFS: self.tariffs,
-        }
+        # NOTE(dvd): Pas sur si c'est relevant de pousser les config originale
+        # current_meters = self.hass.data.get(DATA_UTILITY, {})
+        # for meter, conf in current_meters.items():
+        #     conf[CONF_TARIFFS] = conf.get(CONF_TARIFFS, [])
+        #     conf[CONF_METER_OFFSET] = conf.get(CONF_METER_OFFSET, timedelta(0))
+        #     conf[CONF_METER_DELTA_VALUES] = conf.get(CONF_METER_DELTA_VALUES, False)
+        #     conf[CONF_METER_TYPE] = conf.get(CONF_METER_TYPE, "daily")
+        #     conf[CONF_METER_NET_CONSUMPTION] = conf.get(CONF_METER_NET_CONSUMPTION, True)
+        #     conf[CONF_METER_PERIODICALLY_RESETTING] = conf.get(CONF_METER_PERIODICALLY_RESETTING, True)
+        config = {UTILITY_DOMAIN: OrderedDict(self.meter_configs)}
+        LOG.debug(f"Performing utility_setup: {config=}")
         await utility_setup(self.hass, config)
         await utility_setup_platform(
             self.hass, config, async_add_entities, self.meter_entities

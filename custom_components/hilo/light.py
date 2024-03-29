@@ -5,7 +5,6 @@ from homeassistant.components.light import (
     LightEntity,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.debounce import Debouncer
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -31,11 +30,7 @@ async def async_setup_entry(
 class HiloLight(HiloEntity, LightEntity):
     def __init__(self, hass: HomeAssistant, hilo: Hilo, device):
         super().__init__(hilo, device=device, name=device.name)
-        old_unique_id = f"{slugify(device.name)}-light"
-        self._attr_unique_id = f"{slugify(device.identifier)}-light"
-        hilo.async_migrate_unique_id(
-            old_unique_id, self._attr_unique_id, Platform.LIGHT
-        )
+        self._attr_unique_id = f"{slugify(device.name)}-light"
         self._debounced_turn_on = Debouncer(
             hass,
             LOG,
@@ -73,14 +68,13 @@ class HiloLight(HiloEntity, LightEntity):
     @property
     def supported_color_modes(self) -> set:
         """Flag supported modes."""
-        color_modes = set()
+        supports = set()
+        supports.add(ColorMode.ONOFF)
+        if self._device.has_attribute("intensity"):
+            supports.add(ColorMode.BRIGHTNESS)
         if self._device.has_attribute("hue"):
-            color_modes.add(ColorMode.HS)
-        if not color_modes and self._device.has_attribute("intensity"):
-            color_modes.add(ColorMode.BRIGHTNESS)
-        if not color_modes:
-            color_modes.add(ColorMode.ONOFF)
-        return color_modes
+            supports.add(ColorMode.HS)
+        return supports
 
     async def async_turn_off(self, **kwargs):
         LOG.info(f"{self._device._tag} Turning off")

@@ -1,6 +1,5 @@
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import slugify
@@ -25,11 +24,7 @@ async def async_setup_entry(
 class HiloSwitch(HiloEntity, SwitchEntity):
     def __init__(self, hilo: Hilo, device):
         super().__init__(hilo, device=device, name=device.name)
-        old_unique_id = f"{slugify(device.name)}-switch"
-        self._attr_unique_id = f"{slugify(device.identifier)}-switch"
-        hilo.async_migrate_unique_id(
-            old_unique_id, self._attr_unique_id, Platform.SWITCH
-        )
+        self._attr_unique_id = f"{slugify(device.name)}-switch"
         LOG.debug(f"Setting up Switch entity: {self._attr_name}")
 
     @property

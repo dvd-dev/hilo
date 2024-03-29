@@ -13,22 +13,18 @@ from homeassistant.components.select import (
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
-    ATTR_CONNECTIONS,
     ATTR_DEVICE_CLASS,
     ATTR_UNIT_OF_MEASUREMENT,
+    CONF_PASSWORD,
     CONF_SCAN_INTERVAL,
+    CONF_TOKEN,
     CONF_USERNAME,
     EVENT_HOMEASSISTANT_STOP,
     Platform,
 )
 from homeassistant.core import Context, Event, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
-from homeassistant.helpers import (
-    aiohttp_client,
-    config_entry_oauth2_flow,
-    device_registry as dr,
-    entity_registry as er,
-)
+from homeassistant.helpers import aiohttp_client, device_registry as dr
 from homeassistant.helpers.dispatcher import (
     async_dispatcher_connect,
     async_dispatcher_send,
@@ -40,15 +36,14 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
 )
 from pyhilo import API
+from pyhilo.const import DEFAULT_STATE_FILE
 from pyhilo.device import HiloDevice
 from pyhilo.devices import Devices
-from pyhilo.event import Event
 from pyhilo.exceptions import HiloError, InvalidCredentialsError, WebsocketError
-from pyhilo.oauth2 import AuthCodeWithPKCEImplementation
 from pyhilo.util import from_utc_timestamp, time_diff
 from pyhilo.websocket import WebsocketEvent
 
-from .config_flow import STEP_OPTION_SCHEMA, HiloFlowHandler
+from .config_flow import STEP_OPTION_SCHEMA
 from .const import (
     CONF_APPRECIATION_PHASE,
     CONF_CHALLENGE_LOCK,
@@ -130,34 +125,43 @@ async def async_setup_entry(  # noqa: C901
     hass: HomeAssistant, entry: ConfigEntry
 ) -> bool:
     """Set up Hilo as config entry."""
-    HiloFlowHandler.async_register_implementation(
-        hass, AuthCodeWithPKCEImplementation(hass)
-    )
-
-    implementation = (
-        await config_entry_oauth2_flow.async_get_config_entry_implementation(
-            hass, entry
-        )
-    )
-
-    current_options = {**entry.options}
-
-    try:
-        api = await API.async_create(
-            session=aiohttp_client.async_get_clientsession(hass),
-            oauth_session=config_entry_oauth2_flow.OAuth2Session(
-                hass, entry, implementation
-            ),
-            log_traces=current_options.get(CONF_LOG_TRACES, DEFAULT_LOG_TRACES),
-        )
-    except Exception as err:
-        raise ConfigEntryAuthFailed(err) from err
-
     _async_standardize_config_entry(hass, entry)
+    current_options = {**entry.options}
+    log_traces = current_options.get(CONF_LOG_TRACES, DEFAULT_LOG_TRACES)
     scan_interval = current_options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
     scan_interval = (
         scan_interval if scan_interval >= MIN_SCAN_INTERVAL else MIN_SCAN_INTERVAL
     )
+    state_yaml = hass.config.path(DEFAULT_STATE_FILE)
+
+    websession = aiohttp_client.async_get_clientsession(hass)
+
+    try:
+        if entry.data[CONF_TOKEN]:
+            LOG.debug("Trying auth with token")
+            api = await API.async_auth_refresh_token(
+                session=websession,
+                provided_refresh_token=entry.data[CONF_TOKEN],
+                log_traces=log_traces,
+                state_yaml=state_yaml,
+            )
+        else:
+            raise InvalidCredentialsError
+    except InvalidCredentialsError as err:
+        try:
+            LOG.debug(f"Trying auth with username/password: {err}")
+            api = await API.async_auth_password(
+                entry.data[CONF_USERNAME],
+                entry.data[CONF_PASSWORD],
+                session=websession,
+                log_traces=log_traces,
+                state_yaml=state_yaml,
+            )
+        except (KeyError, InvalidCredentialsError) as err:
+            raise ConfigEntryAuthFailed from err
+    except HiloError as err:
+        LOG.error("Config entry failed: %s", err)
+        raise ConfigEntryNotReady from err
 
     hilo = Hilo(hass, entry, api)
     try:
@@ -200,25 +204,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.data[DOMAIN].pop(entry.entry_id)
 
     return unload_ok
-
-
-async def async_migrate_entry(hass, config_entry: ConfigEntry):
-    """Migrate old entry."""
-    LOG.debug("Migrating from version %s", config_entry.version)
-
-    if config_entry.version > 1:
-        # This means the user has downgraded from a future version
-        return False
-
-    if config_entry.version == 1:
-        config_entry.version = 2
-        hass.config_entries.async_update_entry(
-            config_entry, unique_id="hilo", data={"auth_implementation": "hilo"}
-        )
-
-    LOG.debug("Migration to version %s successful", config_entry.version)
-
-    return True
 
 
 class Hilo:
@@ -301,7 +286,7 @@ class Hilo:
                 event.arguments[0]
             )
         elif event.target == "DeviceListUpdatedValuesReceived":
-            # This message only contains display information, such as the Device's name (as set in the app), it's groupid, icon, etc.
+            # This message only contains display informations, such as the Device's name (as set in the app), it's groupid, icon, etc.
             # Updating the device name causes issues in the integration, it detects it as a new device and creates a new entity.
             # Ignore this call, for now... (update_devicelist_from_signalr does work, but causes the issue above)
             # await self.devices.update_devicelist_from_signalr(event.arguments[0])
@@ -367,39 +352,6 @@ class Hilo:
             "model_number": "Hass-hilo-2022.1",
             "sw_version": "0.0.1",
         }
-
-    async def get_event_details(self, event_id: int):
-        """Getting events from Hilo only when necessary.
-        Otherwise, we hit the cache.
-        When preheat is started and our last update is before
-        the preheat_start, we refresh. This should update the
-        allowed_kWh, etc. values.
-        """
-        if event_data := self._events.get(event_id):
-            event = Event(**event_data)
-            if event.invalid:
-                LOG.debug(
-                    f"Invalidating cache for event {event_id} during {event.state} phase ({event.current_phase_times=} {event.last_update=})"
-                )
-                del self._events[event_id]
-            """
-            Note ic-dev21: temp fix until we an make it prettier.
-            During appreciation, pre-heat and reduction we delete
-            the event attributes and reload them with the next if,
-            the rest of time time we're reading it from cache
-            """
-
-            if event.state in ["appreciation", "pre_heat", "reduction"]:
-                LOG.debug(
-                    f"Invalidating cache for event {event_id} during appreciation, pre_heat or reduction phase ({event.last_update=})"
-                )
-                del self._events[event_id]
-
-        if event_id not in self._events:
-            self._events[event_id] = await self._api.get_gd_events(
-                self.devices.location_id, event_id=event_id
-            )
-        return self._events[event_id]
 
     async def async_init(self, scan_interval: int) -> None:
         """Initialize the Hilo "manager" class."""
@@ -570,7 +522,8 @@ class Hilo:
                 f"check_tarif: Current plan: {plan_name} Target Tarif: {tarif} Energy used: {energy_used.state} Peak: {self.high_times} {target_cost.state=} {current_state=}"
             )
         known_power = 0
-        smart_meter = "sensor.meter00_power"
+        smart_meter = "sensor.smartenergymeter_power"
+        smart_meter_alternate = "sensor.meter00_power"
         unknown_source_tracker = "sensor.unknown_source_tracker_power"
         for state in self._hass.states.async_all():
             entity = state.entity_id
@@ -579,27 +532,20 @@ class Hilo:
             if entity.endswith("_power") and entity not in [
                 unknown_source_tracker,
                 smart_meter,
+                smart_meter_alternate,
             ]:
                 try:
                     known_power += int(float(state.state))
                 except ValueError:
                     pass
-            if not entity.endswith("_hilo_energy") or entity.endswith("_cost"):
+            if not entity.startswith("sensor.hilo_energy") or entity.endswith("_cost"):
                 continue
             self.fix_utility_sensor(entity, state)
         if self.track_unknown_sources:
             total_power = self._hass.states.get(smart_meter)
-            try:
-                if known_power <= int(total_power.state):
-                    unknown_power = int(total_power.state) - known_power
-                else:
-                    unknown_power = 0
-            except ValueError:
-                unknown_power = known_power
-                LOG.warning(
-                    f"value of total_power ({total_power} not initialized correctly)"
-                )
-
+            if not total_power:
+                total_power = self._hass.states.get(smart_meter_alternate)
+            unknown_power = int(total_power.state) - known_power
             self.devices.parse_values_received(
                 [
                     {
@@ -627,21 +573,16 @@ class Hilo:
                 f"fix_utility_sensor(): No source entity defined on {entity}: {current_state}"
             )
             return
-
-        parent_unit_state = self._hass.states.get(attrs.get("source"))
-        parent_unit = (
-            "kWh"
-            if parent_unit_state is None
-            else parent_unit_state.attributes.get("unit_of_measurement")
-        )
+        parent_unit = self._hass.states.get(attrs.get("source"))
         if not parent_unit:
             LOG.warning(
                 f"fix_utility_sensor(): Unable to find state for parent unit: {current_state}"
             )
             return
-
         new_attrs = {
-            ATTR_UNIT_OF_MEASUREMENT: parent_unit,  # note ic-dev21: now uses parent_unit directly
+            ATTR_UNIT_OF_MEASUREMENT: parent_unit.as_dict()
+            .get("attributes", {})
+            .get(ATTR_UNIT_OF_MEASUREMENT),
             ATTR_DEVICE_CLASS: SensorDeviceClass.ENERGY,
         }
         if not all(a in attrs.keys() for a in new_attrs.keys()):
@@ -665,64 +606,6 @@ class Hilo:
                     SELECT_DOMAIN, SERVICE_SELECT_OPTION, data, context=context
                 )
             )
-        if (
-            entity.startswith("select.")
-            and entity.endswith("_hilo_energy")
-            and current != new
-        ):
-            LOG.debug(
-                f"check_tarif: Changing tarif of {entity} from {current} to {new}"
-            )
-            context = Context()
-            data = {ATTR_OPTION: new, "entity_id": entity}
-            self._hass.async_create_task(
-                self._hass.services.async_call(
-                    SELECT_DOMAIN, SERVICE_SELECT_OPTION, data, context=context
-                )
-            )
-
-    @callback
-    def async_migrate_unique_id(
-        self, old_unique_id: str, new_unique_id: str | None, platform: str
-    ) -> None:
-        """Migrate legacy unique IDs to new format."""
-        assert new_unique_id is not None
-        LOG.debug(
-            "Checking if unique ID %s on %s needs to be migrated",
-            old_unique_id,
-            platform,
-        )
-        entity_registry = er.async_get(self._hass)
-        # async_get_entity_id wants the "HILO" domain
-        # in the platform field and the actual platform in the domain
-        # field for historical reasons since everything used to be
-        # PLATFORM.INTEGRATION instead of INTEGRATION.PLATFORM
-        if (
-            entity_id := entity_registry.async_get_entity_id(
-                platform, DOMAIN, old_unique_id
-            )
-        ) is None:
-            LOG.debug("Unique ID %s does not need to be migrated", old_unique_id)
-            return
-        if new_entity_id := entity_registry.async_get_entity_id(
-            platform, DOMAIN, new_unique_id
-        ):
-            LOG.debug(
-                (
-                    "Unique ID %s is already in use by %s (system may have been"
-                    " downgraded)"
-                ),
-                new_unique_id,
-                new_entity_id,
-            )
-            return
-        LOG.debug(
-            "Migrating unique ID for entity %s (%s -> %s)",
-            entity_id,
-            old_unique_id,
-            new_unique_id,
-        )
-        entity_registry.async_update_entity(entity_id, new_unique_id=new_unique_id)
 
 
 class HiloEntity(CoordinatorEntity):
@@ -749,17 +632,6 @@ class HiloEntity(CoordinatorEntity):
             name=device.name,
             via_device=(DOMAIN, gateway),
         )
-        try:
-            mac_address = dr.format_mac(device.sdi)
-            self._attr_device_info[ATTR_CONNECTIONS] = {
-                (dr.CONNECTION_NETWORK_MAC, mac_address)
-            }
-        except AttributeError:
-            pass
-        try:
-            self._attr_device_info["sw_version"] = device.sw_version
-        except AttributeError:
-            pass
         if not name:
             name = device.name
         self._attr_name = name
@@ -784,6 +656,13 @@ class HiloEntity(CoordinatorEntity):
     def async_update_from_websocket_event(self, event: WebsocketEvent) -> None:
         """Update the entity when new data comes from the websocket."""
         raise NotImplementedError()
+
+    async def get_event_details(self, event_id: int):
+        if event_id not in self._events:
+            self._events[event_id] = await self._api.get_gd_events(
+                self.devices.location_id, event_id=event_id
+            )
+        return self._events[event_id]
 
     async def async_added_to_hass(self):
         """Call when entity is added to hass."""
