@@ -9,7 +9,6 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-    steps:
       - uses: actions/checkout@v4
       - name: Add target
         run: rustup target add ${{ matrix.target }}
