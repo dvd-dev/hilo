@@ -48,18 +48,18 @@ REWARD_SCAN_INTERVAL = 7200
 CONF_TARIFF = {
     "rate d": {
         "low_threshold": 40,
-        "low": 0.06509,
-        "medium": 0.10041,
+        "low": 0.06704,
+        "medium": 0.10342,
         "high": 0,
-        "access": 0.43505,
+        "access": 0.44810,
         "reward_rate": 0.55,
     },
     "flex d": {
         "low_threshold": 40,
-        "low": 0.04582,
-        "medium": 0.07880,
-        "high": 0.53526,
-        "access": 0.43505,
+        "low": 0.04719,
+        "medium": 0.08116,
+        "high": 0.55132,
+        "access": 0.44810,
         "reward_rate": 0.55,
     },
 }
