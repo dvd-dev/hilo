@@ -257,7 +257,6 @@ class EnergySensor(IntegrationSensor):
     _attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
     _attr_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
-    _attr_icon = "mdi:lightning-bolt"
 
     def __init__(self, hilo, device):
         self._device = device
@@ -291,6 +290,7 @@ class EnergySensor(IntegrationSensor):
             unit_time="h",
             device_info=self._device_info,
         )
+        self._attr_icon = "mdi:lightning-bolt"
         LOG.debug(
             f"Setting up EnergySensor entity: {self._attr_name} with source {self._source}"
         )
