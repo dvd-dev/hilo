@@ -1,4 +1,5 @@
 """Support for various Hilo sensors."""
+
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
@@ -24,6 +25,7 @@ from homeassistant.const import (
     UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import Throttle, slugify
@@ -275,6 +277,9 @@ class EnergySensor(IntegrationSensor):
         initial_state = 0
         self._attr_native_value = initial_state
         self._attr_last_valid_state = initial_state
+        self._device_info = DeviceInfo(
+            identifiers={(DOMAIN, self._device.identifier)},
+        )
 
         super().__init__(
             integration_method=METHOD_LEFT,
@@ -284,6 +289,7 @@ class EnergySensor(IntegrationSensor):
             unique_id=self._attr_unique_id,
             unit_prefix="k",
             unit_time="h",
+            device_info=self._device_info,
         )
         LOG.debug(
             f"Setting up EnergySensor entity: {self._attr_name} with source {self._source}"
