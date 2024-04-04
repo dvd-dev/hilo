@@ -1,20 +1,81 @@
-            - name: Upload Asset
-  # You may pin to the exact commit or the version.
-  # uses: PeerXu/upload-asset@ac15234d94a4bfc9b33e1e98573fb470553ed809
-  uses: PeerXu/upload-asset@v1
-  with:
-    # which file to upload
-    file:
-    custom_component/hilo
-    # file suffix
-    suffix: # optional, default is .tar.gz
-    .zip
-    # which operating system platform for file to execute
-    os: # optional, default is 
-    # which architecture platform for file to execute
-    arch: # optional, default is 
-    # upload file to asset with tag version
-    with_tag: # optional, default is true
-    # upload file to asset with hash in sha1 algorithm
-    with_sha1: # optional, default is true
-          
+---
+name: "Release"
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  release:
+    name: "Publish new release"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout the repository"
+        uses: "actions/checkout@v4.1.0"
+
+      - working-directory: ./custom_components
+        run: |
+          echo "package=$(ls -F | grep \/$ | sed -n "s/\///g;1p")" >> $GITHUB_ENV
+          echo "release_version=$(git describe --tags | sed s/v//)" >> $GITHUB_ENV
+      - working-directory: ./custom_components
+        run: |
+          echo "basedir=$(pwd)/${{ env.package }}" >> $GITHUB_ENV
+
+      - name: "Setup Git"
+        if: env.release_version != '' && success()
+        run: |
+          git config --global user.name "release"
+          git config --global user.email "release@GitHub"
+
+      - name: "Zip component dir"
+        if: env.release_version != '' && success()
+        working-directory: ./custom_components/${{ env.package }}
+        run: |
+          zip ${{ env.package }}.zip -r ./
+
+      - name: "Release"
+        if: env.release_version != '' && success()
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{ env.basedir }}/${{ env.package }}.zip
+
+  release-notes:
+    name: "Compose release notes"
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Check out repository"
+        uses: actions/checkout@v4
+
+      - working-directory: ./custom_components
+        run: |
+          echo "release_version=$(git describe --tags | sed s/v//)" >> $GITHUB_ENV
+
+      - name: "Set up Python"
+        if: env.release_version != '' && success()
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: "Cache pip"
+        if: env.release_version != '' && success()
+        uses: actions/cache@v4
+        with:
+          # This path is specific to Ubuntu
+          path: ~/.cache/pip
+          # Look to see if there is a cache hit for the corresponding requirements file
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+            ${{ runner.os }}-
+
+      - name: "Install requirements"
+        if: env.release_version != '' && success()
+        run: |
+          python3 -m pip install setuptools wheel
+          python3 -m pip install -r ./requirements-dev.txt
+
+      - name: "Update release notes"
+        if: env.release_version != '' && success()
+        run: python3 ./scripts/gen_releasenotes --token ${{ secrets.GITHUB_TOKEN }} --repo ${{ github.repository }} --release ${{ env.release_version }}
