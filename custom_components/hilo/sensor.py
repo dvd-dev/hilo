@@ -872,9 +872,9 @@ class HiloOutDoorTempSensor(HiloEntity, RestoreEntity, SensorEntity):
         if not self._device.available:
             return "mdi:lan-disconnect"
         if self.state > 0:
-            return "mdi:bell-alert"
-        return "mdi:bell-outline"
-
+            return "mdi:weather-sunny"
+        return "mdi:weather-sunny"
+#note(id-dev21): add quick if loop to change icon according to conditions here
     @property
     def should_poll(self):
         return True
