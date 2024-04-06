@@ -892,8 +892,8 @@ class HiloOutDoorTempSensor(HiloEntity, RestoreEntity, SensorEntity):
             self._state = last_state.state
 
     async def _async_update(self):
-        self._notifications = []
-        for notification in await self._hilo._api.get_weather(
+        self._weather = []
+        for weather in await self._hilo._api.get_weather(
             self._hilo.devices.location_id
         ):
             self._weather.append(
