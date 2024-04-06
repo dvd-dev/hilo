@@ -835,3 +835,71 @@ class HiloCostSensor(HiloEntity, RestoreEntity, SensorEntity):
 
     async def async_update(self):
         return
+
+class HiloOutDoorTempSensor(HiloEntity, RestoreEntity, SensorEntity):
+    """Hilo outdoor temperature sensor.
+    Its state will be the current outdoor weather as reported by the Hilo App
+    """
+
+    def __init__(self, hilo, device, scan_interval):
+        self._attr_name = "Outdoor Weather Hilo"
+        super().__init__(hilo, name=self._attr_name, device=device)
+        old_unique_id = slugify(self._attr_name)
+        self._attr_unique_id = (
+            f"{slugify(device.identifier)}-{slugify(self._attr_name)}"
+        )
+        hilo.async_migrate_unique_id(
+            old_unique_id, self._attr_unique_id, Platform.SENSOR
+        )
+        LOG.debug(f"Setting up OutDoorWeatherSensor entity: {self._attr_name}")
+        self.scan_interval = timedelta(seconds=10)
+        self._state = 0
+        self._weather = []
+        self.async_update = Throttle(self.scan_interval)(self._async_update)
+
+    @property
+    def state(self):
+        try:
+            return int(self._state)
+        except ValueError:
+            return 0
+
+    @property
+    def icon(self):
+        if not self._device.available:
+            return "mdi:lan-disconnect"
+        if self.state > 0:
+            return "mdi:bell-alert"
+        return "mdi:bell-outline"
+
+    @property
+    def should_poll(self):
+        return True
+
+    @property
+    def extra_state_attributes(self):
+        return {"weather": self._weather}
+
+    async def async_added_to_hass(self):
+        """Handle entity about to be added to hass event."""
+        await super().async_added_to_hass()
+        last_state = await self.async_get_last_state()
+        if last_state:
+            self._last_update = dt_util.utcnow()
+            self._state = last_state.state
+
+    async def _async_update(self):
+        self._notifications = []
+        for notification in await self._hilo._api.get_weather(
+            self._hilo.devices.location_id
+        ):
+            self._weather.append(
+                {
+                    "temperature": weather.get("temperature"),
+                    "time": weather.get("time"),
+                    "condition": weather.get("condition"),
+                    "icon": weather.get("icon"),
+                    "humidity": weather.get("humidity"),
+                }
+            )
+        self._state = (self._weather)
