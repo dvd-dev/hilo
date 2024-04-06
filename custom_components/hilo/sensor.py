@@ -99,6 +99,9 @@ def generate_entities_from_device(device, hilo, scan_interval):
         entities.append(
             HiloNotificationSensor(hilo, device, scan_interval),
         )
+        entities.append(
+            HiloOutDoorTempSensor(hilo, device, scan_interval),
+        )
     if device.has_attribute("battery"):
         entities.append(BatterySensor(hilo, device))
     if device.has_attribute("co2"):
