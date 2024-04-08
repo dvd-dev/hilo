@@ -843,7 +843,9 @@ class HiloOutDoorTempSensor(HiloEntity, RestoreEntity, SensorEntity):
     """Hilo outdoor temperature sensor.
     Its state will be the current outdoor weather as reported by the Hilo App
     """
-
+    _attr_device_class = SensorDeviceClass.TEMPERATURE
+    _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
+    _attr_state_class = SensorStateClass.MEASUREMENT
     def __init__(self, hilo, device, scan_interval):
         self._attr_name = "Outdoor Weather Hilo"
         super().__init__(hilo, name=self._attr_name, device=device)
@@ -855,7 +857,7 @@ class HiloOutDoorTempSensor(HiloEntity, RestoreEntity, SensorEntity):
             old_unique_id, self._attr_unique_id, Platform.SENSOR
         )
         LOG.debug(f"Setting up OutDoorWeatherSensor entity: {self._attr_name}")
-        self.scan_interval = timedelta(seconds=10)
+        self.scan_interval = timedelta(EVENT_SCAN_INTERVAL_REDUCTION)
         self._state = 0
         self._weather = []
         self.async_update = Throttle(self.scan_interval)(self._async_update)
@@ -863,7 +865,7 @@ class HiloOutDoorTempSensor(HiloEntity, RestoreEntity, SensorEntity):
     @property
     def state(self):
         try:
-            return str(float(self._device.get_value("temperature", 0)))
+            return int(self._state)
         except ValueError:
             return 0
 
