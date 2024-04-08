@@ -863,7 +863,7 @@ class HiloOutDoorTempSensor(HiloEntity, RestoreEntity, SensorEntity):
     @property
     def state(self):
         try:
-            return int(self._state)
+            return str(float(self._device.get_value("temperature", 0)))
         except ValueError:
             return 0
 
@@ -892,17 +892,6 @@ class HiloOutDoorTempSensor(HiloEntity, RestoreEntity, SensorEntity):
             self._state = last_state.state
 
     async def _async_update(self):
-        self._weather = []
-        for weather in await self._hilo._api.get_weather(
-            self._hilo.devices.location_id
-        ):
-            self._weather.append(
-                {
-                    "temperature": weather.get("temperature"),
-                    "time": weather.get("time"),
-                    "condition": weather.get("condition"),
-                    "icon": weather.get("icon"),
-                    "humidity": weather.get("humidity"),
-                }
-            )
+        self._weather = {}
+        self._weather = await self._hilo._api.get_weather(self._hilo.devices.location_id)
         self._state = (self._weather)
