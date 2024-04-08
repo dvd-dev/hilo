@@ -1,0 +1,41 @@
+---
+name: "Release zip"
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  release:
+    name: "Publish new release"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout the repository"
+        uses: "actions/checkout@v4.1.0"
+
+      - working-directory: ./custom_components
+        run: |
+          echo "package=$(ls -F | grep \/$ | sed -n "s/\///g;1p")" >> $GITHUB_ENV
+          echo "release_version=$(git describe --tags | sed s/v//)" >> $GITHUB_ENV
+      - working-directory: ./custom_components
+        run: |
+          echo "basedir=$(pwd)/${{ env.package }}" >> $GITHUB_ENV
+
+      - name: "Setup Git"
+        if: env.release_version != '' && success()
+        run: |
+          git config --global user.name "release"
+          git config --global user.email "release@GitHub"
+
+      - name: "Zip component dir"
+        if: env.release_version != '' && success()
+        working-directory: ./custom_components/${{ env.package }}
+        run: |
+          zip ${{ env.package }}.zip -r ./
+
+      - name: "Release"
+        if: env.release_version != '' && success()
+        uses: softprops/action-gh-release@v2.0.4
+        with:
+          files: ${{ env.basedir }}/${{ env.package }}.zip
