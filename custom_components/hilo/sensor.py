@@ -860,9 +860,9 @@ class HiloOutDoorTempSensor(HiloEntity, RestoreEntity, SensorEntity):
             old_unique_id, self._attr_unique_id, Platform.SENSOR
         )
         LOG.debug(f"Setting up OutDoorWeatherSensor entity: {self._attr_name}")
-        self.scan_interval = timedelta(EVENT_SCAN_INTERVAL_REDUCTION)
+        self.scan_interval = timedelta(seconds=EVENT_SCAN_INTERVAL_REDUCTION)
         self._state = 0
-        self._weather = []
+        self._weather = {}
         self.async_update = Throttle(self.scan_interval)(self._async_update)
 
     @property
@@ -902,4 +902,4 @@ class HiloOutDoorTempSensor(HiloEntity, RestoreEntity, SensorEntity):
         self._weather = await self._hilo._api.get_weather(
             self._hilo.devices.location_id
         )
-        self._state = self._weather
+        self._state = self._weather.get("temperature")
