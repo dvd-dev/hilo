@@ -839,13 +839,16 @@ class HiloCostSensor(HiloEntity, RestoreEntity, SensorEntity):
     async def async_update(self):
         return
 
+
 class HiloOutDoorTempSensor(HiloEntity, RestoreEntity, SensorEntity):
     """Hilo outdoor temperature sensor.
     Its state will be the current outdoor weather as reported by the Hilo App
     """
+
     _attr_device_class = SensorDeviceClass.TEMPERATURE
     _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
     _attr_state_class = SensorStateClass.MEASUREMENT
+
     def __init__(self, hilo, device, scan_interval):
         self._attr_name = "Outdoor Weather Hilo"
         super().__init__(hilo, name=self._attr_name, device=device)
@@ -876,7 +879,8 @@ class HiloOutDoorTempSensor(HiloEntity, RestoreEntity, SensorEntity):
         if self.state > 0:
             return "mdi:weather-sunny"
         return "mdi:weather-sunny"
-#note(id-dev21): add quick if loop to change icon according to conditions here
+
+    # note(id-dev21): add quick if loop to change icon according to conditions here
     @property
     def should_poll(self):
         return True
@@ -895,5 +899,7 @@ class HiloOutDoorTempSensor(HiloEntity, RestoreEntity, SensorEntity):
 
     async def _async_update(self):
         self._weather = {}
-        self._weather = await self._hilo._api.get_weather(self._hilo.devices.location_id)
-        self._state = (self._weather)
+        self._weather = await self._hilo._api.get_weather(
+            self._hilo.devices.location_id
+        )
+        self._state = self._weather
