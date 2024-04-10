@@ -20,7 +20,7 @@ This is a beta release. There will be some bugs, issues, etc. Please bear with u
 [Hilo](https://www.hydroquebec.com/hilo/en/) integration for Home Assistant
 
 # :warning: Breaking change (v2024.2.2 and lower will become unusable)
-Hilo's login will stop using "Resource Owner Password Flow" and start using "Authorization Code Flow with PKCE". A few weeks after this change, the current login method will be permanently closed and unusable.
+Hilo's login has stoped using "Resource Owner Password Flow" and started using "Authorization Code Flow with PKCE". The old login method has been permanently closed on april 10 2024.
 
 ## Introduction
 
