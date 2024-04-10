@@ -19,7 +19,7 @@ Ceci est une version Bêta. Il y aura probablements des bogues, irritants, etc. 
 # Hilo
 Intégration pour Home Assistant d'[Hilo](https://www.hydroquebec.com/hilo/fr/)
 
-# :warning: Breaking change (v2024.2.2 et antérieures deviendront non-fonctionnelles)
+# :warning: Breaking change (v2024.2.2 et antérieures non-fonctionnelles)
 L'authentification (login) de Hilo est passée d'une méthode "Resource Owner Password Flow" vers une méthode "Authorization Code Flow with PKCE". L'ancienne méthode a été fermée définitivement le 10 avril 2024, les anciennes versions de l'intégration ne sont plus fonctionnelles.
 
 ## Introduction
