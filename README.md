@@ -44,8 +44,10 @@ J'ai décidé de déplacer l'intégration ici, car la dernière mise à jour de 
 - Générer les "sensor" de puissance et d'énergie consommée.
 - Sensor pour les Défis.
 - Sensor pour la passerelle Hilo
-- **NOUVEAU**: Configuration est maintenant faite via l'interface utilisateur
-- **NOUVEAU**: Mise à jour des lectures plus près du temps réel.
+- Configuration est maintenant faite via l'interface utilisateur
+- Mise à jour des lectures plus près du temps réel.
+- **NOUVEAU**: Authentification via le site de Hilo
+- **NOUVEAU**: Capteur pour la météo extérieure avec icône changeante comme dans l'app Hilo
 
 ### À faire:
 - Ajouter la fonctionnalité pour d'autres appareils.

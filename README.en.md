@@ -51,8 +51,10 @@ rewrite it. Hilo is now pushing device readings via websocket from SignalR.
 - Generates energy meters and sensors
 - Sensor for Hilo Events (challenges)
 - Sensor for Hilo Gateway
-- **NEW**: Now configuration is done via the UI
-- **NEW**: Updates are now closer to realtime
+- Now configuration is done via the UI
+- Updates are now closer to realtime
+- **NEW**: Authentication directly on Hilo's website
+- **NEW**: Outdoor weather sensor with changing icon like in the Hilo App
 
 ### To Do:
 - Add functionalities for other devices
