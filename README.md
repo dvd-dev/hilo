@@ -81,7 +81,7 @@ Dans le coin inférieur droit, cliquer sur le bouton '+ AJOUTER UNE INTÉGRATION
 
 ![Ajout intégration](https://github.com/dvd-dev/hilo/assets/108159253/e0529aca-9b13-40e0-9be4-29e347b980ab)
 
-Si l'intégration est correctement installée, vous devriez pouvoir trouver "Hilo" dans la list. Il est possible d'avoir besoin de vider la mémoire cache de votre navigateur pour que l'intégration s'affiche.
+Si l'intégration est correctement installée, vous devriez pouvoir trouver "Hilo" dans la liste. Il est possible d'avoir besoin de vider la mémoire cache de votre navigateur pour que l'intégration s'affiche.
 
 ![Recherche intégration](https://github.com/dvd-dev/hilo/assets/108159253/7003a402-9369-4063-ac02-709bd0294e42)
 
