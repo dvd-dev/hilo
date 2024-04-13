@@ -874,13 +874,39 @@ class HiloOutDoorTempSensor(HiloEntity, RestoreEntity, SensorEntity):
 
     @property
     def icon(self):
-        if not self._device.available:
+        condition = self._weather.get("condition", "").lower()
+        LOG.warning(f"Current condition: {condition}")
+        if not condition:
             return "mdi:lan-disconnect"
-        if self.state > 0:
+        if condition == "blowing snow":
+            return "mdi:weather-snowy"
+        elif condition == "clear":
             return "mdi:weather-sunny"
-        return "mdi:weather-sunny"
+        elif condition == "cloudy":
+            return "mdi:weather-cloudy"
+        elif condition == "fair":
+            return "mdi:weather-partly-cloudy"
+        elif condition == "foggy":
+            return "mdi:weather-fog"
+        elif condition == "hail sleet":
+            return "mdi:weather-hail"
+        elif condition == "mostly cloudy":
+            return "mdi:weather-partly-cloudy"
+        elif condition == "rain":
+            return "mdi:weather-rainy"
+        elif condition == "rain snow":
+            return "mdi:weather-snowy-rainy"
+        elif condition == "snow":
+            return "mdi:weather-snowy"
+        elif condition == "thunder":
+            return "mdi:weather-lightning-rainy"
+        elif condition == "windy":
+            return "mdi:weather-windy"
+        elif condition == "unknown":
+            return "mdi:help-circle-outline"
+        else:
+            return "mdi:lan-disconnect"
 
-    # note(id-dev21): add quick if loop to change icon according to conditions here
     @property
     def should_poll(self):
         return True
