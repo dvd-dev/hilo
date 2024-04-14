@@ -570,8 +570,7 @@ class Hilo:
         # fix Mig :: definition du smart_meter ; loop sur les entités pour trouver soit "meter00" ou "smartenergymeter_power"
         for meter_scan in self._hass.states.async_all():
             entity1 = meter_scan.entity_id
-            if (entity1.endswith("_power") and 
-                entity1.find("meter") > 0):
+            if (entity1.endswith("_power") and entity1.find("meter") > 0):
                 smart_meter = entity1
                 LOG.debug(f"576: setting smart_meter for {entity1}")
         unknown_source_tracker = "sensor.unknown_source_tracker_power"
