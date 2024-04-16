@@ -842,7 +842,7 @@ class HiloCostSensor(HiloEntity, RestoreEntity, SensorEntity):
         return
 
 
-#class HiloOutdoorTempSensor(HiloEntity, RestoreEntity, SensorEntity):
+# class HiloOutdoorTempSensor(HiloEntity, RestoreEntity, SensorEntity):
 # je ne crois pas qu'on a besoin d'un restoreentity pour une température.
 # La dernière valeur n'a pas vraiment d'importance?
 class HiloOutdoorTempSensor(HiloEntity, SensorEntity):
@@ -857,9 +857,9 @@ class HiloOutdoorTempSensor(HiloEntity, SensorEntity):
     def __init__(self, hilo, device, scan_interval):
         self._attr_name = "Outdoor Weather Hilo"
         super().__init__(hilo, name=self._attr_name, device=device)
-        #old_unique_id = slugify(self._attr_name)
-        #pas requis pusisqu'on l'a jamais créé avec un autre uniqueID
-        #par contre on peut laisser pour être comme les autres sensors
+        # old_unique_id = slugify(self._attr_name)
+        # pas requis pusisqu'on l'a jamais créé avec un autre uniqueID
+        # par contre on peut laisser pour être comme les autres sensors
         self._attr_unique_id = (
             f"{slugify(device.identifier)}-{slugify(self._attr_name)}"
         )
@@ -884,7 +884,8 @@ class HiloOutdoorTempSensor(HiloEntity, SensorEntity):
         if not self._device.available:
             return "mdi:lan-disconnect"
         return WEATHER_CONDITIONS.get(self._weather.get("condition", "Unknown"))
-    # le code est moins lourd en utilisant une constate, en plus on garde une constante similaire à Hilo
+        # le code est moins lourd en utilisant une constate, en plus on garde une constante similaire à Hilo
+
     @property
     def should_poll(self):
         return True
@@ -895,7 +896,11 @@ class HiloOutdoorTempSensor(HiloEntity, SensorEntity):
         # Les attributes n'avait pas l'aire créé séparément mais plutot juste en une seule string
         # J'ai enlevé temperature puis qu'elle était difini 2 fois dans le fond.
         # J'ai enlevé icon puisque c'était 0 et je voulais pas que ça rentre en conflis avec celle de HA
-        return {key: self._weather[key] for key in self._weather if key not in ["temperature", "icon"]}
+        return {
+            key: self._weather[key]
+            for key in self._weather
+            if key not in ["temperature", "icon"]
+        }
 
     # async def async_added_to_hass(self):
     #     """Handle entity about to be added to hass event."""

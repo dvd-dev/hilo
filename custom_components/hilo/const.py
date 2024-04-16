@@ -72,19 +72,19 @@ CONF_HIGH_PERIODS = {
 TARIFF_LIST = ["high", "medium", "low"]
 
 WEATHER_CONDITIONS = {
-       "Unknown": "mdi:weather-sunny-alert",
-       "BlowingSnow": "mdi:weather-snowy-heavy",
-       "Clear": "mdi:weather-sunny",
-       "Cloudy": "mdi:weather-cloudy",
-       "Fair": "mdi:weather-partly-cloudy",
-       "Foggy": "mdi:weather-fog",
-       "HailSleet": "mdi:weather-hail",
-       "MostlyCloudy": "mdi:weather-partly-cloudy",
-       "Rain": "mdi:weather-rainy",
-       "RainSnow": "mdi:weather-snowy-rainy",
-       "Snow": "mdi:weather-snowy",
-       "Thunder": "mdi:weather-lightning",
-       "Windy": "mdi:weather-windy",
+    "Unknown": "mdi:weather-sunny-alert",
+    "BlowingSnow": "mdi:weather-snowy-heavy",
+    "Clear": "mdi:weather-sunny",
+    "Cloudy": "mdi:weather-cloudy",
+    "Fair": "mdi:weather-partly-cloudy",
+    "Foggy": "mdi:weather-fog",
+    "HailSleet": "mdi:weather-hail",
+    "MostlyCloudy": "mdi:weather-partly-cloudy",
+    "Rain": "mdi:weather-rainy",
+    "RainSnow": "mdi:weather-snowy-rainy",
+    "Snow": "mdi:weather-snowy",
+    "Thunder": "mdi:weather-lightning",
+    "Windy": "mdi:weather-windy",
 }
 
 # Class lists
