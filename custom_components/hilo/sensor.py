@@ -881,10 +881,13 @@ class HiloOutdoorTempSensor(HiloEntity, SensorEntity):
 
     @property
     def icon(self):
-        if not self._device.available:
+        condition = self._weather.get("condition", "").lower()
+        LOG.warning(f"Current condition: {condition}")
+        if not condition:
             return "mdi:lan-disconnect"
         return WEATHER_CONDITIONS.get(self._weather.get("condition", "Unknown"))
     # le code est moins lourd en utilisant une constate, en plus on garde une constante similaire à Hilo
+
     @property
     def should_poll(self):
         return True
