@@ -18,6 +18,7 @@ from homeassistant.const import (
     CURRENCY_DOLLAR,
     PERCENTAGE,
     SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
+    STATE_UNKNOWN,
     Platform,
     UnitOfEnergy,
     UnitOfPower,
@@ -56,6 +57,7 @@ from .const import (
     NOTIFICATION_SCAN_INTERVAL,
     REWARD_SCAN_INTERVAL,
     TARIFF_LIST,
+    WEATHER_CONDITIONS,
 )
 from .managers import EnergyManager, UtilityManager
 
@@ -100,7 +102,7 @@ def generate_entities_from_device(device, hilo, scan_interval):
             HiloNotificationSensor(hilo, device, scan_interval),
         )
         entities.append(
-            HiloOutDoorTempSensor(hilo, device, scan_interval),
+            HiloOutdoorTempSensor(hilo, device, scan_interval),
         )
     if device.has_attribute("battery"):
         entities.append(BatterySensor(hilo, device))
@@ -840,7 +842,10 @@ class HiloCostSensor(HiloEntity, RestoreEntity, SensorEntity):
         return
 
 
-class HiloOutDoorTempSensor(HiloEntity, RestoreEntity, SensorEntity):
+#class HiloOutdoorTempSensor(HiloEntity, RestoreEntity, SensorEntity):
+# je ne crois pas qu'on a besoin d'un restoreentity pour une température.
+# La dernière valeur n'a pas vraiment d'importance?
+class HiloOutdoorTempSensor(HiloEntity, SensorEntity):
     """Hilo outdoor temperature sensor.
     Its state will be the current outdoor weather as reported by the Hilo App
     """
@@ -852,16 +857,18 @@ class HiloOutDoorTempSensor(HiloEntity, RestoreEntity, SensorEntity):
     def __init__(self, hilo, device, scan_interval):
         self._attr_name = "Outdoor Weather Hilo"
         super().__init__(hilo, name=self._attr_name, device=device)
-        old_unique_id = slugify(self._attr_name)
+        #old_unique_id = slugify(self._attr_name)
+        #pas requis pusisqu'on l'a jamais créé avec un autre uniqueID
+        #par contre on peut laisser pour être comme les autres sensors
         self._attr_unique_id = (
             f"{slugify(device.identifier)}-{slugify(self._attr_name)}"
         )
-        hilo.async_migrate_unique_id(
-            old_unique_id, self._attr_unique_id, Platform.SENSOR
-        )
-        LOG.debug(f"Setting up OutDoorWeatherSensor entity: {self._attr_name}")
+        # hilo.async_migrate_unique_id(
+        #     old_unique_id, self._attr_unique_id, Platform.SENSOR
+        # )
+        LOG.debug(f"Setting up OutdoorWeatherSensor entity: {self._attr_name}")
         self.scan_interval = timedelta(seconds=EVENT_SCAN_INTERVAL_REDUCTION)
-        self._state = 0
+        self._state = STATE_UNKNOWN
         self._weather = {}
         self.async_update = Throttle(self.scan_interval)(self._async_update)
 
@@ -870,32 +877,33 @@ class HiloOutDoorTempSensor(HiloEntity, RestoreEntity, SensorEntity):
         try:
             return int(self._state)
         except ValueError:
-            return 0
+            return STATE_UNKNOWN
 
     @property
     def icon(self):
         if not self._device.available:
             return "mdi:lan-disconnect"
-        if self.state > 0:
-            return "mdi:weather-sunny"
-        return "mdi:weather-sunny"
-
-    # note(id-dev21): add quick if loop to change icon according to conditions here
+        return WEATHER_CONDITIONS.get(self._weather.get("condition", "Unknown"))
+    # le code est moins lourd en utilisant une constate, en plus on garde une constante similaire à Hilo
     @property
     def should_poll(self):
         return True
 
     @property
     def extra_state_attributes(self):
-        return {"weather": self._weather}
+        LOG.debug(f"Adding weather {self._weather}")
+        # Les attributes n'avait pas l'aire créé séparément mais plutot juste en une seule string
+        # J'ai enlevé temperature puis qu'elle était difini 2 fois dans le fond.
+        # J'ai enlevé icon puisque c'était 0 et je voulais pas que ça rentre en conflis avec celle de HA
+        return {key: self._weather[key] for key in self._weather if key not in ["temperature", "icon"]}
 
-    async def async_added_to_hass(self):
-        """Handle entity about to be added to hass event."""
-        await super().async_added_to_hass()
-        last_state = await self.async_get_last_state()
-        if last_state:
-            self._last_update = dt_util.utcnow()
-            self._state = last_state.state
+    # async def async_added_to_hass(self):
+    #     """Handle entity about to be added to hass event."""
+    #     await super().async_added_to_hass()
+    #     last_state = await self.async_get_last_state()
+    #     if last_state:
+    #         self._last_update = dt_util.utcnow()
+    #         self._state = last_state.state
 
     async def _async_update(self):
         self._weather = {}

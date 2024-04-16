@@ -71,8 +71,24 @@ CONF_HIGH_PERIODS = {
 
 TARIFF_LIST = ["high", "medium", "low"]
 
+WEATHER_CONDITIONS = {
+       "Unknown": "mdi:weather-sunny-alert",
+       "BlowingSnow": "mdi:weather-snowy-heavy",
+       "Clear": "mdi:weather-sunny",
+       "Cloudy": "mdi:weather-cloudy",
+       "Fair": "mdi:weather-partly-cloudy",
+       "Foggy": "mdi:weather-fog",
+       "HailSleet": "mdi:weather-hail",
+       "MostlyCloudy": "mdi:weather-partly-cloudy",
+       "Rain": "mdi:weather-rainy",
+       "RainSnow": "mdi:weather-snowy-rainy",
+       "Snow": "mdi:weather-snowy",
+       "Thunder": "mdi:weather-lightning",
+       "Windy": "mdi:weather-windy",
+}
+
 # Class lists
-LIGHT_CLASSES = ["LightDimmer", "WhiteBulb", "ColorBulb", "LightSwitch"]
+LIGHT_CLASSES = ["LightDimmer", "WhiteBulb", "ColorBulb"]
 HILO_SENSOR_CLASSES = [
     "SmokeDetector",
     "IndoorWeatherStation",
@@ -80,4 +96,4 @@ HILO_SENSOR_CLASSES = [
     "Gateway",
 ]
 CLIMATE_CLASSES = ["Thermostat", "FloorThermostat", "Thermostat24V"]
-SWITCH_CLASSES = ["Outlet", "Ccr", "Cee"]
+SWITCH_CLASSES = ["LightSwitch", "Outlet", "Ccr", "Cee"]
