@@ -842,9 +842,6 @@ class HiloCostSensor(HiloEntity, RestoreEntity, SensorEntity):
         return
 
 
-# class HiloOutdoorTempSensor(HiloEntity, RestoreEntity, SensorEntity):
-# je ne crois pas qu'on a besoin d'un restoreentity pour une température.
-# La dernière valeur n'a pas vraiment d'importance?
 class HiloOutdoorTempSensor(HiloEntity, SensorEntity):
     """Hilo outdoor temperature sensor.
     Its state will be the current outdoor weather as reported by the Hilo App
@@ -857,15 +854,9 @@ class HiloOutdoorTempSensor(HiloEntity, SensorEntity):
     def __init__(self, hilo, device, scan_interval):
         self._attr_name = "Outdoor Weather Hilo"
         super().__init__(hilo, name=self._attr_name, device=device)
-        # old_unique_id = slugify(self._attr_name)
-        # pas requis pusisqu'on l'a jamais créé avec un autre uniqueID
-        # par contre on peut laisser pour être comme les autres sensors
         self._attr_unique_id = (
             f"{slugify(device.identifier)}-{slugify(self._attr_name)}"
         )
-        # hilo.async_migrate_unique_id(
-        #     old_unique_id, self._attr_unique_id, Platform.SENSOR
-        # )
         LOG.debug(f"Setting up OutdoorWeatherSensor entity: {self._attr_name}")
         self.scan_interval = timedelta(seconds=EVENT_SCAN_INTERVAL_REDUCTION)
         self._state = STATE_UNKNOWN
@@ -885,7 +876,6 @@ class HiloOutdoorTempSensor(HiloEntity, SensorEntity):
         LOG.warning(f"Current condition: {condition}")
         if not condition:
             return "mdi:lan-disconnect"
-        # le code est moins lourd en utilisant une constate, en plus on garde une constante similaire à Hilo
         return WEATHER_CONDITIONS.get(self._weather.get("condition", "Unknown"))
 
     @property
@@ -895,9 +885,6 @@ class HiloOutdoorTempSensor(HiloEntity, SensorEntity):
     @property
     def extra_state_attributes(self):
         LOG.debug(f"Adding weather {self._weather}")
-        # Les attributes n'avait pas l'aire créé séparément mais plutot juste en une seule string
-        # J'ai enlevé temperature puis qu'elle était difini 2 fois dans le fond.
-        # J'ai enlevé icon puisque c'était 0 et je voulais pas que ça rentre en conflis avec celle de HA
         return {
             key: self._weather[key]
             for key in self._weather
