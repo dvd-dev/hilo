@@ -71,6 +71,22 @@ CONF_HIGH_PERIODS = {
 
 TARIFF_LIST = ["high", "medium", "low"]
 
+WEATHER_CONDITIONS = {
+    "Unknown": "mdi:weather-sunny-alert",
+    "Blowing Snow": "mdi:weather-snowy-heavy",
+    "Clear": "mdi:weather-sunny",
+    "Cloudy": "mdi:weather-cloudy",
+    "Fair": "mdi:weather-partly-cloudy",
+    "Foggy": "mdi:weather-fog",
+    "Hail Sleet": "mdi:weather-hail",
+    "Mostly Cloudy": "mdi:weather-partly-cloudy",
+    "Rain": "mdi:weather-rainy",
+    "Rain Snow": "mdi:weather-snowy-rainy",
+    "Snow": "mdi:weather-snowy",
+    "Thunder": "mdi:weather-lightning",
+    "Windy": "mdi:weather-windy",
+}
+
 # Class lists
 LIGHT_CLASSES = ["LightDimmer", "WhiteBulb", "ColorBulb", "LightSwitch"]
 HILO_SENSOR_CLASSES = [
