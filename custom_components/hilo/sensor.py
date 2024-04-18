@@ -891,13 +891,9 @@ class HiloOutdoorTempSensor(HiloEntity, SensorEntity):
             if key not in ["temperature", "icon"]
         }
 
-    # async def async_added_to_hass(self):
-    #     """Handle entity about to be added to hass event."""
-    #     await super().async_added_to_hass()
-    #     last_state = await self.async_get_last_state()
-    #     if last_state:
-    #         self._last_update = dt_util.utcnow()
-    #         self._state = last_state.state
+    async def async_added_to_hass(self):
+        """Handle entity about to be added to hass event."""
+        await super().async_added_to_hass()
 
     async def _async_update(self):
         self._weather = {}
