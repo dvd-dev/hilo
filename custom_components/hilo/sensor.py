@@ -873,7 +873,7 @@ class HiloOutdoorTempSensor(HiloEntity, SensorEntity):
     @property
     def icon(self):
         condition = self._weather.get("condition", "").lower()
-        LOG.warning(f"Current condition: {condition}")
+        LOG.debug(f"Current condition: {condition}")
         if not condition:
             return "mdi:lan-disconnect"
         return WEATHER_CONDITIONS.get(self._weather.get("condition", "Unknown"))
