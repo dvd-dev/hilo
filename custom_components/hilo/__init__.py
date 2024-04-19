@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+from collections import OrderedDict
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Union
 
@@ -228,6 +229,7 @@ class Hilo:
         """Initialize."""
         self._api = api
         self._hass = hass
+        self.find_meter(self._hass)
         self.entry = entry
         self.devices: Devices = Devices(api)
         self._websocket_reconnect_task: asyncio.Task | None = None
@@ -509,6 +511,40 @@ class Hilo:
         if self.generate_energy_meters or self.track_unknown_sources:
             self.check_tarif()
 
+    def find_meter(self, hass):
+        entity_registry_dict = {}
+
+        # ic-dev21 on interroge le entity registry de hass.data ici:
+        registry = hass.data.get("entity_registry")
+
+        # ic-dev21 on gère le cas d'un registry vide
+        if registry is None:
+            return entity_registry_dict
+
+        # ic-dev21: on va chercher le nom, peut-être qu'on devrait pogner la platform pour ramasser tout hilo?
+        for entity_id, entity_entry in registry.entities.items():
+            entity_registry_dict[entity_id] = {
+                "name": entity_entry.entity_id,
+            }
+
+        # ic-dev21 je trie le résultat, pourrait probablement être enlevé mais facilite la lecture en debug
+        sorted_entity_registry_dict = OrderedDict(sorted(entity_registry_dict.items()))
+        LOG.debug(f"Hilo Ordered dict is {sorted_entity_registry_dict}")
+
+        # ici j'initialise la liste vide
+        filtered_names = []
+
+        # ic-dev21 je sors juste ce qui nous intéresse
+        for entity_id, entity_data in sorted_entity_registry_dict.items():
+            if all(
+                substring in entity_data["name"] for substring in ["meter", "_power"]
+            ):
+                filtered_names.append(entity_data["name"])
+
+        LOG.debug(f"Current meter names are: {filtered_names}")
+
+        return ", ".join(filtered_names) if filtered_names else ""
+
     def set_state(self, entity, state, new_attrs={}, keep_state=False, force=False):
         params = f"entity={entity}, state={state}, new_attrs={new_attrs}, keep_state={keep_state}"
         current = self._hass.states.get(entity)
@@ -566,13 +602,9 @@ class Hilo:
                 f"check_tarif: Current plan: {plan_name} Target Tarif: {tarif} Energy used: {energy_used.state} Peak: {self.high_times}"
             )
         known_power = 0
-        # smart_meter = "sensor.meter00_power" #retrait de cette ligne pour le block suivant
-        # fix Mig :: definition du smart_meter ; loop sur les entités pour trouver soit "meter00" ou "smartenergymeter_power"
-        for meter_scan in self._hass.states.async_all():
-            entity_lookup = meter_scan.entity_id
-            if entity_lookup.endswith("_power") and entity_lookup.find("meter") > 0:
-                smart_meter = entity_lookup
-                LOG.debug(f"576: setting smart_meter for {entity_lookup}")
+        smart_meter = self.find_meter(self._hass)
+        LOG.debug(f"Smart meter used current is: {smart_meter}")
+
         unknown_source_tracker = "sensor.unknown_source_tracker_power"
         for state in self._hass.states.async_all():
             entity = state.entity_id
