@@ -514,35 +514,33 @@ class Hilo:
     def find_meter(self, hass):
         entity_registry_dict = {}
 
-        # ic-dev21 on interroge le entity registry de hass.data ici:
         registry = hass.data.get("entity_registry")
 
-        # ic-dev21 on gère le cas d'un registry vide
         if registry is None:
             return entity_registry_dict
 
-        # ic-dev21: on va chercher le nom, peut-être qu'on devrait pogner la platform pour ramasser tout hilo?
+        # ic-dev21: Get names of all entities
         for entity_id, entity_entry in registry.entities.items():
             entity_registry_dict[entity_id] = {
                 "name": entity_entry.entity_id,
             }
 
-        # ic-dev21 je trie le résultat, pourrait probablement être enlevé mais facilite la lecture en debug
         sorted_entity_registry_dict = OrderedDict(sorted(entity_registry_dict.items()))
-        LOG.debug(f"Hilo Ordered dict is {sorted_entity_registry_dict}")
+        LOG.debug(f"Entities Ordered dict is {sorted_entity_registry_dict}")
 
-        # ici j'initialise la liste vide
+        # Initialize empty list to put meter name into
         filtered_names = []
 
-        # ic-dev21 je sors juste ce qui nous intéresse
+        # ic-dev21: Let's grab the meter from our dict
         for entity_id, entity_data in sorted_entity_registry_dict.items():
             if all(
                 substring in entity_data["name"] for substring in ["meter", "_power"]
             ):
                 filtered_names.append(entity_data["name"])
 
-        LOG.debug(f"Current meter names are: {filtered_names}")
+        LOG.debug(f"Hilo Smart meter name is: {filtered_names}")
 
+        # Format output to use in check_tarif
         return ", ".join(filtered_names) if filtered_names else ""
 
     def set_state(self, entity, state, new_attrs={}, keep_state=False, force=False):
@@ -602,7 +600,7 @@ class Hilo:
                 f"check_tarif: Current plan: {plan_name} Target Tarif: {tarif} Energy used: {energy_used.state} Peak: {self.high_times}"
             )
         known_power = 0
-        smart_meter = self.find_meter(self._hass)
+        smart_meter = self.find_meter(self._hass)  # comes from find_meter function
         LOG.debug(f"Smart meter used current is: {smart_meter}")
 
         unknown_source_tracker = "sensor.unknown_source_tracker_power"
