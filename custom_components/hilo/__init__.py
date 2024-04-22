@@ -601,7 +601,7 @@ class Hilo:
             )
         known_power = 0
         smart_meter = self.find_meter(self._hass)  # comes from find_meter function
-        LOG.debug(f"Smart meter used current is: {smart_meter}")
+        LOG.debug(f"Smart meter used currently is: {smart_meter}")
 
         unknown_source_tracker = "sensor.unknown_source_tracker_power"
         for state in self._hass.states.async_all():
