@@ -594,7 +594,7 @@ class Hilo:
             target_cost = self._hass.states.get(f"sensor.hilo_rate_{tarif}")
             if target_cost.state != current_cost.state:
                 LOG.debug(
-                    f"check_tarif: Updating current cost for {self}, was {current_cost.state} now {target_cost.state}"
+                    f"check_tarif: Updating current cost, was {current_cost.state} now {target_cost.state}"
                 )
                 self.set_state("sensor.hilo_rate_current", target_cost.state)
             LOG.debug(
@@ -687,9 +687,6 @@ class Hilo:
     def set_tarif(self, entity, current, new):
         if self.untarificated_devices and entity != f"select.{HILO_ENERGY_TOTAL}":
             return
-        #if entity.find("select.") > 0 and entity.find("hilo_energy")>0: #code inutile
-        #    LOG.debug(f"656: set_tarif sur un select .. BAD")
-        #    return
         if entity.startswith("select.hilo_energy") and current != new:
             LOG.debug(
                 f"check_tarif: Changing tarif of {entity} from {current} to {new}"
