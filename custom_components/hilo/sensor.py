@@ -1,5 +1,4 @@
 """Support for various Hilo sensors."""
-
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
@@ -18,7 +17,6 @@ from homeassistant.const import (
     CURRENCY_DOLLAR,
     PERCENTAGE,
     SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
-    STATE_UNKNOWN,
     Platform,
     UnitOfEnergy,
     UnitOfPower,
@@ -26,8 +24,8 @@ from homeassistant.const import (
     UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import Throttle, slugify
 import homeassistant.util.dt as dt_util
@@ -57,7 +55,6 @@ from .const import (
     NOTIFICATION_SCAN_INTERVAL,
     REWARD_SCAN_INTERVAL,
     TARIFF_LIST,
-    WEATHER_CONDITIONS,
 )
 from .managers import EnergyManager, UtilityManager
 
@@ -100,9 +97,6 @@ def generate_entities_from_device(device, hilo, scan_interval):
         )
         entities.append(
             HiloNotificationSensor(hilo, device, scan_interval),
-        )
-        entities.append(
-            HiloOutdoorTempSensor(hilo, device, scan_interval),
         )
     if device.has_attribute("battery"):
         entities.append(BatterySensor(hilo, device))
@@ -188,8 +182,12 @@ async def async_setup_entry(
             cost_entities.append(
                 HiloCostSensor(hilo, sensor_name, hq_plan_name, amount)
             )
-    cost_entities.append(HiloCostSensor(hilo, "Hilo rate current", hq_plan_name))
+    hilo_rate_current = HiloCostSensor(hilo, "Hilo rate current", hq_plan_name)
+    cost_entities.append(hilo_rate_current)
     async_add_entities(cost_entities)
+    async_track_state_change_event(
+        hilo._hass, ["sensor.hilo_rate_current"], hilo_rate_current._handle_state_change
+    )
     # This setups the utility_meter platform
     await utility_manager.update(async_add_entities)
     # This sends the entities to the energy dashboard
@@ -262,6 +260,7 @@ class EnergySensor(IntegrationSensor):
     _attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
     _attr_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+    _attr_icon = "mdi:lightning-bolt"
 
     def __init__(self, hilo, device):
         self._device = device
@@ -281,9 +280,6 @@ class EnergySensor(IntegrationSensor):
         initial_state = 0
         self._attr_native_value = initial_state
         self._attr_last_valid_state = initial_state
-        self._device_info = DeviceInfo(
-            identifiers={(DOMAIN, self._device.identifier)},
-        )
 
         super().__init__(
             integration_method=METHOD_LEFT,
@@ -293,9 +289,7 @@ class EnergySensor(IntegrationSensor):
             unique_id=self._attr_unique_id,
             unit_prefix="k",
             unit_time="h",
-            device_info=self._device_info,
         )
-        self._attr_icon = "mdi:lightning-bolt"
         LOG.debug(
             f"Setting up EnergySensor entity: {self._attr_name} with source {self._source}"
         )
@@ -791,13 +785,12 @@ class DeviceSensor(HiloEntity, SensorEntity):
             return "mdi:access-point-network-off"
         return "mdi:access-point-network"
 
-
-class HiloCostSensor(HiloEntity, RestoreEntity, SensorEntity):
+class HiloCostSensor(HiloEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.MONETARY
     _attr_native_unit_of_measurement = (
         f"{CURRENCY_DOLLAR}/{UnitOfEnergy.KILO_WATT_HOUR}"
     )
-    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_state_class = SensorStateClass.TOTAL
     _attr_icon = "mdi:cash"
 
     def __init__(self, hilo, name, plan_name, amount=0):
@@ -810,7 +803,8 @@ class HiloCostSensor(HiloEntity, RestoreEntity, SensorEntity):
         self.data = None
         self._attr_name = name
         self.plan_name = plan_name
-        self._amount = amount
+        self._last_update = dt_util.utcnow()
+        self._cost = amount
         old_unique_id = slugify(self._attr_name)
         self._attr_unique_id = (
             f"{slugify(device.identifier)}-{slugify(self._attr_name)}"
@@ -821,10 +815,33 @@ class HiloCostSensor(HiloEntity, RestoreEntity, SensorEntity):
         self._last_update = dt_util.utcnow()
         super().__init__(hilo, name=self._attr_name, device=device)
         LOG.info(f"Initializing energy cost sensor {name} {plan_name} Amount: {amount}")
+    
+    def _handle_state_change(self, event):
+        LOG.debug(f"_handle_state_change() {self} | {self._last_update} ")
+        if (state := event.data.get("new_state")) is None:
+            return
+        """
+        if state.entity_id != f"sensor.{self._attr_unique_id}":
+            LOG.debug(f"_handle_state_change() second catch | {state.entity_id} | {self._attr_unique_id}")
+            return
+        """
+        now = dt_util.utcnow()
+        try:
+            if (
+                state.attributes.get("hilo_update")
+                and self._last_update + timedelta(seconds=30) < now
+            ):
+                LOG.debug(
+                    f"Setting new state {state.state} {state=} {state.attributes=}"
+                )
+                self._cost = state.state
+                self._last_update = now
+        except ValueError:
+            LOG.error(f"Invalidate state received for {self._attr_unique_id}: {state}")
 
     @property
     def state(self):
-        return self._amount
+        return self._cost
 
     @property
     def should_poll(self) -> bool:
@@ -832,72 +849,16 @@ class HiloCostSensor(HiloEntity, RestoreEntity, SensorEntity):
 
     @property
     def extra_state_attributes(self):
-        return {"last_update": self._last_update, "Cost": self.state}
-
-    async def async_added_to_hass(self):
-        """Handle entity about to be added to hass event."""
-        await super().async_added_to_hass()
-
-    async def async_update(self):
-        return
-
-
-class HiloOutdoorTempSensor(HiloEntity, SensorEntity):
-    """Hilo outdoor temperature sensor.
-    Its state will be the current outdoor weather as reported by the Hilo App
-    """
-
-    _attr_device_class = SensorDeviceClass.TEMPERATURE
-    _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
-    _attr_state_class = SensorStateClass.MEASUREMENT
-
-    def __init__(self, hilo, device, scan_interval):
-        self._attr_name = "Outdoor Weather Hilo"
-        super().__init__(hilo, name=self._attr_name, device=device)
-        self._attr_unique_id = (
-            f"{slugify(device.identifier)}-{slugify(self._attr_name)}"
-        )
-        LOG.debug(f"Setting up OutdoorWeatherSensor entity: {self._attr_name}")
-        self.scan_interval = timedelta(seconds=EVENT_SCAN_INTERVAL_REDUCTION)
-        self._state = STATE_UNKNOWN
-        self._weather = {}
-        self.async_update = Throttle(self.scan_interval)(self._async_update)
-
-    @property
-    def state(self):
-        try:
-            return int(self._state)
-        except ValueError:
-            return STATE_UNKNOWN
-
-    @property
-    def icon(self):
-        condition = self._weather.get("condition", "").lower()
-        LOG.debug(f"Current condition: {condition}")
-        if not condition:
-            return "mdi:lan-disconnect"
-        return WEATHER_CONDITIONS.get(self._weather.get("condition", "Unknown"))
-
-    @property
-    def should_poll(self):
-        return True
-
-    @property
-    def extra_state_attributes(self):
-        LOG.debug(f"Adding weather {self._weather}")
         return {
-            key: self._weather[key]
-            for key in self._weather
-            if key not in ["temperature", "icon"]
+            "Cost": self._cost,
+            "Plan": self.plan_name,
+            "last_update": self._last_update,
         }
 
     async def async_added_to_hass(self):
         """Handle entity about to be added to hass event."""
         await super().async_added_to_hass()
 
-    async def _async_update(self):
-        self._weather = {}
-        self._weather = await self._hilo._api.get_weather(
-            self._hilo.devices.location_id
-        )
-        self._state = self._weather.get("temperature")
+    async def async_update(self):
+        self._last_update = dt_util.utcnow()
+        return super().async_update()
