@@ -607,10 +607,10 @@ class Hilo:
         for state in self._hass.states.async_all():
             entity = state.entity_id
             if entity.endswith("hilo_rate_current"):
-                #LOG.debug(f"591: check_tarif {entity} abort loop")
+                # LOG.debug(f"591: check_tarif {entity} abort loop")
                 continue
             if self.generate_energy_meters:
-                #LOG.debug(f"594: check_tarif {entity} set tarif call")
+                # LOG.debug(f"594: check_tarif {entity} set tarif call")
                 self.set_tarif(entity, state.state, tarif)
             if entity.endswith("_power") and entity not in [
                 unknown_source_tracker,
@@ -657,7 +657,7 @@ class Hilo:
         """not sure why this doesn't get created with a proper device_class"""
         current_state = state.as_dict()
         attrs = current_state.get("attributes", {})
-        if entity.startswith("select.") or entity.find("hilo_rate")>0: #fix mig
+        if entity.startswith("select.") or entity.find("hilo_rate") > 0:  # fix mig
             return
         if not attrs.get("source"):
             LOG.debug(f"No source entity defined on {entity}: {current_state}")

@@ -796,6 +796,7 @@ class DeviceSensor(HiloEntity, SensorEntity):
             return "mdi:access-point-network-off"
         return "mdi:access-point-network"
 
+
 class HiloCostSensor(HiloEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.MONETARY
     _attr_native_unit_of_measurement = (
@@ -826,7 +827,7 @@ class HiloCostSensor(HiloEntity, SensorEntity):
         self._last_update = dt_util.utcnow()
         super().__init__(hilo, name=self._attr_name, device=device)
         LOG.info(f"Initializing energy cost sensor {name} {plan_name} Amount: {amount}")
-    
+
     def _handle_state_change(self, event):
         LOG.debug(f"_handle_state_change() {self} | {self._last_update} ")
         if (state := event.data.get("new_state")) is None:
@@ -873,6 +874,7 @@ class HiloCostSensor(HiloEntity, SensorEntity):
     async def async_update(self):
         self._last_update = dt_util.utcnow()
         return super().async_update()
+
 
 class HiloOutdoorTempSensor(HiloEntity, SensorEntity):
     """Hilo outdoor temperature sensor.
