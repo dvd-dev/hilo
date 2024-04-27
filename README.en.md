@@ -69,14 +69,16 @@ rewrite it. Hilo is now pushing device readings via websocket from SignalR.
 ### Step 0: Compatible install
 This custom component requires that Hilo has carried out the install in your home. It will not be possible to set it up otherwise.
 
-This custom component has been tested to work by various users on HA OS (as bare metal or VM), Docker with the official (ghcr.io) image and Podman. Other types of install may cause permissions issues during creation of a few files by the custom component.
+This custom component has been tested to work by various users on HA OS (as bare metal or VM), Docker with the official (ghcr.io) image and Podman. Other types of install may cause permission issues during the creation of a few files by the custom component.
 
 ### Step 1: Download files
 
 #### Option 1: Via HACS
 
+[![Open Hilo inside your Home Assistant Community Store (HACS).](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=dvd-dev&repository=hilo&category=integration)
+
 Make sure you have [HACS](https://hacs.xyz/docs/setup/download/) installed.
-Under HACS, click the '+ EXPLORE & DOWNLOAD REPOSITORIES' button on the bottom of the page, serch for "Hilo", choose it, and click _download_ in HACS.
+Under HACS, click the '+ EXPLORE & DOWNLOAD REPOSITORIES' button on the bottom of the page, search for "Hilo", choose it, and click _download_ in HACS.
 
 #### Option 2: Manual
 
@@ -84,12 +86,14 @@ Download and copy the `custom_components/hilo` directory from the [latest releas
 
 ### Step 2: Add integration to HA (<--- this is a step that a lot of people forget)
 
+[![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=hilo)
+
 In HA, go to Settings > Devices & Services > Integrations.
 In the bottom right corner, click the '+ ADD INTEGRATION' button.
 
 ![Add Integration](https://github.com/dvd-dev/hilo/assets/108159253/7906f2c9-9547-4478-a625-feaa68e62c5f)
 
-If the component is properly installed, you should be able to find the 'Hilo integration' in the list. You might need to clear you browser cache for the integration to show up.
+If the component is properly installed, you should be able to find the 'Hilo integration' in the list. You might need to clear your browser cache for the integration to show up.
 
 ![Search Integration](https://github.com/dvd-dev/hilo/assets/108159253/1b560a73-042b-46cf-963c-98e5326e98e8)
 
@@ -109,7 +113,7 @@ You must then accept to link your account. To do so, you must enter your Home As
 
 ![Link URL](https://github.com/dvd-dev/hilo/assets/108159253/2c54df64-2e1c-423c-89cf-0eee8f0d4b7b)
 
-After this, you will be prompted with assigning a room for each one of your devices.
+After this, you will be prompted to assign a room for each one of your devices.
 
 ## Configuration (update from a version earlier than v2024.3.1)
 
@@ -119,7 +123,7 @@ After update, you will get an error saying you must reauthenticate for the integ
 
 ![Reath](https://github.com/dvd-dev/hilo/assets/108159253/70118e68-90b9-4667-b056-38ee2cd33133)
 
-After correctly linking your account like in the previous section, you should see a popup telling you the reauthentification was sucessful.
+After correctly linking your account like in the previous section, you should see a popup telling you the reauthentification was successful.
 
 ### Energy meters
 
@@ -149,7 +153,7 @@ home assistant. You simply need to add a line like this in your `configuration.y
     utility_meter:
     ```
 
-* Click `Configure` in the integration UI and check the `Generate energy meters` box.
+* Click`Configure` on the integration UI and check the `Generate energy meters` box.
 
 * Restart home assistant and wait 5 minutes until you see the `sensor.hilo_energy_total_low` entity getting created and populated
   with data:
@@ -170,7 +174,7 @@ home assistant. You simply need to add a line like this in your `configuration.y
 Once created, energy meters will then have to be added manually to the energy dashboard.
 
 
-### Other configuration
+### Other configurations
 
 Other options are available under the `Configure` button in Home Assistant:
 
@@ -305,7 +309,7 @@ EOF
 $ docker restart hass
 ```
 
-### Before submiting a Pull Request
+### Before submitting a Pull Request
 
 It goes without saying you must test your modifications on your local install for problems. You may modify the .py files inside the following folder. Don't forget a backup!
 ```
@@ -329,7 +333,7 @@ And restart Home Assistant
 
 - First you need to `fork` the repository into your own userspace.
 - And then, you can `clone` it on your computer.
-- To maintain some kind of tidyness and standard in the code, we have some linters and validators that need to be executed via `pre-commit` hooks:
+- To maintain some kind of tidiness and standard in the code, we have some linters and validators that need to be executed via `pre-commit` hooks:
 ```
 pre-commit install --install-hooks
 ```
@@ -342,7 +346,7 @@ git add path/to/file
 ```
 git commit -m "I changed this because blabla"
 ```
-- Finally, you can `push` the change on your upstream repository:
+- Finally, you can `push` the change in your upstream repository:
 ```
 git push
 ```
