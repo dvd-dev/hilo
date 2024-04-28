@@ -167,6 +167,7 @@ async def async_setup_entry(
             tariff_list = validate_tariff_list(tariff_config)
         net_consumption = device.net_consumption
         utility_manager.add_meter(energy_entity, tariff_list, net_consumption)
+        LOG.debug("Hil0 utility_manager is being called by add_meter")
 
     for d in hilo.devices.all:
         LOG.debug(f"Adding device {d}")
@@ -175,6 +176,7 @@ async def async_setup_entry(
             # If we opt out the generation of meters we just create the power sensors
             if generate_energy_meters:
                 create_energy_entity(hilo, d)
+                LOG.debug("Hil0 create_energy_entity is being called")
 
     async_add_entities(new_entities)
     if not generate_energy_meters:
@@ -185,12 +187,14 @@ async def async_setup_entry(
     for tarif, amount in tariff_config.items():
         if amount > 0:
             sensor_name = f"Hilo rate {tarif}"
+            LOG.debug(f"Hil0 for loop tarif {sensor_name}")
             cost_entities.append(
                 HiloCostSensor(hilo, sensor_name, hq_plan_name, amount)
             )
     hilo_rate_current = HiloCostSensor(hilo, "Hilo rate current", hq_plan_name)
     cost_entities.append(hilo_rate_current)
     async_add_entities(cost_entities)
+    LOG.debug(f"Hil0 async_add_entities {cost_entities}")
     async_track_state_change_event(
         hilo._hass, ["sensor.hilo_rate_current"], hilo_rate_current._handle_state_change
     )

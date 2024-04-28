@@ -24,13 +24,56 @@ class UtilityManager:
         self.meter_configs = OrderedDict()
         self.meter_entities = {}
         self.new_entities = 0
+        self.get_entity_registry(hass)
+
+    def get_entity_registry(self, hass):
+        entity_registry_dict = {}
+
+        # ic-dev21 on interroge le entity registry de hass.data ici:
+        registry = hass.data.get("entity_registry")
+
+        # ic-dev21 on gère le cas d'un registry vide
+        if registry is None:
+            return entity_registry_dict
+
+        # ic-dev21: on va chercher le nom, peut-être qu'on devrait pogner la platform pour ramasser tout hilo?
+        for entity_id, entity_entry in registry.entities.items():
+            entity_registry_dict[entity_id] = {
+                "name": entity_entry.entity_id,
+            }
+
+        # ic-dev21 je trie le résultat, pourrait probablement être enlevé mais facilite la lectue en debug
+        sorted_entity_registry_dict = OrderedDict(sorted(entity_registry_dict.items()))
+        LOG.debug(f"Hil0 Ordered dict is {sorted_entity_registry_dict}")
+
+        # ic-dev21 on va chercher juste les hilo_energy, étape peut-être superflue?
+        # ici j'initialise le dict vide
+        self.filtered_entity_dict = {}
+
+        # ic-dev21 je sors tout ce qui a hilo_energy dedans
+        for entity_id, entity_data in sorted_entity_registry_dict.items():
+            if "hilo_energy" in entity_data["name"]:
+                self.filtered_entity_dict[entity_id] = entity_data
+        LOG.debug(f"Hil0 Filtered entity dict is {self.filtered_entity_dict}")
+
+        return (
+            sorted_entity_registry_dict,
+            self.filtered_entity_dict,
+        )
 
     def add_meter(self, entity, tariff_list, net_consumption=False):
+        LOG.debug("Hil0 Add_meter has been called")
         self.add_meter_entity(entity, tariff_list)
+        LOG.debug("Hil0 add_meter_entity is being called")
         self.add_meter_config(entity, tariff_list, net_consumption)
 
     def add_meter_entity(self, entity, tariff_list):
-        if entity in self.hass.data.get("utility_meter_data", {}):
+        # ic-dev21 debug logging ici, j'arrive à gérer le cas du hilo_total_energy mais pas la balance
+        # me reste à comprendre pourquoi les appareils ne fonctionnent pas là dedans, naming scheme?
+        # TODO: cleaup commentaires à la fin
+        LOG.debug(f"Hil0 Entity is {entity}")
+        # ic-dev21: je strip le whitespace pour vérifier dans mon dict
+        if f"sensor.{entity.strip()}" in self.filtered_entity_dict:
             LOG.debug(f"Entity {entity} is already in the utility meters")
             return
         self.new_entities += 1
