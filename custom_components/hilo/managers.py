@@ -40,6 +40,7 @@ class UtilityManager:
         for entity_id, entity_entry in registry.entities.items():
             entity_registry_dict[entity_id] = {
                 "name": entity_entry.entity_id,
+                "unit_of_measurement": entity_entry.unit_of_measurement,
             }
 
         # ic-dev21 je trie le résultat, pourrait probablement être enlevé mais facilite la lectue en debug
@@ -77,14 +78,26 @@ class UtilityManager:
             name = f"{entity}_{self.period}"
             meter_name = f"{name} {tarif}"
             self._attr_unique_id = f"sensor.{entity}_{tarif}"
+            entity_id = self._attr_unique_id
             LOG.debug(f"unique_id is {self._attr_unique_id}")
             LOG.debug(f"Creating UtilityMeter entity for {entity}: {meter_name}")
+
+            # Fetching unit of measurement from the source entity
+            source_entity = f"sensor.{entity}"
+            if source_entity in self.filtered_entity_dict:
+                unit_of_measurement = self.filtered_entity_dict[source_entity].get("unit_of_measurement")
+                LOG.debug(f"add_meter unit is {unit_of_measurement}")
+            else:
+                unit_of_measurement = None
+
             self.meter_entities[meter_name] = {
                 "meter": entity,
                 "name": meter_name,
                 "tariff": tarif,
                 "entity_id": self._attr_unique_id,
+                "unit_of_measurement": unit_of_measurement,
             }
+            LOG.debug(f"meter_entities dict is: {self.meter_entities}")
     def add_meter_config(self, entity, tariff_list, net_consumption):
         name = f"{entity}_{self.period}"
         LOG.debug(
