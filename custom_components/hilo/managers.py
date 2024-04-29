@@ -62,31 +62,29 @@ class UtilityManager:
         )
 
     def add_meter(self, entity, tariff_list, net_consumption=False):
-        LOG.debug("Hil0 Add_meter has been called")
         self.add_meter_entity(entity, tariff_list)
-        LOG.debug("Hil0 add_meter_entity is being called")
         self.add_meter_config(entity, tariff_list, net_consumption)
 
     def add_meter_entity(self, entity, tariff_list):
-        # ic-dev21 debug logging ici, j'arrive à gérer le cas du hilo_total_energy mais pas la balance
-        # me reste à comprendre pourquoi les appareils ne fonctionnent pas là dedans, naming scheme?
-        # TODO: cleaup commentaires à la fin
         LOG.debug(f"Hil0 Entity is {entity}")
-        # ic-dev21: je strip le whitespace pour vérifier dans mon dict
-        if f"sensor.{entity.strip()}" in self.filtered_entity_dict:
-            LOG.debug(f"Entity {entity} is already in the utility meters")
-            return
+
         self.new_entities += 1
         for tarif in tariff_list:
+            # un if semblable irait ici je crois
+            #    if f"sensor.{entity.strip()}" in self.filtered_entity_dict:
+            #        LOG.debug(f"Entity {entity} is already in the utility meters")
+            #        return
             name = f"{entity}_{self.period}"
             meter_name = f"{name} {tarif}"
+            self._attr_unique_id = f"sensor.{entity}_{tarif}"
+            LOG.debug(f"unique_id is {self._attr_unique_id}")
             LOG.debug(f"Creating UtilityMeter entity for {entity}: {meter_name}")
             self.meter_entities[meter_name] = {
                 "meter": entity,
                 "name": meter_name,
                 "tariff": tarif,
+                "entity_id": self._attr_unique_id,
             }
-
     def add_meter_config(self, entity, tariff_list, net_consumption):
         name = f"{entity}_{self.period}"
         LOG.debug(
