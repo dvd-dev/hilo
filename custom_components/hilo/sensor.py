@@ -832,11 +832,7 @@ class HiloCostSensor(HiloEntity, SensorEntity):
         LOG.debug(f"_handle_state_change() {self} | {self._last_update} ")
         if (state := event.data.get("new_state")) is None:
             return
-        """
-        if state.entity_id != f"sensor.{self._attr_unique_id}":
-            LOG.debug(f"_handle_state_change() second catch | {state.entity_id} | {self._attr_unique_id}")
-            return
-        """
+
         now = dt_util.utcnow()
         try:
             if (
