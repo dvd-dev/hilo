@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+from collections import OrderedDict
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Union
 
@@ -228,6 +229,7 @@ class Hilo:
         """Initialize."""
         self._api = api
         self._hass = hass
+        self.find_meter(self._hass)
         self.entry = entry
         self.devices: Devices = Devices(api)
         self._websocket_reconnect_task: asyncio.Task | None = None
@@ -509,6 +511,38 @@ class Hilo:
         if self.generate_energy_meters or self.track_unknown_sources:
             self.check_tarif()
 
+    def find_meter(self, hass):
+        entity_registry_dict = {}
+
+        registry = hass.data.get("entity_registry")
+
+        if registry is None:
+            return entity_registry_dict
+
+        # ic-dev21: Get names of all entities
+        for entity_id, entity_entry in registry.entities.items():
+            entity_registry_dict[entity_id] = {
+                "name": entity_entry.entity_id,
+            }
+
+        sorted_entity_registry_dict = OrderedDict(sorted(entity_registry_dict.items()))
+        LOG.debug(f"Entities Ordered dict is {sorted_entity_registry_dict}")
+
+        # Initialize empty list to put meter name into
+        filtered_names = []
+
+        # ic-dev21: Let's grab the meter from our dict
+        for entity_id, entity_data in sorted_entity_registry_dict.items():
+            if all(
+                substring in entity_data["name"] for substring in ["meter", "_power"]
+            ):
+                filtered_names.append(entity_data["name"])
+
+        LOG.debug(f"Hilo Smart meter name is: {filtered_names}")
+
+        # Format output to use in check_tarif
+        return ", ".join(filtered_names) if filtered_names else ""
+
     def set_state(self, entity, state, new_attrs={}, keep_state=False, force=False):
         params = f"entity={entity}, state={state}, new_attrs={new_attrs}, keep_state={keep_state}"
         current = self._hass.states.get(entity)
@@ -566,7 +600,9 @@ class Hilo:
                 f"check_tarif: Current plan: {plan_name} Target Tarif: {tarif} Energy used: {energy_used.state} Peak: {self.high_times}"
             )
         known_power = 0
-        smart_meter = "sensor.meter00_power"
+        smart_meter = self.find_meter(self._hass)  # comes from find_meter function
+        LOG.debug(f"Smart meter used currently is: {smart_meter}")
+
         unknown_source_tracker = "sensor.unknown_source_tracker_power"
         for state in self._hass.states.async_all():
             entity = state.entity_id
