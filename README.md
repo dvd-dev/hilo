@@ -134,7 +134,7 @@ un extrait du fichier `home-assistant.log`. La méthode est expliquée [ci-bas.]
 Si vous souhaitez utiliser la génération automatique des capteurs de consommation électrique, suivez les étapes suivantes:
 
 * S'assurer que la plateforme `utility_meter` est chargée dans votre fichier `configuration.yaml` de
-Home Assistant. Vous n'avez qu'à ajouter une ligne au fichier comme suit : 
+Home Assistant. Vous n'avez qu'à ajouter une ligne au fichier comme suit :
 
     ```
     utility_meter:
