@@ -565,7 +565,6 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
         if currency:
             self._attr_native_unit_of_measurement = currency
         else:
-            # Set a default currency or handle the case where currency is not configured
             self._attr_native_unit_of_measurement = "CAD"
 
         super().__init__(hilo, name=self._attr_name, device=device)
