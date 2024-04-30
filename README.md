@@ -67,7 +67,9 @@ Cette intégration a été testée par des utilisateurs sous HA OS (bare metal e
 
 #### Option 1: Via HACS
 
-Assurez-vous d'avoir [HACS](https://hacs.xyz/docs/setup/download/) installé.
+[![Ouvrir Hilo dans Home Assistant Community Store (HACS).](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=dvd-dev&repository=hilo&category=integration)
+
+Assurez-vous d'avoir [HACS](https://hacs.xyz/docs/setup/download/) d'installé.
 Sous HACS, cliquer le bouton '+ EXPLORE & DOWNLOAD REPOSITORIES' au bas de la page, rechercher "Hilo", le choisir, et cliquer sur _download_ dans HACS.
 
 #### Option 2: Manuellement
@@ -75,6 +77,8 @@ Sous HACS, cliquer le bouton '+ EXPLORE & DOWNLOAD REPOSITORIES' au bas de la pa
 Télécharger et copier le dossier `custom_components/hilo` de la [dernière version](https://github.com/dvd-dev/hilo/releases/latest) dans votre dossier `custom_components` de Home Assistant.
 
 ### Étape 2: Ajouter l'intégration à HA (<--- étape souvent oubliée)
+
+[![Ouvrir Home Assistant et démarrer la configuration d'une nouvelle intégration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=hilo)
 
 Dans HA, aller à Paramètres > Appareils et services > Intégrations.
 Dans le coin inférieur droit, cliquer sur le bouton '+ AJOUTER UNE INTÉGRATION'.
@@ -93,7 +97,7 @@ La configuration est faite via l'interface utilisateur. Lorsque vous ajoutez l'i
 
 ![Auth Hilo](https://github.com/dvd-dev/hilo/assets/108159253/e4e98b32-78d0-4c49-a2d7-3bd0ae95e9e0)
 
-Vous devez ensuite accepter de lier votre compte. Pour ce faire, saisir l'addresse (URL ou IP) de votre instance Home Assistant et appuyez sur Link Account.
+Vous devez ensuite accepter de lier votre compte. Pour ce faire, saisir l'adresse (URL ou IP) de votre instance Home Assistant et appuyer sur Link Account.
 
 ![Link](https://github.com/dvd-dev/hilo/assets/108159253/5eb945f7-fa5e-458f-b0fe-ef252aaadf93)
 
@@ -107,13 +111,13 @@ Après la mise à jour, vous obtiendrez une erreur comme quoi vous devez vous r�
 
 ![Réauthentifier](https://github.com/dvd-dev/hilo/assets/108159253/6b1bf2c3-0d7a-4eb8-815b-594401fc09ef)
 
-Après avoir lié votre compte comme montré à la section configuration initale, le message suivant apparaîtra.
+Après avoir lié votre compte comme montré à la section configuration initiale, le message suivant apparaitra.
 
 ![Réauthentifié succès](https://github.com/dvd-dev/hilo/assets/108159253/7708b449-24c3-43c1-843b-8697ae192db1)
 
 ### :warning: Compteurs de consommation électrique
 
-La génération automatique des compteurs de consommation électrique est actuellement brisée. J'avais codé ça quand le panneau d'énergie de Homeassistant venait d'être rendu disponible et malheureusement, cette partie du code a changé énormément. Je n'ai plus le temps pour le moment de me remettre la tête là-dedans mais si quelqu'un est assez brave pour se pencher là-dessus en détail, ça va me faire plaisir de merger les patchs.
+La génération automatique des compteurs de consommation électrique est actuellement brisée. J'avais codé ça quand le panneau d'énergie de Homeassistant venait d'être rendu disponible et malheureusement, cette partie du code a changé énormément. Je n'ai plus le temps pour le moment de me remettre la tête là-dedans, mais si quelqu'un est assez brave pour se pencher là-dessus en détail, ça va me faire plaisir de merger les patchs.
 
 Voir les issues #204 #281 #292
 
@@ -127,11 +131,11 @@ D'autres options sont disponibles sous le bouton "Configurer" dans Home Assistan
 
 - `Générer seulement les compteurs totaux pour chaque appareil`: Case à cocher
 
-  Calculez uniquement le total d'énergie sans diviser entre le coût faible et le coût élevé
+  Calculez uniquement le total d'énergie sans diviser entre le cout faible et le cout élevé
 
 - `Enregistrer également les données de demande et les messages Websocket (nécessite un niveau de journal de débogage à la fois sur l'intégration et sur pyhilo)`: Case à cocher
 
-  Permet un niveau de journalisation plus élevé pour les développeurs/le débogage
+  Permets un niveau de journalisation plus élevé pour les développeurs/le débogage
 
 - `Vérouiller les entités climate lors de défis Hilo, empêchant tout changement lorsqu'un défi est en cours.`: Case à cocher
 
@@ -141,7 +145,7 @@ D'autres options sont disponibles sous le bouton "Configurer" dans Home Assistan
 
   Toutes les sources d'énergie autres que le matériel Hilo sont regroupées dans un seul capteur. Utilise la lecture du compteur intelligent de la maison.
 
-- `Nom du tarif Hydro Québec ('rate d' ou 'flex d')`: chaîne
+- `Nom du tarif Hydro Québec ('rate d' ou 'flex d')`: chaine
 
   Définissez le nom du plan tarifaire d'Hydro-Québec.
   Seules 2 valeurs sont prises en charge pour le moment:
@@ -150,7 +154,7 @@ D'autres options sont disponibles sous le bouton "Configurer" dans Home Assistan
 
 - `Intervalle de mise à jour (min: 60s)`: Nombre entier
 
-  Nombre de secondes entre chaque mise à jour de l'appareil. Par défaut à 60s. Il n'est pas recommandé d'aller en dessous de 30, car cela pourrait entraîner une suspension de Hilo. Depuis [2023.11.1](https://github.com/dvd-dev/hilo/releases/tag/v2023.11.1) le minimum est passé de 15s à 60s.
+  Nombre de secondes entre chaque mise à jour de l'appareil. Par défaut à 60s. Il n'est pas recommandé d'aller en dessous de 30, car cela pourrait entrainer une suspension de Hilo. Depuis [2023.11.1](https://github.com/dvd-dev/hilo/releases/tag/v2023.11.1) le minimum est passé de 15s à 60s.
 
 ## Exemples d'intégrations Lovelace et d'automatisations
 
@@ -175,7 +179,7 @@ Vous pouvez trouver la FAQ dans le wiki du projet: https://github.com/dvd-dev/hi
 
 Rapporter tout problème est une bonne manière disponible à tous de contribuer au projet.
 
-Si vous éprouvez des problèmes ou voyez des comportements étranges, merci de soumettre un "Issue" et d'y attach vos journaux.
+Si vous éprouvez des problèmes ou voyez des comportements étranges, merci de soumettre une "Issue" et d'y attacher vos journaux.
 
 Pour mettre en fonction la journalisation de débogage, vous devez ajouter ceci dans votre fichier `configuration.yaml`:
 ```yaml
@@ -186,11 +190,11 @@ logger:
      pyhilo: debug
 ```
 
-Si vous avez de l'expérience python ou Home Assistant et que vous souhaitez contribuer au code, n'hésitez pas à soumettre une pull request.
+Si vous avez de l'expérience python ou Home Assistant et que vous souhaitez contribuer au code, n'hésitez pas à soumettre un pull request.
 
-### Préparer un environment de développement sur MacOS / Linux
+### Préparer un environnement de développement sur macOS / Linux
 
-1. Preparer les dossiers necessaires:
+1. Préparer les dossiers nécessaires:
 ```console
 $ HASS_DEV=~/hass-dev/
 $ HASS_RELEASE=2023.12.3
@@ -216,7 +220,7 @@ $ docker run -d -p 8123:8123 \
   homeassistant/home-assistant:$HASS_RELEASE
 ```
 
-3. Verifier que le container roule
+3. Vérifier que le container roule
 
 ```console
 $ docker ps
@@ -224,7 +228,7 @@ CONTAINER ID   IMAGE                                    COMMAND   CREATED       
 bace2264ee54   homeassistant/home-assistant:2023.12.3   "/init"   3 hours ago   Up 28 minutes   0.0.0.0:8123->8123/tcp   hass
 ```
 
-4. Verifier les logs de home-assistant
+4. Vérifier les logs de home-assistant
 ```console
 $ less ${HASS_DEV}/config/home-assistant.log
 $ grep hilo ${HASS_DEV}/config/home-assistant.log
