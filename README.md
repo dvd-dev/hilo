@@ -126,7 +126,7 @@ Lorsque l'on active les compteurs, il est recommandé de retirer les anciens cap
 données en double.
 
 Si vous avez un problème et voulez collaborer, merci de mettre en marche la journalisation `debug` et de fournir
-un extrait du fichier `home-assistant.log`. La méthode est expliquée ci-bas. [ci-bas](https://github.com/dvd-dev/hilo/blob/main/README.en.md#contributing).
+un extrait du fichier `home-assistant.log`. La méthode est expliquée [ci-bas.](https://github.com/dvd-dev/hilo?tab=readme-ov-file#contribuer).
 
 
 #### Procédure
