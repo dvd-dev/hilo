@@ -68,12 +68,12 @@ Home Assistant instance running and already configured with the included
 file.
 
 You can use the `pre-commit` settings implemented in this repository to have
-linting tool checking your contributions (see deicated section below).
+linting tool checking your contributions (see dedicated section below).
 
 ## Pre-commit
 
 You can use the [pre-commit](https://pre-commit.com/) settings included in the
-repostory to have code style and linting checks.
+repository to have code style and linting checks.
 
 With `pre-commit` tool already installed,
 activate the settings of the repository:
