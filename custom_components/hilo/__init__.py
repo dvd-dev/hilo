@@ -571,68 +571,47 @@ class Hilo:
         return False
 
     def check_tarif(self):
-        # ic-dev21: refactoring this to make it simpler to debug. Split the operation in a few private functions.
-        if not self.generate_energy_meters:
-            return
+        if self.generate_energy_meters:
+            tarif = "low"
+            base_sensor = f"sensor.{HILO_ENERGY_TOTAL}_low"
+            energy_used = self._hass.states.get(base_sensor)
+            if not energy_used:
+                LOG.warning(f"check_tarif: Unable to find state for {base_sensor}")
+                return tarif
+            plan_name = self.hq_plan_name
+            tarif_config = CONF_TARIFF.get(plan_name)
+            current_cost = self._hass.states.get("sensor.hilo_rate_current")
+            try:
+                if float(energy_used.state) >= tarif_config.get("low_threshold"):
+                    tarif = "medium"
+            except ValueError:
+                LOG.warning(
+                    f"Unable to restore a valid state of {base_sensor}: {energy_used.state}"
+                )
 
-        tarif = self._get_tarif()
-        self._update_current_cost(tarif)
-        self._handle_known_power(tarif)
-
-        if self.track_unknown_sources:
-            self._handle_unknown_sources()
-
-    def _get_tarif(self):
-        # id-dev21 : this grabs current energy used and tarif
-        base_sensor = f"sensor.{HILO_ENERGY_TOTAL}_low"
-        energy_used = self._hass.states.get(base_sensor)
-
-        if not energy_used:
-            LOG.warning(f"check_tarif: Unable to find state for {base_sensor}")
-            return "low"
-
-        plan_name = self.hq_plan_name
-        tarif_config = CONF_TARIFF.get(plan_name, {})
-
-        try:
-            if float(energy_used.state) >= tarif_config.get("low_threshold", 0):
-                return "medium"
-        except ValueError:
-            LOG.warning(
-                f"Unable to restore a valid state of {base_sensor}: {energy_used.state}"
-            )
-
-        if tarif_config.get("high", 0) > 0 and self.high_times:
-            return "high"
-
-        return "low"
-
-    def _update_current_cost(self, tarif):
-        # ic-dev21: this updates the current cost sensor.
-        current_cost = self._hass.states.get("sensor.hilo_rate_current")
-        target_cost = self._hass.states.get(f"sensor.hilo_rate_{tarif}")
-
-        if target_cost.state != current_cost.state:
+            if tarif_config.get("high", 0) > 0 and self.high_times:
+                tarif = "high"
+            target_cost = self._hass.states.get(f"sensor.hilo_rate_{tarif}")
+            if target_cost.state != current_cost.state:
+                LOG.debug(
+                    f"check_tarif: Updating current cost, was {current_cost.state} now {target_cost.state}"
+                )
+                self.set_state("sensor.hilo_rate_current", target_cost.state)
             LOG.debug(
-                f"check_tarif: Updating current cost, was {current_cost.state} now {target_cost.state}"
+                f"check_tarif: Current plan: {plan_name} Target Tarif: {tarif} Energy used: {energy_used.state} Peak: {self.high_times}"
             )
-            self.set_state("sensor.hilo_rate_current", target_cost.state)
-
-    def _handle_known_power(self, tarif):
-        # ic-dev21 : this checks known power consumption
         known_power = 0
-        smart_meter = self.find_meter(self._hass)
+        smart_meter = self.find_meter(self._hass)  # comes from find_meter function
+        LOG.debug(f"Smart meter used currently is: {smart_meter}")
         unknown_source_tracker = "sensor.unknown_source_tracker_power"
-
         for state in self._hass.states.async_all():
             entity = state.entity_id
-
             if entity.endswith("hilo_rate_current"):
+                # LOG.debug(f"591: check_tarif {entity} abort loop")
                 continue
-
             if self.generate_energy_meters:
+                # LOG.debug(f"594: check_tarif {entity} set tarif call")
                 self.set_tarif(entity, state.state, tarif)
-
             if entity.endswith("_power") and entity not in [
                 unknown_source_tracker,
                 smart_meter,
@@ -641,44 +620,37 @@ class Hilo:
                     known_power += int(float(state.state))
                 except ValueError:
                     pass
-
             if not entity.endswith("_hilo_energy") or entity.endswith("_cost"):
                 continue
-
             self.fix_utility_sensor(entity, state)
+        if self.track_unknown_sources:
+            total_power = self._hass.states.get(smart_meter)
+            try:
+                if known_power <= int(total_power.state):
+                    unknown_power = int(total_power.state) - known_power
+                else:
+                    unknown_power = 0
+            except ValueError:
+                unknown_power = known_power
+                LOG.warning(
+                    f"value of total_power ({total_power} not initialized correctly)"
+                )
 
-    def _handle_unknown_sources(self):
-        # ic-dev21: this handles power that does not come from a Hilo device.
-        total_power = self._hass.states.get(self.find_meter(self._hass))
-        known_power = sum(
-            int(float(state.state))
-            for state in self._hass.states.async_all()
-            if state.entity_id.endswith("_power") and state.state != "unavailable"
-        )
-
-        try:
-            unknown_power = max(int(total_power.state) - known_power, 0)
-        except ValueError:
-            unknown_power = known_power
-            LOG.warning(
-                f"value of total_power ({total_power}) not initialized correctly)"
+            self.devices.parse_values_received(
+                [
+                    {
+                        "deviceId": 0,
+                        "locationId": self.devices.location_id,
+                        "timeStampUTC": datetime.utcnow().isoformat(),
+                        "attribute": "Power",
+                        "value": unknown_power,
+                        "valueType": "Watt",
+                    }
+                ]
             )
-
-        self.devices.parse_values_received(
-            [
-                {
-                    "deviceId": 0,
-                    "locationId": self.devices.location_id,
-                    "timeStampUTC": datetime.utcnow().isoformat(),
-                    "attribute": "Power",
-                    "value": unknown_power,
-                    "valueType": "Watt",
-                }
-            ]
-        )
-        LOG.debug(
-            f"Currently in use: Total: {total_power.state} Known sources: {known_power} Unknown sources: {unknown_power}"
-        )
+            LOG.debug(
+                f"Currently in use: Total: {total_power.state} Known sources: {known_power} Unknown sources: {unknown_power}"
+            )
 
     @callback
     def fix_utility_sensor(self, entity, state):
