@@ -544,7 +544,7 @@ class Hilo:
         return ", ".join(filtered_names) if filtered_names else ""
 
     def set_state(self, entity, state, new_attrs={}, keep_state=False, force=False):
-        params = f"entity={entity}, state={state}, new_attrs={new_attrs}, keep_state={keep_state}"
+        params = f"{entity=} {state=} {new_attrs=} {keep_state=}"
         current = self._hass.states.get(entity)
         if not current:
             if not force:
@@ -553,14 +553,15 @@ class Hilo:
             attrs = {}
         else:
             attrs = dict(current.as_dict()["attributes"])
-        LOG.debug(f"Setting state {params} {current}")
         attrs["last_update"] = datetime.now()
+        attrs["hilo_update"] = True
         attrs = {**attrs, **new_attrs}
         if keep_state and current:
             state = current.state
         if "Cost" in attrs:
             attrs["Cost"] = state
-        self._hass.states.async_set(entity, state, attrs)
+        LOG.debug(f"Setting state {params} {current=} {attrs=}")
+        self._hass.states.async_set(entity, state, attrs, force_update=force)
 
     @property
     def high_times(self):
@@ -602,12 +603,15 @@ class Hilo:
         known_power = 0
         smart_meter = self.find_meter(self._hass)  # comes from find_meter function
         LOG.debug(f"Smart meter used currently is: {smart_meter}")
-
         unknown_source_tracker = "sensor.unknown_source_tracker_power"
         for state in self._hass.states.async_all():
             entity = state.entity_id
+            if entity.endswith("hilo_rate_current"):
+                continue
+
             if self.generate_energy_meters:
                 self.set_tarif(entity, state.state, tarif)
+                
             if entity.endswith("_power") and entity not in [
                 unknown_source_tracker,
                 smart_meter,
@@ -653,6 +657,8 @@ class Hilo:
         """not sure why this doesn't get created with a proper device_class"""
         current_state = state.as_dict()
         attrs = current_state.get("attributes", {})
+        if entity.startswith("select.") or entity.find("hilo_rate") > 0:
+            return
         if not attrs.get("source"):
             LOG.debug(f"No source entity defined on {entity}: {current_state}")
             return

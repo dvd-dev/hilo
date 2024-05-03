@@ -20,12 +20,12 @@ This is a beta release. There will be some bugs, issues, etc. Please bear with u
 [Hilo](https://www.hydroquebec.com/hilo/en/) integration for Home Assistant
 
 # :warning: Breaking change (v2024.2.2 and lower unusable)
-Hilo's login has stoped using "Resource Owner Password Flow" and started using "Authorization Code Flow with PKCE". The old login method has been permanently closed on april 10 2024.
+Hilo's login has stopped using "Resource Owner Password Flow" and started using "Authorization Code Flow with PKCE". The old login method has been permanently closed on april 10th, 2024.
 
 ## Introduction
 
 This is the unofficial HACS Hilo integration for Home Assistant. [Hilo](https://www.hiloenergie.com/en-ca/) is a smart home platform developed
-by an [Hydro Quebec](https://www.hydroquebec.com/hilo/en/) subsidiary.
+by a [Hydro Quebec](https://www.hydroquebec.com/hilo/en/) subsidiary.
 This integration has no direct tie with Hilo or Hydro Quebec. This is a community initiative. Please don't contact
 Hilo or Hydro-Quebec with issues with this Home Assistant integration, you can open an issue in the GitHub repository
 instead.
@@ -41,7 +41,7 @@ he put into this integration, I would probably have never even considered Hilo.
 
 Another big shout out to @ic-dev21 for his implication at multiple levels.
 
-I decided to move the integration here because of the latest updates from Hilo broke the original one and I took the time to completely
+I decided to move the integration here because of the latest updates from Hilo broke the original one, and I took the time to completely
 rewrite it. Hilo is now pushing device readings via websocket from SignalR.
 
 ### Features
@@ -67,7 +67,7 @@ rewrite it. Hilo is now pushing device readings via websocket from SignalR.
 ## Installation
 
 ### Step 0: Compatible install
-This custom component requires that Hilo has carried out the install in your home. It will not be possible to set it up otherwise.
+This custom component requires that Hilo has carried out the installation in your home. It will not be possible to set it up otherwise.
 
 This custom component has been tested to work by various users on HA OS (as bare metal or VM), Docker with the official (ghcr.io) image and Podman. Other types of install may cause permission issues during the creation of a few files by the custom component.
 
@@ -127,7 +127,7 @@ After correctly linking your account like in the previous section, you should se
 
 ### Energy meters
 
-Energy meters are a new feature of this integration. We used to manually generate them with template sensors and automation
+Energy meters are a feature of this integration. We used to manually generate them with template sensors and automation,
 but they now have been fully integrated into the Hilo integration.
 
 #### Warning
@@ -135,11 +135,7 @@ but they now have been fully integrated into the Hilo integration.
 When enabling Hilo generated energy meters, it's recommended to remove the manually generated ones to have the most accurate
 statistics, otherwise we might end up with duplicated data.
 
-This wasn't tested with already active data and energy entities (ie: Battery, Gaz, Solar, or even other individual devices).
-It's possible that enabling this will break or delete these original sensors. We can't be held responsible for any data loss
-service downtime, or any kind as it's described in the license.
-
-If you're facing an issue and you want to collaborate, please enable `debug` log level for this integration and provide a copy
+If you're facing an issue, and you want to collaborate, please enable `debug` log level for this integration and provide a copy
 of the `home-assistant.log` file. Details on how to enable `debug` are [below](https://github.com/dvd-dev/hilo/blob/main/README.en.md#contributing).
 
 #### Procedure
@@ -160,10 +156,10 @@ home assistant. You simply need to add a line like this in your `configuration.y
   * The `status` should be in `collecting`
   * The `state` should be a number higher than 0.
 
-* All generated entities and sensors will be prefixed with `hilo_energy_` or `hilo_rate_`.
+* All generated entities and sensors will be prefixed or suffixed with `hilo_energy_` or `hilo_rate_`.
 
-* If you see the following error in your logs, this is a bug in Home Assistant and it's because the power meter in question has 0 w/h
-  usage so far. This will disappear once usage has been calculated. There's a PR upstream [here](https://github.com/home-assistant/core/pull/60678) to address this.
+* If you see the following error in your logs, this is a bug in Home Assistant, and it's because the power meter in question has 0 W/h
+  usage so far. This will disappear once usage has been calculated.
 
     ```
     2021-11-29 22:03:46 ERROR (MainThread) [homeassistant] Error doing job: Task exception was never retrieved
@@ -181,6 +177,10 @@ Other options are available under the `Configure` button in Home Assistant:
 - `Generate energy meters`: Checkbox
 
   Automatically generate energy meters, see procedure above for proper setup
+  Requires this line to be added to your configuration.yaml file:
+  ```
+  utility_meter:
+  ```
 
 - `Generate only total meters for each devices`: Checkbox
 
@@ -215,7 +215,7 @@ Other options are available under the `Configure` button in Home Assistant:
 
 - `Scan interval (min: 60s)`: Integer
 
-  Number of seconds between each device update. Defaults to 60 and it's not recommended to go below 30 as it might
+  Number of seconds between each device update. Defaults to 60 and, it's not recommended to go below 30 as it might
   result in a suspension from Hilo. Since [2023.11.1](https://github.com/dvd-dev/hilo/releases/tag/v2023.11.1) the minimum has changed from 15s to 60s.
 
 ## Lovelace sample integration and automation example
@@ -239,7 +239,7 @@ You can find the FAQ in the wiki of the project: https://github.com/dvd-dev/hilo
 
 ## Contributing
 
-Reporting any kind of issue is a good way of contributing to the project and it's available to anyone.
+Reporting any kind of issue is a good way of contributing to the project, and it's available to anyone.
 
 If you face any kind of problem or weird behavior, please submit an issue and ideal, attach debug logs.
 

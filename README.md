@@ -14,7 +14,7 @@
 
 **BETA**
 
-Ceci est une version Bêta. Il y aura probablements des bogues, irritants, etc. Merci pour votre patience et d'ouvrir des "Issues".
+Ceci est une version Bêta. Il y aura probablement des bogues, irritants, etc. Merci pour votre patience et d'ouvrir des "Issues".
 
 # Hilo
 Intégration pour Home Assistant d'[Hilo](https://www.hydroquebec.com/hilo/fr/)
@@ -58,25 +58,25 @@ J'ai décidé de déplacer l'intégration ici, car la dernière mise à jour de 
 
 ## Installation
 
-### Étape 0: Avoir une installation compatible
+### Étape 0 : Avoir une installation compatible
 L'intégration nécessite que l'installation du matériel Hilo soit complétée à votre domicile. Il ne sera pas possible de faire l'installation si ça n'est pas fait.
 
 Cette intégration a été testée par des utilisateurs sous HA OS (bare metal et VM), Docker avec l'image officielle (ghcr.io), Podman. Tout autre type d'installation peut mener à des problèmes de permission pour certains fichiers créés lors de l'installation initiale du custom_component.
 
-### Étape 1: Télécharger les fichiers
+### Étape 1 : Télécharger les fichiers
 
-#### Option 1: Via HACS
+#### Option 1 : Via HACS
 
 [![Ouvrir Hilo dans Home Assistant Community Store (HACS).](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=dvd-dev&repository=hilo&category=integration)
 
 Assurez-vous d'avoir [HACS](https://hacs.xyz/docs/setup/download/) d'installé.
 Sous HACS, cliquer le bouton '+ EXPLORE & DOWNLOAD REPOSITORIES' au bas de la page, rechercher "Hilo", le choisir, et cliquer sur _download_ dans HACS.
 
-#### Option 2: Manuellement
+#### Option 2 : Manuellement
 
 Télécharger et copier le dossier `custom_components/hilo` de la [dernière version](https://github.com/dvd-dev/hilo/releases/latest) dans votre dossier `custom_components` de Home Assistant.
 
-### Étape 2: Ajouter l'intégration à HA (<--- étape souvent oubliée)
+### Étape 2 : Ajouter l'intégration à HA (<--- étape souvent oubliée)
 
 [![Ouvrir Home Assistant et démarrer la configuration d'une nouvelle intégration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=hilo)
 
@@ -115,11 +115,51 @@ Après avoir lié votre compte comme montré à la section configuration initial
 
 ![Réauthentifié succès](https://github.com/dvd-dev/hilo/assets/108159253/7708b449-24c3-43c1-843b-8697ae192db1)
 
-### :warning: Compteurs de consommation électrique
+### Compteurs de consommation électrique
 
-La génération automatique des compteurs de consommation électrique est actuellement brisée. J'avais codé ça quand le panneau d'énergie de Homeassistant venait d'être rendu disponible et malheureusement, cette partie du code a changé énormément. Je n'ai plus le temps pour le moment de me remettre la tête là-dedans, mais si quelqu'un est assez brave pour se pencher là-dessus en détail, ça va me faire plaisir de merger les patchs.
+Les compteurs de consommation électrique sont une fonctionalité de cette intégration. Ils étaient initialement générés
+par des capteurs "template" et des automatisations mais sont maintenant intégré dans l'intégration.
 
-Voir les issues #204 #281 #292
+#### Avertissement
+
+Lorsque l'on active les compteurs, il est recommandé de retirer les anciens capteurs manuels afin de ne pas avoir de
+données en double.
+
+Si vous avez un problème et voulez collaborer, merci de mettre en marche la journalisation `debug` et de fournir
+un extrait du fichier `home-assistant.log`. La méthode est expliquée [ci-bas.](https://github.com/dvd-dev/hilo?tab=readme-ov-file#contribuer).
+
+
+#### Procédure
+
+Si vous souhaitez utiliser la génération automatique des capteurs de consommation électrique, suivez les étapes suivantes:
+
+* S'assurer que la plateforme `utility_meter` est chargée dans votre fichier `configuration.yaml` de
+Home Assistant. Vous n'avez qu'à ajouter une ligne au fichier comme suit :
+
+    ```
+    utility_meter:
+    ```
+
+* Cliquer sur `Configure` dans l'interface utilisateur de l'intégration et cocher `Générer compteurs de consommation électrique`.
+
+* (Optionnel) Redémarrez Home Assistant et attendez 5 minutes environ, l'entité `sensor.hilo_energy_total_low` sera créée
+  et contiendra des données:
+  * Le `status` devrait être `collecting`
+  * L'état `state` devrait être un nombre plus grand que 0.
+
+* Toutes les entités et capteurs créés seront préfixés ou suffixés de `hilo_energy_` ou `hilo_rate_`.
+
+* Si vous voyez l'erreur suivante dans le journal de Home Assistant, ceci est du à un bogue de Home Assistant causé par
+  le fait que le compteur n'a pas encore accumulé suffisamment de données pour fonctionner. Elle peut être ignorée.
+
+    ```
+    2021-11-29 22:03:46 ERROR (MainThread) [homeassistant] Error doing job: Task exception was never retrieved
+    Traceback (most recent call last):
+    [...]
+    ValueError: could not convert string to float: 'None'
+    ```
+Une fois créés, les compteurs devront être ajoutés manuellement au tableau de bord "Énergie".
+
 
 ### Autres options de configuration
 
@@ -128,6 +168,10 @@ D'autres options sont disponibles sous le bouton "Configurer" dans Home Assistan
 - `Générer compteurs de consommation électrique`: Case à cocher
 
   Générer automatiquement des compteurs de consommation électrique, voir la procédure ci-dessus pour la configuration
+  Nécessite la ligne suivante dans votre fichier configuration.yaml :
+  ```
+  utility_meter:
+  ```
 
 - `Générer seulement les compteurs totaux pour chaque appareil`: Case à cocher
 
@@ -206,7 +250,7 @@ $ git clone https://github.com/home-assistant/core.git
 $ git --git-dir core/ checkout $HASS_RELEASE
 ```
 
-**NOTE**: On clone aussi le [repo](https://github.com/home-assistant/core) de home-assistant car c'est plus facile d'ajouter du debug à ce niveau.
+**NOTE**: On clone aussi le [repo](https://github.com/home-assistant/core) de home-assistant, car c'est plus facile d'ajouter du debug à ce niveau.
 
 2. Lancer le container:
 
@@ -253,7 +297,7 @@ Il va sans dire qu'il est important de tester vos modifications sur une installa
 
 N'oubliez pas votre copie de sauvegarde!
 
-Si vous devez modifier python-hilo pour vos tests, il est possible d'installer votre "fork" avec la commande suivante dans votre CLI:
+Si vous devez modifier python-hilo pour vos tests, il est possible d'installer votre "fork" avec la commande suivante dans votre CLI :
 
 ```console
 $ pip install -e git+https://github.com/VOTRE_FORK_ICI/python-hilo.git#egg=python-hilo
@@ -271,11 +315,11 @@ Et redémarrez Home Assistant
 
 - D'abord, vous devez créer un `fork` du "repository" dans votre propre espace utilisateur.
 - Ensuite, vous pouvez en faire un `clone` sur votre ordinateur.
-- Afin de maintenir une sorte de propreté et de standard dans le code, nous avons des linters et des validateurs qui doivent être exécutés via `pre-commit` hooks:
+- Afin de maintenir une sorte de propreté et de standard dans le code, nous avons des linters et des validateurs qui doivent être exécutés via `pre-commit` hooks :
 ```console
 $ pre-commit install --install-hooks
 ```
-- Vous pouvez mainteant procéder à votre modification au code.
+- Vous pouvez maintenant procéder à votre modification au code.
 - Lorsque vous avez terminé, vous pouvez `stage` les fichiers pour un `commit`:
 ```console
 $ git add path/to/file
@@ -285,7 +329,7 @@ $ git add path/to/file
 $ git commit -m "J'ai changé ceci parce que ..."
 ```
 
-- Finalement, vous pouvez `push` le changement vers votre "upstream repository":
+- Finalement, vous pouvez `push` le changement vers votre "upstream repository" :
 ```console
 $ git push
 ```
