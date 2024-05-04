@@ -511,6 +511,9 @@ class Hilo:
         if self.generate_energy_meters or self.track_unknown_sources:
             self.check_tarif()
 
+        if self.track_unknown_sources:
+            self.handle_unknown_power()
+
     def find_meter(self, hass):
         entity_registry_dict = {}
 
@@ -600,6 +603,14 @@ class Hilo:
             LOG.debug(
                 f"check_tarif: Current plan: {plan_name} Target Tarif: {tarif} Energy used: {energy_used.state} Peak: {self.high_times}"
             )
+
+            # ic-dev21 : make sure the select for all meters still work by moving this here
+            for state in self._hass.states.async_all():
+                entity = state.entity_id
+                self.set_tarif(entity, state.state, tarif)
+
+    def handle_unknown_power(self):
+        # ic-dev21 : new function that takes care of the unknown source meter
         known_power = 0
         smart_meter = self.find_meter(self._hass)  # comes from find_meter function
         LOG.debug(f"Smart meter used currently is: {smart_meter}")
@@ -609,9 +620,6 @@ class Hilo:
             if entity.endswith("hilo_rate_current"):
                 continue
 
-            if self.generate_energy_meters:
-                self.set_tarif(entity, state.state, tarif)
-                
             if entity.endswith("_power") and entity not in [
                 unknown_source_tracker,
                 smart_meter,
