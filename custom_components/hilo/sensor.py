@@ -266,6 +266,7 @@ class EnergySensor(IntegrationSensor):
     _attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
     _attr_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+    _attr_suggested_display_precision = 2
     _attr_icon = "mdi:lightning-bolt"
 
     def __init__(self, hilo, device):
@@ -277,7 +278,7 @@ class EnergySensor(IntegrationSensor):
             old_unique_id, self._attr_unique_id, Platform.SENSOR
         )
         self._unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
-        self._unit_prefix = None
+        self._suggested_display_precision = 2
 
         if device.type == "Meter":
             self._attr_name = HILO_ENERGY_TOTAL
@@ -300,6 +301,9 @@ class EnergySensor(IntegrationSensor):
             unit_time="h",
             device_info=self._device_info,
         )
+        self._unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+        self._suggested_display_precision = 2
+
         self._attr_icon = "mdi:lightning-bolt"
         LOG.debug(
             f"Setting up EnergySensor entity: {self._attr_name} with source {self._source}"
@@ -308,6 +312,10 @@ class EnergySensor(IntegrationSensor):
     @property
     def unit_of_measurement(self):
         return self._attr_unit_of_measurement
+
+    @property
+    def suggested_display_precision(self):
+        return self._attr_suggested_display_precision
 
     async def async_added_to_hass(self) -> None:
         """Handle entity which will be added."""
