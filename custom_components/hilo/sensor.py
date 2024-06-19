@@ -4,6 +4,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from os.path import isfile
 
+import aiofiles
 from homeassistant.components.integration.sensor import METHOD_LEFT, IntegrationSensor
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -587,7 +588,7 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
         self._history_state_yaml: str = "hilo_eventhistory_state.yaml"
         self.scan_interval = timedelta(seconds=REWARD_SCAN_INTERVAL)
         self._state = 0
-        self._history = self._load_history()
+        self._history = []
         self.async_update = Throttle(self.scan_interval)(self._async_update)
 
     @property
@@ -619,7 +620,7 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
     async def _async_update(self):
         seasons = await self._hilo._api.get_seasons(self._hilo.devices.location_id)
         if seasons:
-            current_history = self._history
+            current_history = await self._load_history()
             new_history = []
 
             for idx, season in enumerate(seasons):
@@ -666,20 +667,21 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
                 season["events"] = events
                 new_history.append(season)
             self._history = new_history
-            self._save_history(new_history)
+            await self._save_history(new_history)
 
-    def _load_history(self) -> list:
+    async def _load_history(self) -> list:
         history: list = []
         if isfile(self._history_state_yaml):
-            with open(self._history_state_yaml) as yaml_file:
+            async with aiofiles.open(self._history_state_yaml, mode="r") as yaml_file:
                 LOG.debug("Loading history state from yaml")
-                history = yaml.load(yaml_file, Loader=yaml.Loader)
+                content = await yaml_file.read()
+                history = yaml.load(content, Loader=yaml.Loader)
         return history
 
-    def _save_history(self, history: list):
-        with open(self._history_state_yaml, "w") as yaml_file:
+    async def _save_history(self, history: list):
+        async with aiofiles.open(self._history_state_yaml, mode="w") as yaml_file:
             LOG.debug("Saving history state to yaml file")
-            yaml.dump(history, yaml_file, Dumper=yaml.RoundTripDumper)
+            await yaml_file.write(yaml.dump(history, Dumper=yaml.RoundTripDumper))
 
 
 class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
