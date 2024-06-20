@@ -36,6 +36,6 @@ jobs:
 
       - name: "Release"
         if: env.release_version != '' && success()
-        uses: softprops/action-gh-release@v2.0.5
+        uses: softprops/action-gh-release@v2.0.6
         with:
           files: ${{ env.basedir }}/${{ env.package }}.zip
