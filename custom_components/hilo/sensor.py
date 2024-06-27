@@ -55,6 +55,7 @@ from .const import (
     HILO_ENERGY_TOTAL,
     HILO_SENSOR_CLASSES,
     LOG,
+    MAX_SUB_INTERVAL,
     NOTIFICATION_SCAN_INTERVAL,
     REWARD_SCAN_INTERVAL,
     TARIFF_LIST,
@@ -294,6 +295,7 @@ class EnergySensor(IntegrationSensor):
 
         super().__init__(
             integration_method=METHOD_LEFT,
+            max_sub_interval=timedelta(seconds=MAX_SUB_INTERVAL),
             name=self._attr_name,
             round_digits=2,
             source_entity=self._source,
