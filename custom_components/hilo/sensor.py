@@ -24,6 +24,7 @@ from homeassistant.const import (
     UnitOfPower,
     UnitOfSoundPressure,
     UnitOfTemperature,
+    __short_version__ as current_version,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -32,6 +33,7 @@ from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import Throttle, slugify
 import homeassistant.util.dt as dt_util
+from packaging.version import Version
 from pyhilo.const import UNMONITORED_DEVICES
 from pyhilo.device import HiloDevice
 from pyhilo.event import Event
@@ -55,6 +57,7 @@ from .const import (
     HILO_ENERGY_TOTAL,
     HILO_SENSOR_CLASSES,
     LOG,
+    MAX_SUB_INTERVAL,
     NOTIFICATION_SCAN_INTERVAL,
     REWARD_SCAN_INTERVAL,
     TARIFF_LIST,
@@ -292,16 +295,29 @@ class EnergySensor(IntegrationSensor):
             identifiers={(DOMAIN, self._device.identifier)},
         )
 
-        super().__init__(
-            integration_method=METHOD_LEFT,
-            name=self._attr_name,
-            round_digits=2,
-            source_entity=self._source,
-            unique_id=self._attr_unique_id,
-            unit_prefix="k",
-            unit_time="h",
-            device_info=self._device_info,
-        )
+        if Version(current_version) >= Version("2024.7"):
+            super().__init__(
+                integration_method=METHOD_LEFT,
+                max_sub_interval=timedelta(seconds=MAX_SUB_INTERVAL),
+                name=self._attr_name,
+                round_digits=2,
+                source_entity=self._source,
+                unique_id=self._attr_unique_id,
+                unit_prefix="k",
+                unit_time="h",
+                device_info=self._device_info,
+            )
+        else:
+            super().__init__(
+                integration_method=METHOD_LEFT,
+                name=self._attr_name,
+                round_digits=2,
+                source_entity=self._source,
+                unique_id=self._attr_unique_id,
+                unit_prefix="k",
+                unit_time="h",
+                device_info=self._device_info,
+            )
         self._unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
         self._suggested_display_precision = 2
 
