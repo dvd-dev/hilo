@@ -150,8 +150,8 @@ condition:
         entity_id: sensor.defi_hilo
         state: scheduled
   - condition: time
-    after: "11:55:00"
-    before: "12:05:00"
+    after: "00:55:00"
+    before: "01:05:00"
 action:
   - choose:
       - conditions:
