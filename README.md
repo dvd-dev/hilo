@@ -19,9 +19,6 @@ Ceci est une version Bêta. Il y aura probablement des bogues, irritants, etc. M
 # Hilo
 Intégration pour Home Assistant d'[Hilo](https://www.hydroquebec.com/hilo/fr/)
 
-# :warning: Breaking change (v2024.2.2 et antérieures non-fonctionnelles)
-L'authentification (login) de Hilo est passée d'une méthode "Resource Owner Password Flow" vers une méthode "Authorization Code Flow with PKCE". L'ancienne méthode a été fermée définitivement le 10 avril 2024, les anciennes versions de l'intégration ne sont plus fonctionnelles.
-
 ## Introduction
 
 Ceci est l'intégration HACS non-officielle de Hilo sur Home Assistant. [Hilo](https://www.hiloenergie.com/fr-ca/) est une plateforme de domotique développée par une filliale d'[Hydro-Québec](https://www.hydroquebec.com/hilo/fr/).
@@ -53,7 +50,7 @@ J'ai décidé de déplacer l'intégration ici, car la dernière mise à jour de 
 - Ajouter la fonctionnalité pour d'autres appareils.
 - Tests fonctionnels
 - [Ajouter des "type hints" au code](https://developers.home-assistant.io/docs/development_typing/)
-- ~~Documenter la librairie d'appels API à Hilo~~ Maintenant disponible [ici](https://github.com/dvd-dev/python-hilo)
+- Documentation des appels API à Hilo [ici](https://github.com/dvd-dev/python-hilo)
 - Ajout automatique des compteurs de consommation électrique
 
 ## Installation

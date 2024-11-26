@@ -19,9 +19,6 @@ This is a beta release. There will be some bugs, issues, etc. Please bear with u
 # Hilo
 [Hilo](https://www.hydroquebec.com/hilo/en/) integration for Home Assistant
 
-# :warning: Breaking change (v2024.2.2 and lower unusable)
-Hilo's login has stopped using "Resource Owner Password Flow" and started using "Authorization Code Flow with PKCE". The old login method has been permanently closed on april 10th, 2024.
-
 ## Introduction
 
 This is the unofficial HACS Hilo integration for Home Assistant. [Hilo](https://www.hiloenergie.com/en-ca/) is a smart home platform developed
@@ -60,7 +57,7 @@ rewrite it. Hilo is now pushing device readings via websocket from SignalR.
 - Add functionalities for other devices
 - unit and functional tests
 - [Adding type hints to the code](https://developers.home-assistant.io/docs/development_typing/)
-- Now available [here](https://github.com/dvd-dev/python-hilo)
+- API calls to Hilo documentation now available [here](https://github.com/dvd-dev/python-hilo)
 - Map send energy meters automatically to energy dashboard
 
 
@@ -69,7 +66,7 @@ rewrite it. Hilo is now pushing device readings via websocket from SignalR.
 ### Step 0: Compatible install
 This custom component requires that Hilo has carried out the installation in your home. It will not be possible to set it up otherwise.
 
-This custom component has been tested to work by various users on HA OS (as bare metal or VM), Docker with the official (ghcr.io) image and Podman. Other types of install may cause permission issues during the creation of a few files by the custom component.
+This custom component has been tested to work by various users on HA OS (as bare metal or VM), Docker with the official (ghcr.io) image and Podman. Other types of install may cause permission issues during the creation of a few files needed by the custom component.
 
 ### Step 1: Download files
 
