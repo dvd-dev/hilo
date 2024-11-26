@@ -234,7 +234,10 @@ class Hilo:
         self.devices: Devices = Devices(api)
         self._websocket_reconnect_tasks: list[asyncio.Task | None] = [None, None]
         self._update_task: list[asyncio.Task | None] = [None, None]
-        self.invocations = {0: self.subscribe_to_location, 1: self.subscribe_to_challenge}
+        self.invocations = {
+            0: self.subscribe_to_location,
+            1: self.subscribe_to_challenge,
+        }
         self.hq_plan_name = entry.options.get(CONF_HQ_PLAN_NAME, DEFAULT_HQ_PLAN_NAME)
         self.appreciation = entry.options.get(
             CONF_APPRECIATION_PHASE, DEFAULT_APPRECIATION_PHASE
@@ -349,9 +352,11 @@ class Hilo:
         )
 
     @callback
-    async def subscribe_to_challenge(self, inv_id: int, event_id: int =0) -> None:
+    async def subscribe_to_challenge(self, inv_id: int, event_id: int = 0) -> None:
         """Sends the json payload to receive updates from the challenge."""
-        LOG.debug(f"Subscribing to challenge {event_id} at location {self.devices.location_id}")
+        LOG.debug(
+            f"Subscribing to challenge {event_id} at location {self.devices.location_id}"
+        )
         await self._api.websocket2.async_invoke(
             [event_id, self.devices.location_id], "SubscribeToChallenge", inv_id
         )
@@ -469,7 +474,7 @@ class Hilo:
             name="hilo",
             update_interval=timedelta(seconds=scan_interval),
             update_method=self.async_update,
-        )      
+        )
 
     async def start_websocket_loop(self, websocket, id) -> None:
         """Start a websocket reconnection loop."""
@@ -496,8 +501,6 @@ class Hilo:
                 f"Unknown exception while connecting to websocket: {err}", exc_info=err
             )
             await self.cancel_websocket_loop(websocket, id)
-
-        
 
         if should_reconnect:
             LOG.info("Disconnected from websocket; reconnecting in 5 seconds.")
