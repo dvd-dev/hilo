@@ -445,20 +445,22 @@ class Hilo:
 
         self._api.websocket_devices.add_connect_callback(self.request_status_update)
         self._api.websocket_devices.add_event_callback(self.on_websocket_event)
-        self._api.websocket_challenges.add_connect_callback(self.request_status_update_challenge)
+        self._api.websocket_challenges.add_connect_callback(
+            self.request_status_update_challenge
+        )
         self._api.websocket_challenges.add_event_callback(self.on_websocket_event)
         self._websocket_reconnect_tasks[0] = asyncio.create_task(
-            self.start_websocket_loop(self._api.websocket, 0)
+            self.start_websocket_loop(self._api.websocket_devices, 0)
         )
         self._websocket_reconnect_tasks[1] = asyncio.create_task(
-            self.start_websocket_loop(self._api.websocket2, 1)
+            self.start_websocket_loop(self._api.websocket_challenges, 1)
         )
         # asyncio.create_task(self._api.websocket_devices.async_connect())
 
         async def websocket_disconnect_listener(_: Event) -> None:
             """Define an event handler to disconnect from the websocket."""
             if TYPE_CHECKING:
-                assert self._api.websocket
+                assert self._api.websocket_devices
 
             if self._api.websocket_devices.connected:
                 await self._api.websocket_devices.async_disconnect()
