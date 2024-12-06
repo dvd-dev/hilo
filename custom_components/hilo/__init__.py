@@ -347,7 +347,7 @@ class Hilo:
     async def subscribe_to_location(self, inv_id: int) -> None:
         """Sends the json payload to receive updates from the location."""
         LOG.debug(f"Subscribing to location {self.devices.location_id}")
-        await self._api.websocket.async_invoke(
+        await self._api.websocket_devices.async_invoke(
             [self.devices.location_id], "SubscribeToLocation", inv_id
         )
 
@@ -357,19 +357,19 @@ class Hilo:
         LOG.debug(
             f"Subscribing to challenge {event_id} at location {self.devices.location_id}"
         )
-        await self._api.websocket2.async_invoke(
+        await self._api.websocket_challenges.async_invoke(
             [event_id, self.devices.location_id], "SubscribeToChallenge", inv_id
         )
 
     @callback
     async def request_status_update(self) -> None:
-        await self._api.websocket.send_status()
+        await self._api.websocket_devices.send_status()
         for inv_id, inv_cb in self.invocations.items():
             await inv_cb(inv_id)
 
     @callback
     async def request_status_update_challenge(self) -> None:
-        await self._api.websocket2.send_status()
+        await self._api.websocket_challenges.send_status()
         for inv_id, inv_cb in self.invocations.items():
             await inv_cb(inv_id)
 
@@ -443,25 +443,25 @@ class Hilo:
                 self._hass, self.entry, self.unknown_tracker_device
             )
 
-        self._api.websocket.add_connect_callback(self.request_status_update)
-        self._api.websocket.add_event_callback(self.on_websocket_event)
-        self._api.websocket2.add_connect_callback(self.request_status_update_challenge)
-        self._api.websocket2.add_event_callback(self.on_websocket_event)
+        self._api.websocket_devices.add_connect_callback(self.request_status_update)
+        self._api.websocket_devices.add_event_callback(self.on_websocket_event)
+        self._api.websocket_challenges.add_connect_callback(self.request_status_update_challenge)
+        self._api.websocket_challenges.add_event_callback(self.on_websocket_event)
         self._websocket_reconnect_tasks[0] = asyncio.create_task(
             self.start_websocket_loop(self._api.websocket, 0)
         )
         self._websocket_reconnect_tasks[1] = asyncio.create_task(
             self.start_websocket_loop(self._api.websocket2, 1)
         )
-        # asyncio.create_task(self._api.websocket.async_connect())
+        # asyncio.create_task(self._api.websocket_devices.async_connect())
 
         async def websocket_disconnect_listener(_: Event) -> None:
             """Define an event handler to disconnect from the websocket."""
             if TYPE_CHECKING:
                 assert self._api.websocket
 
-            if self._api.websocket.connected:
-                await self._api.websocket.async_disconnect()
+            if self._api.websocket_devices.connected:
+                await self._api.websocket_devices.async_disconnect()
 
         self.entry.async_on_unload(
             self._hass.bus.async_listen_once(
