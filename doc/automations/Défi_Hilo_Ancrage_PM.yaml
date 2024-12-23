@@ -1,0 +1,31 @@
+alias: Défi Hilo Ancrage PM
+description: "Permet de gérer la période d'ancrage PM d'un défi Hilo/Manages the PM anchor phase of a Hilo Challenge"
+mode: single
+triggers:
+  - at: "12:00:00"
+    trigger: time
+  - entity_id:
+      - sensor.defi_hilo
+    to: appreciation
+    from: scheduled
+    trigger: state
+conditions:
+  - condition: template
+    value_template: "{{'pm' in state_attr('sensor.defi_hilo','next_events')[0]['period'] }}"
+  - condition: or
+    conditions:
+      - condition: state
+        entity_id: sensor.defi_hilo
+        state: appreciation
+      - condition: state
+        entity_id: sensor.defi_hilo
+        state: scheduled
+  - condition: time
+    after: "11:55:00"
+    before: "12:05:00"
+actions:
+  - action: climate.set_temperature
+    metadata: {}
+    data: {}
+    target:
+      entity_id: climate.thermostat_cuisine

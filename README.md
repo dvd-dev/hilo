@@ -26,6 +26,8 @@ Cette intégration n'a aucun liens direct avec Hilo ou Hydro Québec. C'est une 
 
 Si vous souhaitez aider avec le développement de cette intégration, vous pouvez toujours soumettre vos commentaires à partir du formulaire de l'app Hilo et demander à ce qu'ils ouvrent leur API publiquement et qu'ils fournissent un environnement de test pour les développeurs.
 
+Vous pouvez également trouver des exemples en format YAML [dans la section doc/automations du projet](https://github.com/dvd-dev/hilo/tree/main/doc/automations)
+
 ### Remerciements
 
 Gros merci à [Francis Poisson](https://github.com/francispoisson/) qui est l'auteur de l'intégration originale. Sans le travail qu'il a fait sur cette intégration, je n'aurais probablement jamais considéré utiliser Hilo.
@@ -201,6 +203,7 @@ D'autres options sont disponibles sous le bouton "Configurer" dans Home Assistan
 
 Vous pouvez trouver de nombres exemples et idées pour votre tableau de bord, vos cartes et vos automatisations [dans le wiki du projet](https://github.com/dvd-dev/hilo/wiki/Utilisation)
 
+Vous pouvez également trouver des exemples en format YAML [dans la section doc/automations du projet](https://github.com/dvd-dev/hilo/tree/main/doc/automations)
 
 ## Références
 

@@ -1,0 +1,29 @@
+alias: Défi Hio Préchauffe PM
+description: "Gère la préchauffe Hilo de l'après-midi/Manages the PM pre-heat phase of a Hilo Challenge"
+mode: single
+triggers:
+  - entity_id:
+      - sensor.defi_hilo
+    to: pre_heat
+    enabled: true
+    trigger: state
+  - at: "15:00:00"
+    trigger: time
+conditions:
+  - condition: time
+    before: "16:05:00"
+    after: "15:55:00"
+  - condition: or
+    conditions:
+      - condition: state
+        entity_id: sensor.defi_hilo
+        state: pre_heat
+      - condition: state
+        entity_id: sensor.defi_hilo
+        state: reduction
+actions:
+  - metadata: {}
+    data: {}
+    target:
+      entity_id: switch.prise_echangeur_d_air
+    action: switch.turn_off
