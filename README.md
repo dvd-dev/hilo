@@ -27,6 +27,7 @@ Cette intégration n'a aucun liens direct avec Hilo ou Hydro Québec. C'est une 
 Si vous souhaitez aider avec le développement de cette intégration, vous pouvez toujours soumettre vos commentaires à partir du formulaire de l'app Hilo et demander à ce qu'ils ouvrent leur API publiquement et qu'ils fournissent un environnement de test pour les développeurs.
 
 Vous pouvez également trouver des exemples en format YAML [dans la section doc/automations du projet](https://github.com/dvd-dev/hilo/tree/main/doc/automations)
+Si vous préférez les blueprints, vous pouvez les retrouver ici [dans le repository de NumerID](https://github.com/NumerID/blueprint_hilo)
 
 ### Remerciements
 
