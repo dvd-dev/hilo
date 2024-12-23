@@ -31,6 +31,8 @@ If you want to help with the development of this integration, you can always sub
 application and requesting that they open their API publicly and that they provide a testing environment to the
 developers.
 
+You can also find sample automations in YAML format [in the doc/automations directory](https://github.com/dvd-dev/hilo/tree/main/doc/automations)
+
 ### Shout out
 
 Big shout out to [Francis Poisson](https://github.com/francispoisson/) who's the original author of this integration. Without the work
@@ -218,6 +220,8 @@ Other options are available under the `Configure` button in Home Assistant:
 ## Lovelace sample integration and automation example
 
 You can find multiple examples and ideas for lovelace dashboard, cards and automation here [in the wiki of the project](https://github.com/dvd-dev/hilo/wiki/Utilisation)
+
+You can also find sample automations in YAML format [in the doc/automations directory](https://github.com/dvd-dev/hilo/tree/main/doc/automations)
 
 
 ## References
