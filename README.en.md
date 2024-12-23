@@ -32,6 +32,7 @@ application and requesting that they open their API publicly and that they provi
 developers.
 
 You can also find sample automations in YAML format [in the doc/automations directory](https://github.com/dvd-dev/hilo/tree/main/doc/automations)
+If you prefer blueprints, there are some available here [in NumerID's repository](https://github.com/NumerID/blueprint_hilo)
 
 ### Shout out
 
