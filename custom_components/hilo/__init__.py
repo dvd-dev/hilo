@@ -306,6 +306,17 @@ class Hilo:
             new_devices = await self.devices.update_devicelist_from_signalr(
                 event.arguments[0]
             )
+        # ic-dev21: This part needs some further work and parsing but so far it works correctly
+        elif event.target == "ChallengeDetailsInitialValuesReceived":
+            LOG.debug("ic-dev21 ChallengeDetailsInitialValuesReceived")
+
+        elif event.target == "ChallengeListInitialValuesReceived":
+            LOG.debug("ic-dev21 ChallengeListInitialValuesReceived")
+
+        elif event.target == "ChallengeConsumptionUpdatedValuesReceived":
+            LOG.debug("ic-dev21 ChallengeConsumptionUpdatedValuesReceived")
+        # id-dev21 end of new code that needs further work.
+
         elif event.target == "DeviceListUpdatedValuesReceived":
             # This message only contains display information, such as the Device's name (as set in the app), it's groupid, icon, etc.
             # Updating the device name causes issues in the integration, it detects it as a new device and creates a new entity.
