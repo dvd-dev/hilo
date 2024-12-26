@@ -237,6 +237,7 @@ class Hilo:
         self.invocations = {
             0: self.subscribe_to_location,
             1: self.subscribe_to_challenge,
+            2: self.subscribe_to_challengelist,
         }
         self.hq_plan_name = entry.options.get(CONF_HQ_PLAN_NAME, DEFAULT_HQ_PLAN_NAME)
         self.appreciation = entry.options.get(
@@ -340,6 +341,7 @@ class Hilo:
                 async_dispatcher_send(
                     self._hass, SIGNAL_UPDATE_ENTITY.format(device.id)
                 )
+
         else:
             LOG.warning(f"Unhandled websocket event: {event}")
 
@@ -354,11 +356,27 @@ class Hilo:
     @callback
     async def subscribe_to_challenge(self, inv_id: int, event_id: int = 0) -> None:
         """Sends the json payload to receive updates from the challenge."""
+        # ic-dev21 : data structure of the message was incorrect, needed the "fixed" strings
         LOG.debug(
             f"Subscribing to challenge {event_id} at location {self.devices.location_id}"
         )
         await self._api.websocket_challenges.async_invoke(
-            [event_id, self.devices.location_id], "SubscribeToChallenge", inv_id
+            [{"locationId": self.devices.location_id, "eventId": event_id}],
+            "SubscribeToChallenge",
+            inv_id,
+        )
+
+    @callback
+    async def subscribe_to_challengelist(self, inv_id: int) -> None:
+        """Sends the json payload to receive updates from the challenge list."""
+        # ic-dev21 this will be necessary to get the challenge list
+        LOG.debug(
+            f"Subscribing to challenge list at location {self.devices.location_id}"
+        )
+        await self._api.websocket_challenges.async_invoke(
+            [{"locationId": self.devices.location_id}],
+            "SubscribeToChallengeList",
+            inv_id,
         )
 
     @callback
