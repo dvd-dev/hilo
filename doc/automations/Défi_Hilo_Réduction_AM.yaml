@@ -5,8 +5,6 @@ triggers:
   - entity_id:
       - sensor.defi_hilo
     to: reduction
-    enabled: true
-    from: pre_heat
     trigger: state
   - at: "06:00:00"
     trigger: time

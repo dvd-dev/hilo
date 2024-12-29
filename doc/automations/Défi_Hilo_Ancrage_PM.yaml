@@ -7,7 +7,6 @@ triggers:
   - entity_id:
       - sensor.defi_hilo
     to: appreciation
-    from: scheduled
     trigger: state
 conditions:
   - condition: template
