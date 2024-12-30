@@ -232,9 +232,13 @@ class Hilo:
         self.find_meter(self._hass)
         self.entry = entry
         self.devices: Devices = Devices(api)
-        self._websocket_reconnect_task: asyncio.Task | None = None
-        self._update_task: asyncio.Task | None = None
-        self.invocations = {0: self.subscribe_to_location}
+        self._websocket_reconnect_tasks: list[asyncio.Task | None] = [None, None]
+        self._update_task: list[asyncio.Task | None] = [None, None]
+        self.invocations = {
+            0: self.subscribe_to_location,
+            1: self.subscribe_to_challenge,
+            2: self.subscribe_to_challengelist,
+        }
         self.hq_plan_name = entry.options.get(CONF_HQ_PLAN_NAME, DEFAULT_HQ_PLAN_NAME)
         self.appreciation = entry.options.get(
             CONF_APPRECIATION_PHASE, DEFAULT_APPRECIATION_PHASE
@@ -302,6 +306,17 @@ class Hilo:
             new_devices = await self.devices.update_devicelist_from_signalr(
                 event.arguments[0]
             )
+        # ic-dev21: This part needs some further work and parsing but so far it works correctly
+        elif event.target == "ChallengeDetailsInitialValuesReceived":
+            LOG.debug("ic-dev21 ChallengeDetailsInitialValuesReceived")
+
+        elif event.target == "ChallengeListInitialValuesReceived":
+            LOG.debug("ic-dev21 ChallengeListInitialValuesReceived")
+
+        elif event.target == "ChallengeConsumptionUpdatedValuesReceived":
+            LOG.debug("ic-dev21 ChallengeConsumptionUpdatedValuesReceived")
+        # id-dev21 end of new code that needs further work.
+
         elif event.target == "DeviceListUpdatedValuesReceived":
             # This message only contains display information, such as the Device's name (as set in the app), it's groupid, icon, etc.
             # Updating the device name causes issues in the integration, it detects it as a new device and creates a new entity.
@@ -337,6 +352,7 @@ class Hilo:
                 async_dispatcher_send(
                     self._hass, SIGNAL_UPDATE_ENTITY.format(device.id)
                 )
+
         else:
             LOG.warning(f"Unhandled websocket event: {event}")
 
@@ -344,13 +360,45 @@ class Hilo:
     async def subscribe_to_location(self, inv_id: int) -> None:
         """Sends the json payload to receive updates from the location."""
         LOG.debug(f"Subscribing to location {self.devices.location_id}")
-        await self._api.websocket.async_invoke(
+        await self._api.websocket_devices.async_invoke(
             [self.devices.location_id], "SubscribeToLocation", inv_id
         )
 
     @callback
+    async def subscribe_to_challenge(self, inv_id: int, event_id: int = 0) -> None:
+        """Sends the json payload to receive updates from the challenge."""
+        # ic-dev21 : data structure of the message was incorrect, needed the "fixed" strings
+        LOG.debug(
+            f"Subscribing to challenge {event_id} at location {self.devices.location_id}"
+        )
+        await self._api.websocket_challenges.async_invoke(
+            [{"locationId": self.devices.location_id, "eventId": event_id}],
+            "SubscribeToChallenge",
+            inv_id,
+        )
+
+    @callback
+    async def subscribe_to_challengelist(self, inv_id: int) -> None:
+        """Sends the json payload to receive updates from the challenge list."""
+        # ic-dev21 this will be necessary to get the challenge list
+        LOG.debug(
+            f"Subscribing to challenge list at location {self.devices.location_id}"
+        )
+        await self._api.websocket_challenges.async_invoke(
+            [{"locationId": self.devices.location_id}],
+            "SubscribeToChallengeList",
+            inv_id,
+        )
+
+    @callback
     async def request_status_update(self) -> None:
-        await self._api.websocket.send_status()
+        await self._api.websocket_devices.send_status()
+        for inv_id, inv_cb in self.invocations.items():
+            await inv_cb(inv_id)
+
+    @callback
+    async def request_status_update_challenge(self) -> None:
+        await self._api.websocket_challenges.send_status()
         for inv_id, inv_cb in self.invocations.items():
             await inv_cb(inv_id)
 
@@ -424,20 +472,27 @@ class Hilo:
                 self._hass, self.entry, self.unknown_tracker_device
             )
 
-        self._api.websocket.add_connect_callback(self.request_status_update)
-        self._api.websocket.add_event_callback(self.on_websocket_event)
-        self._websocket_reconnect_task = asyncio.create_task(
-            self.start_websocket_loop()
+        self._api.websocket_devices.add_connect_callback(self.request_status_update)
+        self._api.websocket_devices.add_event_callback(self.on_websocket_event)
+        self._api.websocket_challenges.add_connect_callback(
+            self.request_status_update_challenge
         )
-        # asyncio.create_task(self._api.websocket.async_connect())
+        self._api.websocket_challenges.add_event_callback(self.on_websocket_event)
+        self._websocket_reconnect_tasks[0] = asyncio.create_task(
+            self.start_websocket_loop(self._api.websocket_devices, 0)
+        )
+        self._websocket_reconnect_tasks[1] = asyncio.create_task(
+            self.start_websocket_loop(self._api.websocket_challenges, 1)
+        )
+        # asyncio.create_task(self._api.websocket_devices.async_connect())
 
         async def websocket_disconnect_listener(_: Event) -> None:
             """Define an event handler to disconnect from the websocket."""
             if TYPE_CHECKING:
-                assert self._api.websocket
+                assert self._api.websocket_devices
 
-            if self._api.websocket.connected:
-                await self._api.websocket.async_disconnect()
+            if self._api.websocket_devices.connected:
+                await self._api.websocket_devices.async_disconnect()
 
         self.entry.async_on_unload(
             self._hass.bus.async_listen_once(
@@ -452,37 +507,37 @@ class Hilo:
             update_method=self.async_update,
         )
 
-    async def start_websocket_loop(self) -> None:
+    async def start_websocket_loop(self, websocket, id) -> None:
         """Start a websocket reconnection loop."""
         if TYPE_CHECKING:
-            assert self._api.websocket
+            assert websocket
 
         should_reconnect = True
 
         try:
-            await self._api.websocket.async_connect()
-            await self._api.websocket.async_listen()
+            await websocket.async_connect()
+            await websocket.async_listen()
         except asyncio.CancelledError:
             LOG.debug("Request to cancel websocket loop received")
             raise
         except WebsocketError as err:
             LOG.error(f"Failed to connect to websocket: {err}", exc_info=err)
-            await self.cancel_websocket_loop()
+            await self.cancel_websocket_loop(websocket, id)
         except InvalidCredentialsError:
             LOG.warning("Invalid credentials? Refreshing websocket infos")
-            await self.cancel_websocket_loop()
+            await self.cancel_websocket_loop(websocket, id)
             await self._api.refresh_ws_token()
         except Exception as err:  # pylint: disable=broad-except
             LOG.error(
                 f"Unknown exception while connecting to websocket: {err}", exc_info=err
             )
-            await self.cancel_websocket_loop()
+            await self.cancel_websocket_loop(websocket, id)
 
         if should_reconnect:
             LOG.info("Disconnected from websocket; reconnecting in 5 seconds.")
             await asyncio.sleep(5)
-            self._websocket_reconnect_task = self._hass.async_create_task(
-                self.start_websocket_loop()
+            self._websocket_reconnect_tasks[id] = self._hass.async_create_task(
+                self.start_websocket_loop(websocket, id)
             )
 
     async def cancel_task(self, task) -> None:
@@ -496,15 +551,15 @@ class Hilo:
                 task = None
         return task
 
-    async def cancel_websocket_loop(self) -> None:
+    async def cancel_websocket_loop(self, websocket, id) -> None:
         """Stop any existing websocket reconnection loop."""
-        self._websocket_reconnect_task = await self.cancel_task(
-            self._websocket_reconnect_task
+        self._websocket_reconnect_tasks[id] = await self.cancel_task(
+            self._websocket_reconnect_tasks[id]
         )
-        self._update_task = await self.cancel_task(self._update_task)
+        self._update_task[id] = await self.cancel_task(self._update_task[id])
         if TYPE_CHECKING:
-            assert self._api.websocket
-        await self._api.websocket.async_disconnect()
+            assert websocket
+        await websocket.async_disconnect()
 
     async def async_update(self) -> None:
         """Updates tarif periodically."""
