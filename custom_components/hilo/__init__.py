@@ -284,7 +284,7 @@ class Hilo:
                 for item in event.arguments[0]
             )
             if new_devices:
-                LOG.warn(
+                LOG.warning(
                     "Device list appears to be desynchronized, forcing a refresh thru the API..."
                 )
                 await self.devices.update()
