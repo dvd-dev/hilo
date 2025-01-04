@@ -244,9 +244,7 @@ class Hilo:
         self.appreciation = entry.options.get(
             CONF_APPRECIATION_PHASE, DEFAULT_APPRECIATION_PHASE
         )
-        self.pre_cold = entry.options.get(
-            CONF_PRE_COLD_PHASE, DEFAULT_PRE_COLD_PHASE
-        )
+        self.pre_cold = entry.options.get(CONF_PRE_COLD_PHASE, DEFAULT_PRE_COLD_PHASE)
         self.challenge_lock = entry.options.get(
             CONF_CHALLENGE_LOCK, DEFAULT_CHALLENGE_LOCK
         )
@@ -315,21 +313,21 @@ class Hilo:
             LOG.debug("ic-dev21 ChallengeAdded")
             arguments = event.arguments
             challenge = arguments[0][0]
-            challenge_id = challenge.get('id')
+            challenge_id = challenge.get("id")
             LOG.debug(f"ic-dev21 challengeAdded arguments are {arguments}")
             LOG.debug(f"ic-dev21 challengeAdded challenge_id {challenge_id}")
-            self.challenge_id = challenge.get('id')
+            self.challenge_id = challenge.get("id")
 
         elif event.target == "ChallengeListInitialValuesReceived":
             LOG.debug("ic-dev21 ChallengeListInitialValuesReceived")
             arguments = event.arguments
             challenge = arguments[0][0]
-            challenge_id = challenge.get('id')
+            challenge_id = challenge.get("id")
             LOG.debug(f"ic-dev21 arguments are {arguments}")
             LOG.debug(f"ic-dev21 challenge_id {challenge_id}")
-            self.challenge_id = challenge.get('id')
+            self.challenge_id = challenge.get("id")
             LOG.debug(f"ic-dev21 self.challenge_id {self.challenge_id}")
-            await self.subscribe_to_challenge(1,self.challenge_id)
+            await self.subscribe_to_challenge(1, self.challenge_id)
 
         elif event.target == "ChallengeConsumptionUpdatedValuesReceived":
             LOG.debug("ic-dev21 ChallengeConsumptionUpdatedValuesReceived")
