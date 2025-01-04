@@ -311,6 +311,15 @@ class Hilo:
         elif event.target == "ChallengeDetailsInitialValuesReceived":
             LOG.debug("ic-dev21 ChallengeDetailsInitialValuesReceived")
 
+        elif event.target == "ChallengeAdded":
+            LOG.debug("ic-dev21 ChallengeAdded")
+            arguments = event.arguments
+            challenge = arguments[0][0]
+            challenge_id = challenge.get('id')
+            LOG.debug(f"ic-dev21 challengeAdded arguments are {arguments}")
+            LOG.debug(f"ic-dev21 challengeAdded challenge_id {challenge_id}")
+            self.challenge_id = challenge.get('id')
+
         elif event.target == "ChallengeListInitialValuesReceived":
             LOG.debug("ic-dev21 ChallengeListInitialValuesReceived")
             arguments = event.arguments
