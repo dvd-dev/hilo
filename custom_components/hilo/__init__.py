@@ -232,6 +232,7 @@ class Hilo:
         self.find_meter(self._hass)
         self.entry = entry
         self.devices: Devices = Devices(api)
+        self.challenge_id = 0
         self._websocket_reconnect_tasks: list[asyncio.Task | None] = [None, None]
         self._update_task: list[asyncio.Task | None] = [None, None]
         self.invocations = {
@@ -244,7 +245,7 @@ class Hilo:
             CONF_APPRECIATION_PHASE, DEFAULT_APPRECIATION_PHASE
         )
         self.pre_cold = entry.options.get(
-            CONF_PRE_COLD_PHASE, DEFAULT_PRE_COLD_PHASE  # this is new
+            CONF_PRE_COLD_PHASE, DEFAULT_PRE_COLD_PHASE
         )
         self.challenge_lock = entry.options.get(
             CONF_CHALLENGE_LOCK, DEFAULT_CHALLENGE_LOCK
@@ -288,7 +289,7 @@ class Hilo:
                 for item in event.arguments[0]
             )
             if new_devices:
-                LOG.warn(
+                LOG.warning(
                     "Device list appears to be desynchronized, forcing a refresh thru the API..."
                 )
                 await self.devices.update()
@@ -312,6 +313,14 @@ class Hilo:
 
         elif event.target == "ChallengeListInitialValuesReceived":
             LOG.debug("ic-dev21 ChallengeListInitialValuesReceived")
+            arguments = event.arguments
+            challenge = arguments[0][0]
+            challenge_id = challenge.get('id')
+            LOG.debug(f"ic-dev21 arguments are {arguments}")
+            LOG.debug(f"ic-dev21 challenge_id {challenge_id}")
+            self.challenge_id = challenge.get('id')
+            LOG.debug(f"ic-dev21 self.challenge_id {self.challenge_id}")
+            await self.subscribe_to_challenge(1,self.challenge_id)
 
         elif event.target == "ChallengeConsumptionUpdatedValuesReceived":
             LOG.debug("ic-dev21 ChallengeConsumptionUpdatedValuesReceived")
@@ -368,6 +377,9 @@ class Hilo:
     async def subscribe_to_challenge(self, inv_id: int, event_id: int = 0) -> None:
         """Sends the json payload to receive updates from the challenge."""
         # ic-dev21 : data structure of the message was incorrect, needed the "fixed" strings
+        LOG.debug(f"ic-dev21 subscribe to challenge :{event_id} or {self.challenge_id}")
+        event_id = event_id or self.challenge_id
+
         LOG.debug(
             f"Subscribing to challenge {event_id} at location {self.devices.location_id}"
         )
