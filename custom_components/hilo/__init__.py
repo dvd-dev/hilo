@@ -319,6 +319,13 @@ class Hilo:
             )
             self.challenge_id = challenge.get("id")
 
+        elif event.target == "ChallengeDetailsUpdatedValuesReceived":
+            LOG.debug("ic-dev21 ChallengeDetailsUpdatedValuesReceived")
+            arguments = event.arguments
+            LOG.debug(
+                f"ic-dev21 ChallengeDetailsUpdatedValuesReceived arguments are {arguments}"
+            )
+
         elif event.target == "ChallengeListUpdatedValuesReceived":
             LOG.debug("ic-dev21 ChallengeListUpdatedValuesReceived")
             arguments = event.arguments
