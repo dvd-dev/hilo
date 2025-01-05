@@ -19,15 +19,21 @@ Ceci est une version Bêta. Il y aura probablement des bogues, irritants, etc. M
 # Hilo
 Intégration pour Home Assistant d'[Hilo](https://www.hydroquebec.com/hilo/fr/)
 
-## Introduction
+## Introduction et base
 
 Ceci est l'intégration HACS non-officielle de Hilo sur Home Assistant. [Hilo](https://www.hiloenergie.com/fr-ca/) est une plateforme de domotique développée par une filliale d'[Hydro-Québec](https://www.hydroquebec.com/hilo/fr/).
 Cette intégration n'a aucun liens direct avec Hilo ou Hydro Québec. C'est une initiative communautaire. Merci de ne pas contacter Hilo ou Hydro-Québec pour tout problème avec cette intégration Home Assistant. Vous pouvez ouvrir un "issue" dans ce "repository" github à la place.
 
 Si vous souhaitez aider avec le développement de cette intégration, vous pouvez toujours soumettre vos commentaires à partir du formulaire de l'app Hilo et demander à ce qu'ils ouvrent leur API publiquement et qu'ils fournissent un environnement de test pour les développeurs.
 
+### Version TL:DR ("too long, didn't read")
+
+Voir la configuration minimale recommandée [dans le wiki](https://github.com/dvd-dev/hilo/wiki/FAQ-%E2%80%90-Français#avez-vous-une-configuration-recommandée)
+
+
 Vous pouvez également trouver des exemples en format YAML [dans la section doc/automations du projet](https://github.com/dvd-dev/hilo/tree/main/doc/automations)
 Si vous préférez les blueprints, vous pouvez les retrouver ici [dans le repository de NumerID](https://github.com/NumerID/blueprint_hilo)
+
 
 ### Remerciements
 

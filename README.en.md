@@ -31,6 +31,11 @@ If you want to help with the development of this integration, you can always sub
 application and requesting that they open their API publicly and that they provide a testing environment to the
 developers.
 
+### TL:DR version:
+
+You can find a recommended minimal configuration [in the wiki](https://github.com/dvd-dev/hilo/wiki/FAQ#do-you-have-any-recommended-settings)
+
+
 You can also find sample automations in YAML format [in the doc/automations directory](https://github.com/dvd-dev/hilo/tree/main/doc/automations)
 If you prefer blueprints, there are some available here [in NumerID's repository](https://github.com/NumerID/blueprint_hilo)
 
