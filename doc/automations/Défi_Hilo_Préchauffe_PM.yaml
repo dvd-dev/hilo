@@ -10,8 +10,8 @@ triggers:
     trigger: time
 conditions:
   - condition: time
-    before: "16:05:00"
-    after: "15:55:00"
+    before: "15:05:00"
+    after: "14:55:00"
   - condition: or
     conditions:
       - condition: state
