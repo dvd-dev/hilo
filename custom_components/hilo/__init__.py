@@ -330,14 +330,9 @@ class Hilo:
             LOG.debug("ic-dev21 ChallengeListUpdatedValuesReceived")
             arguments = event.arguments
             challenge = arguments[0]
-            challenge_id = challenge.get("id")
             LOG.debug(
                 f"ic-dev21 ChallengeListUpdatedValuesReceived arguments are {arguments}"
             )
-            LOG.debug(
-                f"ic-dev21 ChallengeDetailsInitialValuesReceived challenge_id {challenge_id}"
-            )
-            self.challenge_id = challenge.get("id")
 
         elif event.target == "ChallengeAdded":
             LOG.debug("ic-dev21 ChallengeAdded")
