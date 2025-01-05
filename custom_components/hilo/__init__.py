@@ -310,19 +310,37 @@ class Hilo:
             LOG.debug("ic-dev21 ChallengeDetailsInitialValuesReceived")
             arguments = event.arguments
             challenge = arguments[0]
-            challenge_id = challenge.get('id')
-            LOG.debug(f"ic-dev21 ChallengeDetailsInitialValuesReceived arguments are {arguments}")
-            LOG.debug(f"ic-dev21 ChallengeDetailsInitialValuesReceived challenge_id {challenge_id}")
-            self.challenge_id = challenge.get('id')
+            challenge_id = challenge.get("id")
+            LOG.debug(
+                f"ic-dev21 ChallengeDetailsInitialValuesReceived arguments are {arguments}"
+            )
+            LOG.debug(
+                f"ic-dev21 ChallengeDetailsInitialValuesReceived challenge_id {challenge_id}"
+            )
+            self.challenge_id = challenge.get("id")
+
+        elif event.target == "ChallengeListUpdatedValuesReceived":
+            LOG.debug("ic-dev21 ChallengeListUpdatedValuesReceived")
+            arguments = event.arguments
+            challenge = arguments[0]
+            challenge_id = challenge.get("id")
+            LOG.debug(
+                f"ic-dev21 ChallengeListUpdatedValuesReceived arguments are {arguments}"
+            )
+            LOG.debug(
+                f"ic-dev21 ChallengeDetailsInitialValuesReceived challenge_id {challenge_id}"
+            )
+            self.challenge_id = challenge.get("id")
 
         elif event.target == "ChallengeAdded":
             LOG.debug("ic-dev21 ChallengeAdded")
             arguments = event.arguments
             challenge = arguments[0][0]
             challenge_id = challenge.get("id")
-            LOG.debug(f"ic-dev21 challengeAdded arguments are {arguments}")
-            LOG.debug(f"ic-dev21 challengeAdded challenge_id {challenge_id}")
+            LOG.debug(f"ic-dev21 arguments are {arguments}")
+            LOG.debug(f"ic-dev21 challenge_id {challenge_id}")
             self.challenge_id = challenge.get("id")
+            await self.subscribe_to_challenge(1, self.challenge_id)
 
         elif event.target == "ChallengeListInitialValuesReceived":
             LOG.debug("ic-dev21 ChallengeListInitialValuesReceived")
@@ -337,6 +355,11 @@ class Hilo:
 
         elif event.target == "ChallengeConsumptionUpdatedValuesReceived":
             LOG.debug("ic-dev21 ChallengeConsumptionUpdatedValuesReceived")
+            arguments = event.arguments
+            LOG.debug(
+                f"ic-dev21 ChallengeConsumptionUpdatedValuesReceived arguments are: {arguments}"
+            )
+
         # id-dev21 end of new code that needs further work.
 
         elif event.target == "DeviceListUpdatedValuesReceived":
