@@ -9,8 +9,15 @@ triggers:
     to: appreciation
     trigger: state
 conditions:
-  - condition: template
-    value_template: "{{'pm' in state_attr('sensor.defi_hilo','next_events')[0]['period'] }}"
+  - condition: and
+    conditions:
+      - condition: template
+        value_template: "{{'am' in state_attr('sensor.defi_hilo','next_events')[0]['period'] }}"
+      - condition: template
+        value_template: >-
+          {{ (state_attr('sensor.defi_hilo',
+          'next_events')[0]['phases']['preheat_start'] |
+          as_datetime).strftime('%Y-%m-%d') == now().strftime('%Y-%m-%d') }}
   - condition: or
     conditions:
       - condition: state
