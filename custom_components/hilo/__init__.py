@@ -244,7 +244,9 @@ class Hilo:
         self.appreciation = entry.options.get(
             CONF_APPRECIATION_PHASE, DEFAULT_APPRECIATION_PHASE
         )
-        self.pre_cold = entry.options.get(CONF_PRE_COLD_PHASE, DEFAULT_PRE_COLD_PHASE)
+        self.pre_cold = entry.options.get(
+            CONF_PRE_COLD_PHASE, DEFAULT_PRE_COLD_PHASE
+        )
         self.challenge_lock = entry.options.get(
             CONF_CHALLENGE_LOCK, DEFAULT_CHALLENGE_LOCK
         )
@@ -310,57 +312,50 @@ class Hilo:
             LOG.debug("ic-dev21 ChallengeDetailsInitialValuesReceived")
             arguments = event.arguments
             challenge = arguments[0]
-            challenge_id = challenge.get("id")
-            LOG.debug(
-                f"ic-dev21 ChallengeDetailsInitialValuesReceived arguments are {arguments}"
-            )
-            LOG.debug(
-                f"ic-dev21 ChallengeDetailsInitialValuesReceived challenge_id {challenge_id}"
-            )
-            self.challenge_id = challenge.get("id")
+            challenge_id = challenge.get('id')
+            LOG.debug(f"ic-dev21 ChallengeDetailsInitialValuesReceived arguments are {arguments}")
+            LOG.debug(f"ic-dev21 ChallengeDetailsInitialValuesReceived challenge_id {challenge_id}")
+            self.challenge_id = challenge.get('id')
 
         elif event.target == "ChallengeDetailsUpdatedValuesReceived":
             LOG.debug("ic-dev21 ChallengeDetailsUpdatedValuesReceived")
             arguments = event.arguments
-            LOG.debug(
-                f"ic-dev21 ChallengeDetailsUpdatedValuesReceived arguments are {arguments}"
-            )
+            LOG.debug(f"ic-dev21 ChallengeDetailsUpdatedValuesReceived arguments are {arguments}")
 
         elif event.target == "ChallengeListUpdatedValuesReceived":
             LOG.debug("ic-dev21 ChallengeListUpdatedValuesReceived")
             arguments = event.arguments
             challenge = arguments[0]
-            LOG.debug(
-                f"ic-dev21 ChallengeListUpdatedValuesReceived arguments are {arguments}"
-            )
+            LOG.debug(f"ic-dev21 ChallengeListUpdatedValuesReceived arguments are {arguments}")
+
 
         elif event.target == "ChallengeAdded":
             LOG.debug("ic-dev21 ChallengeAdded")
             arguments = event.arguments
             challenge = arguments[0][0]
-            challenge_id = challenge.get("id")
-            LOG.debug(f"ic-dev21 arguments are {arguments}")
-            LOG.debug(f"ic-dev21 challenge_id {challenge_id}")
-            self.challenge_id = challenge.get("id")
-            await self.subscribe_to_challenge(1, self.challenge_id)
+            challenge_id = challenge.get('id')
+            LOG.debug(f"ic-dev21 ChallengeAdded arguments are {arguments}")
+            LOG.debug(f"ic-dev21 ChallengeAdded challenge_id {challenge_id}")
+            self.challenge_id = challenge.get('id')
+            await self.subscribe_to_challenge(1,self.challenge_id)
 
         elif event.target == "ChallengeListInitialValuesReceived":
             LOG.debug("ic-dev21 ChallengeListInitialValuesReceived")
             arguments = event.arguments
             challenge = arguments[0][0]
-            challenge_id = challenge.get("id")
-            LOG.debug(f"ic-dev21 arguments are {arguments}")
-            LOG.debug(f"ic-dev21 challenge_id {challenge_id}")
-            self.challenge_id = challenge.get("id")
-            LOG.debug(f"ic-dev21 self.challenge_id {self.challenge_id}")
-            await self.subscribe_to_challenge(1, self.challenge_id)
+            challenge_id = challenge.get('id')
+            LOG.debug(f"ic-dev21 ChallengeListInitialValuesReceived arguments are {arguments}")
+            LOG.debug(f"ic-dev21 ChallengeListInitialValuesReceived challenge_id {challenge_id}")
+            self.challenge_phase = challenge.get("currentPhase")
+            LOG.debug(f"ic-dev21 ChallengeListInitialValuesReceived currentPhase is {self.challenge_phase}")
+            self.challenge_id = challenge.get('id')
+            LOG.debug(f"ic-dev21 ChallengeListInitialValuesReceived self.challenge_id {self.challenge_id}")
+            await self.subscribe_to_challenge(1,self.challenge_id)
 
         elif event.target == "ChallengeConsumptionUpdatedValuesReceived":
             LOG.debug("ic-dev21 ChallengeConsumptionUpdatedValuesReceived")
             arguments = event.arguments
-            LOG.debug(
-                f"ic-dev21 ChallengeConsumptionUpdatedValuesReceived arguments are: {arguments}"
-            )
+            LOG.debug(f"ic-dev21 ChallengeConsumptionUpdatedValuesReceived arguments are: {arguments}")
 
         # id-dev21 end of new code that needs further work.
 
