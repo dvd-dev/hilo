@@ -112,7 +112,7 @@ def _async_standardize_config_entry(hass: HomeAssistant, entry: ConfigEntry) -> 
 
 @callback
 def _async_register_custom_device(
-    hass: HomeAssistant, entry: ConfigEntry, device: HiloDevice
+        hass: HomeAssistant, entry: ConfigEntry, device: HiloDevice
 ) -> None:
     """Register a custom device. This is used to register the
     Hilo gateway and the unknown source tracker."""
@@ -128,7 +128,7 @@ def _async_register_custom_device(
 
 
 async def async_setup_entry(  # noqa: C901
-    hass: HomeAssistant, entry: ConfigEntry
+        hass: HomeAssistant, entry: ConfigEntry
 ) -> bool:
     """Set up Hilo as config entry."""
     HiloFlowHandler.async_register_implementation(
@@ -327,7 +327,10 @@ class Hilo:
             arguments = event.arguments
             challenge = arguments[0]
             LOG.debug(f"ic-dev21 ChallengeListUpdatedValuesReceived arguments are {arguments}")
-
+            progress = arguments[0][0]['progress']
+            LOG.debug(f"ChallengeListUpdatedValuesReceived progress is {progress}")
+            if progress == "completed":
+                LOG.debug(f"ChallengeListUpdatedValuesReceived tells me it has been completed")
 
         elif event.target == "ChallengeAdded":
             LOG.debug("ic-dev21 ChallengeAdded")
@@ -337,7 +340,7 @@ class Hilo:
             LOG.debug(f"ic-dev21 ChallengeAdded arguments are {arguments}")
             LOG.debug(f"ic-dev21 ChallengeAdded challenge_id {challenge_id}")
             self.challenge_id = challenge.get('id')
-            await self.subscribe_to_challenge(1,self.challenge_id)
+            await self.subscribe_to_challenge(1, self.challenge_id)
 
         elif event.target == "ChallengeListInitialValuesReceived":
             LOG.debug("ic-dev21 ChallengeListInitialValuesReceived")
@@ -350,7 +353,7 @@ class Hilo:
             LOG.debug(f"ic-dev21 ChallengeListInitialValuesReceived currentPhase is {self.challenge_phase}")
             self.challenge_id = challenge.get('id')
             LOG.debug(f"ic-dev21 ChallengeListInitialValuesReceived self.challenge_id {self.challenge_id}")
-            await self.subscribe_to_challenge(1,self.challenge_id)
+            await self.subscribe_to_challenge(1, self.challenge_id)
 
         elif event.target == "ChallengeConsumptionUpdatedValuesReceived":
             LOG.debug("ic-dev21 ChallengeConsumptionUpdatedValuesReceived")
@@ -529,6 +532,7 @@ class Hilo:
         self._websocket_reconnect_tasks[1] = asyncio.create_task(
             self.start_websocket_loop(self._api.websocket_challenges, 1)
         )
+
         # asyncio.create_task(self._api.websocket_devices.async_connect())
 
         async def websocket_disconnect_listener(_: Event) -> None:
@@ -637,7 +641,7 @@ class Hilo:
         # ic-dev21: Let's grab the meter from our dict
         for entity_id, entity_data in sorted_entity_registry_dict.items():
             if all(
-                substring in entity_data["name"] for substring in ["meter", "_power"]
+                    substring in entity_data["name"] for substring in ["meter", "_power"]
             ):
                 filtered_names.append(entity_data["name"])
 
@@ -807,9 +811,9 @@ class Hilo:
                 )
             )
         if (
-            entity.startswith("select.")
-            and entity.endswith("_hilo_energy")
-            and current != new
+                entity.startswith("select.")
+                and entity.endswith("_hilo_energy")
+                and current != new
         ):
             LOG.debug(
                 f"check_tarif: Changing tarif of {entity} from {current} to {new}"
@@ -824,7 +828,7 @@ class Hilo:
 
     @callback
     def async_migrate_unique_id(
-        self, old_unique_id: str, new_unique_id: str | None, platform: str
+            self, old_unique_id: str, new_unique_id: str | None, platform: str
     ) -> None:
         """Migrate legacy unique IDs to new format."""
         assert new_unique_id is not None
@@ -839,14 +843,14 @@ class Hilo:
         # field for historical reasons since everything used to be
         # PLATFORM.INTEGRATION instead of INTEGRATION.PLATFORM
         if (
-            entity_id := entity_registry.async_get_entity_id(
-                platform, DOMAIN, old_unique_id
-            )
+                entity_id := entity_registry.async_get_entity_id(
+                    platform, DOMAIN, old_unique_id
+                )
         ) is None:
             LOG.debug("Unique ID %s does not need to be migrated", old_unique_id)
             return
         if new_entity_id := entity_registry.async_get_entity_id(
-            platform, DOMAIN, new_unique_id
+                platform, DOMAIN, new_unique_id
         ):
             LOG.debug(
                 (
@@ -870,11 +874,11 @@ class HiloEntity(CoordinatorEntity):
     """Define a base Hilo base entity."""
 
     def __init__(
-        self,
-        hilo: Hilo,
-        name: Union[str, None] = None,
-        *,
-        device: HiloDevice | None = None,
+            self,
+            hilo: Hilo,
+            name: Union[str, None] = None,
+            *,
+            device: HiloDevice | None = None,
     ) -> None:
         """Initialize."""
         assert hilo.coordinator
