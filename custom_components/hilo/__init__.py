@@ -112,7 +112,7 @@ def _async_standardize_config_entry(hass: HomeAssistant, entry: ConfigEntry) -> 
 
 @callback
 def _async_register_custom_device(
-        hass: HomeAssistant, entry: ConfigEntry, device: HiloDevice
+    hass: HomeAssistant, entry: ConfigEntry, device: HiloDevice
 ) -> None:
     """Register a custom device. This is used to register the
     Hilo gateway and the unknown source tracker."""
@@ -128,7 +128,7 @@ def _async_register_custom_device(
 
 
 async def async_setup_entry(  # noqa: C901
-        hass: HomeAssistant, entry: ConfigEntry
+    hass: HomeAssistant, entry: ConfigEntry
 ) -> bool:
     """Set up Hilo as config entry."""
     HiloFlowHandler.async_register_implementation(
@@ -244,9 +244,7 @@ class Hilo:
         self.appreciation = entry.options.get(
             CONF_APPRECIATION_PHASE, DEFAULT_APPRECIATION_PHASE
         )
-        self.pre_cold = entry.options.get(
-            CONF_PRE_COLD_PHASE, DEFAULT_PRE_COLD_PHASE
-        )
+        self.pre_cold = entry.options.get(CONF_PRE_COLD_PHASE, DEFAULT_PRE_COLD_PHASE)
         self.challenge_lock = entry.options.get(
             CONF_CHALLENGE_LOCK, DEFAULT_CHALLENGE_LOCK
         )
@@ -271,19 +269,81 @@ class Hilo:
         if self._api.log_traces:
             LOG.debug(f"Heartbeat: {time_diff(heartbeat_time, event.timestamp)}")
 
-    @callback
-    async def on_websocket_event(self, event: WebsocketEvent) -> None:
-        """Define a callback for receiving a websocket event."""
-        async_dispatcher_send(self._hass, DISPATCHER_TOPIC_WEBSOCKET_EVENT, event)
-        if event.event_type == "COMPLETE":
-            cb = self.invocations.get(event.invocation)
-            if cb:
-                async_call_later(self._hass, 3, cb(event.invocation))
-        elif event.target == "Heartbeat":
-            self.validate_heartbeat(event)
-        elif event.target == "DevicesValuesReceived":
-            # When receiving attribute values for unknown devices, assume
-            # we have refresh the device list.
+    async def _handle_challenge_events(self, event: WebsocketEvent) -> None:
+        """Handle all challenge-related websocket events."""
+        if event.target == "ChallengeDetailsInitialValuesReceived":
+            LOG.debug("ic-dev21 ChallengeDetailsInitialValuesReceived")
+            challenge = event.arguments[0]
+            challenge_id = challenge.get("id")
+            LOG.debug(
+                f"ic-dev21 ChallengeDetailsInitialValuesReceived arguments are {event.arguments}"
+            )
+            LOG.debug(
+                f"ic-dev21 ChallengeDetailsInitialValuesReceived challenge_id {challenge_id}"
+            )
+            self.challenge_id = challenge.get("id")
+
+        elif event.target == "ChallengeDetailsUpdatedValuesReceived":
+            LOG.debug("ic-dev21 ChallengeDetailsUpdatedValuesReceived")
+            LOG.debug(
+                f"ic-dev21 ChallengeDetailsUpdatedValuesReceived arguments are {event.arguments}"
+            )
+
+        elif event.target == "ChallengeListUpdatedValuesReceived":
+            LOG.debug("ic-dev21 ChallengeListUpdatedValuesReceived")
+            challenge = event.arguments[0]
+            LOG.debug(
+                f"ic-dev21 ChallengeListUpdatedValuesReceived arguments are {event.arguments}"
+            )
+            progress = event.arguments[0][0]["progress"]
+            LOG.debug(f"ChallengeListUpdatedValuesReceived progress is {progress}")
+            self.challenge_phase = event.arguments[0][0]["currentPhase"]
+            LOG.debug(
+                f"ic-dev21 ChallengeListUpdatedValuesReceived currentPhase is {self.challenge_phase}"
+            )
+            if progress == "completed":
+                LOG.debug(
+                    "ChallengeListUpdatedValuesReceived tells me it has been completed"
+                )
+
+        elif event.target == "ChallengeAdded":
+            LOG.debug("ic-dev21 ChallengeAdded")
+            challenge = event.arguments[0][0]
+            challenge_id = challenge.get("id")
+            LOG.debug(f"ic-dev21 ChallengeAdded arguments are {event.arguments}")
+            LOG.debug(f"ic-dev21 ChallengeAdded challenge_id {challenge_id}")
+            self.challenge_id = challenge.get("id")
+            await self.subscribe_to_challenge(1, self.challenge_id)
+
+        elif event.target == "ChallengeListInitialValuesReceived":
+            LOG.debug("ic-dev21 ChallengeListInitialValuesReceived")
+            challenge = event.arguments[0][0]
+            challenge_id = challenge.get("id")
+            LOG.debug(
+                f"ic-dev21 ChallengeListInitialValuesReceived arguments are {event.arguments}"
+            )
+            LOG.debug(
+                f"ic-dev21 ChallengeListInitialValuesReceived challenge_id {challenge_id}"
+            )
+            self.challenge_phase = challenge.get("currentPhase")
+            LOG.debug(
+                f"ic-dev21 ChallengeListInitialValuesReceived currentPhase is {self.challenge_phase}"
+            )
+            self.challenge_id = challenge.get("id")
+            LOG.debug(
+                f"ic-dev21 ChallengeListInitialValuesReceived self.challenge_id {self.challenge_id}"
+            )
+            await self.subscribe_to_challenge(1, self.challenge_id)
+
+        elif event.target == "ChallengeConsumptionUpdatedValuesReceived":
+            LOG.debug("ic-dev21 ChallengeConsumptionUpdatedValuesReceived")
+            LOG.debug(
+                f"ic-dev21 ChallengeConsumptionUpdatedValuesReceived arguments are: {event.arguments}"
+            )
+
+    async def _handle_device_events(self, event: WebsocketEvent) -> None:
+        """Handle all device-related websocket events."""
+        if event.target == "DevicesValuesReceived":
             new_devices = any(
                 self.devices.find_device(item["deviceId"]) is None
                 for item in event.arguments[0]
@@ -295,108 +355,59 @@ class Hilo:
                 await self.devices.update()
 
             updated_devices = self.devices.parse_values_received(event.arguments[0])
-            # NOTE(dvd): If we don't do this, we need to wait until the coordinator
-            # runs (scan_interval) to have updated data in the dashboard.
             for device in updated_devices:
                 async_dispatcher_send(
                     self._hass, SIGNAL_UPDATE_ENTITY.format(device.id)
                 )
+
         elif event.target == "DeviceListInitialValuesReceived":
-            # This websocket event only happens after calling SubscribeToLocation.
-            # This triggers an update without throwing an exception
-            new_devices = await self.devices.update_devicelist_from_signalr(
-                event.arguments[0]
-            )
-        # ic-dev21: This part needs some further work and parsing but so far it works correctly
-        elif event.target == "ChallengeDetailsInitialValuesReceived":
-            LOG.debug("ic-dev21 ChallengeDetailsInitialValuesReceived")
-            arguments = event.arguments
-            challenge = arguments[0]
-            challenge_id = challenge.get('id')
-            LOG.debug(f"ic-dev21 ChallengeDetailsInitialValuesReceived arguments are {arguments}")
-            LOG.debug(f"ic-dev21 ChallengeDetailsInitialValuesReceived challenge_id {challenge_id}")
-            self.challenge_id = challenge.get('id')
-
-        elif event.target == "ChallengeDetailsUpdatedValuesReceived":
-            LOG.debug("ic-dev21 ChallengeDetailsUpdatedValuesReceived")
-            arguments = event.arguments
-            LOG.debug(f"ic-dev21 ChallengeDetailsUpdatedValuesReceived arguments are {arguments}")
-
-        elif event.target == "ChallengeListUpdatedValuesReceived":
-            LOG.debug("ic-dev21 ChallengeListUpdatedValuesReceived")
-            arguments = event.arguments
-            challenge = arguments[0]
-            LOG.debug(f"ic-dev21 ChallengeListUpdatedValuesReceived arguments are {arguments}")
-            progress = arguments[0][0]['progress']
-            LOG.debug(f"ChallengeListUpdatedValuesReceived progress is {progress}")
-            if progress == "completed":
-                LOG.debug(f"ChallengeListUpdatedValuesReceived tells me it has been completed")
-
-        elif event.target == "ChallengeAdded":
-            LOG.debug("ic-dev21 ChallengeAdded")
-            arguments = event.arguments
-            challenge = arguments[0][0]
-            challenge_id = challenge.get('id')
-            LOG.debug(f"ic-dev21 ChallengeAdded arguments are {arguments}")
-            LOG.debug(f"ic-dev21 ChallengeAdded challenge_id {challenge_id}")
-            self.challenge_id = challenge.get('id')
-            await self.subscribe_to_challenge(1, self.challenge_id)
-
-        elif event.target == "ChallengeListInitialValuesReceived":
-            LOG.debug("ic-dev21 ChallengeListInitialValuesReceived")
-            arguments = event.arguments
-            challenge = arguments[0][0]
-            challenge_id = challenge.get('id')
-            LOG.debug(f"ic-dev21 ChallengeListInitialValuesReceived arguments are {arguments}")
-            LOG.debug(f"ic-dev21 ChallengeListInitialValuesReceived challenge_id {challenge_id}")
-            self.challenge_phase = challenge.get("currentPhase")
-            LOG.debug(f"ic-dev21 ChallengeListInitialValuesReceived currentPhase is {self.challenge_phase}")
-            self.challenge_id = challenge.get('id')
-            LOG.debug(f"ic-dev21 ChallengeListInitialValuesReceived self.challenge_id {self.challenge_id}")
-            await self.subscribe_to_challenge(1, self.challenge_id)
-
-        elif event.target == "ChallengeConsumptionUpdatedValuesReceived":
-            LOG.debug("ic-dev21 ChallengeConsumptionUpdatedValuesReceived")
-            arguments = event.arguments
-            LOG.debug(f"ic-dev21 ChallengeConsumptionUpdatedValuesReceived arguments are: {arguments}")
-
-        # id-dev21 end of new code that needs further work.
+            await self.devices.update_devicelist_from_signalr(event.arguments[0])
 
         elif event.target == "DeviceListUpdatedValuesReceived":
-            # This message only contains display information, such as the Device's name (as set in the app), it's groupid, icon, etc.
-            # Updating the device name causes issues in the integration, it detects it as a new device and creates a new entity.
-            # Ignore this call, for now... (update_devicelist_from_signalr does work, but causes the issue above)
-            # await self.devices.update_devicelist_from_signalr(event.arguments[0])
             LOG.debug(
                 "Received 'DeviceListUpdatedValuesReceived' message, not implemented yet."
             )
+
         elif event.target == "DevicesListChanged":
-            # This message only contains the location_id and is used to inform us that devices have been removed from the location.
-            # Device deletion is not implemented yet, so we just log the message for now.
             LOG.debug("Received 'DevicesListChanged' message, not implemented yet.")
+
         elif event.target == "DeviceAdded":
-            # Same structure as DeviceList* but only one device instead of a list
-            devices = []
-            devices.append(event.arguments[0])
-            new_devices = await self.devices.update_devicelist_from_signalr(devices)
+            devices = [event.arguments[0]]
+            await self.devices.update_devicelist_from_signalr(devices)
+
         elif event.target == "DeviceDeleted":
-            # Device deletion is not implemented yet, so we just log the message for now.
             LOG.debug("Received 'DeviceDeleted' message, not implemented yet.")
+
         elif event.target == "GatewayValuesReceived":
-            # Gateway deviceId hardcoded to 1 as it is not returned by Gateways/Info.
-            # First time we encounter a GatewayValueReceived event, update device with proper deviceid.
             gateway = self.devices.find_device(1)
             if gateway:
                 gateway.id = event.arguments[0][0]["deviceId"]
                 LOG.debug(f"Updated Gateway's deviceId from default 1 to {gateway.id}")
 
             updated_devices = self.devices.parse_values_received(event.arguments[0])
-            # NOTE(dvd): If we don't do this, we need to wait until the coordinator
-            # runs (scan_interval) to have updated data in the dashboard.
             for device in updated_devices:
                 async_dispatcher_send(
                     self._hass, SIGNAL_UPDATE_ENTITY.format(device.id)
                 )
+
+    @callback
+    async def on_websocket_event(self, event: WebsocketEvent) -> None:
+        """Define a callback for receiving a websocket event."""
+        async_dispatcher_send(self._hass, DISPATCHER_TOPIC_WEBSOCKET_EVENT, event)
+
+        if event.event_type == "COMPLETE":
+            cb = self.invocations.get(event.invocation)
+            if cb:
+                async_call_later(self._hass, 3, cb(event.invocation))
+
+        elif event.target == "Heartbeat":
+            self.validate_heartbeat(event)
+
+        elif "Challenge" in event.target:
+            await self._handle_challenge_events(event)
+
+        elif "Device" in event.target or event.target == "GatewayValuesReceived":
+            await self._handle_device_events(event)
 
         else:
             LOG.warning(f"Unhandled websocket event: {event}")
@@ -641,7 +652,7 @@ class Hilo:
         # ic-dev21: Let's grab the meter from our dict
         for entity_id, entity_data in sorted_entity_registry_dict.items():
             if all(
-                    substring in entity_data["name"] for substring in ["meter", "_power"]
+                substring in entity_data["name"] for substring in ["meter", "_power"]
             ):
                 filtered_names.append(entity_data["name"])
 
@@ -811,9 +822,9 @@ class Hilo:
                 )
             )
         if (
-                entity.startswith("select.")
-                and entity.endswith("_hilo_energy")
-                and current != new
+            entity.startswith("select.")
+            and entity.endswith("_hilo_energy")
+            and current != new
         ):
             LOG.debug(
                 f"check_tarif: Changing tarif of {entity} from {current} to {new}"
@@ -828,7 +839,7 @@ class Hilo:
 
     @callback
     def async_migrate_unique_id(
-            self, old_unique_id: str, new_unique_id: str | None, platform: str
+        self, old_unique_id: str, new_unique_id: str | None, platform: str
     ) -> None:
         """Migrate legacy unique IDs to new format."""
         assert new_unique_id is not None
@@ -843,14 +854,14 @@ class Hilo:
         # field for historical reasons since everything used to be
         # PLATFORM.INTEGRATION instead of INTEGRATION.PLATFORM
         if (
-                entity_id := entity_registry.async_get_entity_id(
-                    platform, DOMAIN, old_unique_id
-                )
+            entity_id := entity_registry.async_get_entity_id(
+                platform, DOMAIN, old_unique_id
+            )
         ) is None:
             LOG.debug("Unique ID %s does not need to be migrated", old_unique_id)
             return
         if new_entity_id := entity_registry.async_get_entity_id(
-                platform, DOMAIN, new_unique_id
+            platform, DOMAIN, new_unique_id
         ):
             LOG.debug(
                 (
@@ -874,11 +885,11 @@ class HiloEntity(CoordinatorEntity):
     """Define a base Hilo base entity."""
 
     def __init__(
-            self,
-            hilo: Hilo,
-            name: Union[str, None] = None,
-            *,
-            device: HiloDevice | None = None,
+        self,
+        hilo: Hilo,
+        name: Union[str, None] = None,
+        *,
+        device: HiloDevice | None = None,
     ) -> None:
         """Initialize."""
         assert hilo.coordinator
