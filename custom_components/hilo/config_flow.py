@@ -4,9 +4,10 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from awesomeversion import AwesomeVersion
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_SCAN_INTERVAL
+from homeassistant.const import CONF_SCAN_INTERVAL, __version__ as HAVERSION
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import config_validation as cv, selector
@@ -152,8 +153,11 @@ class HiloOptionsFlowHandler(config_entries.OptionsFlow):
     """Handle a Hilo options flow."""
 
     def __init__(self, config_entry: ConfigEntry) -> None:
-        """Initialize."""
-        self._config_entry = config_entry
+        """Initialize"""
+        if AwesomeVersion(HAVERSION) < "2024.11.99":
+            self.config_entry = config_entry
+        else:
+            self._config_entry = config_entry
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
