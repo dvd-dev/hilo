@@ -272,81 +272,45 @@ class Hilo:
     async def _handle_challenge_events(self, event: WebsocketEvent) -> None:
         """Handle all challenge-related websocket events."""
         if event.target == "ChallengeDetailsInitialValuesReceived":
-            LOG.debug("ic-dev21 ChallengeDetailsInitialValuesReceived")
             challenge = event.arguments[0]
-            challenge_id = challenge.get("id")
-            LOG.debug(
-                f"ic-dev21 ChallengeDetailsInitialValuesReceived arguments are {event.arguments}"
-            )
-            LOG.debug(
-                f"ic-dev21 ChallengeDetailsInitialValuesReceived challenge_id {challenge_id}"
-            )
+            LOG.debug(f"ChallengeDetailsInitialValuesReceived, challenge = {challenge}")
             self.challenge_id = challenge.get("id")
+            # Update sensor with challenge details
+            if hasattr(self, "challenge_sensor"):
+                self.challenge_sensor.handle_challenge_details_update(challenge)
 
         elif event.target == "ChallengeDetailsUpdatedValuesReceived":
-            LOG.debug("ic-dev21 ChallengeDetailsUpdatedValuesReceived")
-            LOG.debug(
-                f"ic-dev21 ChallengeDetailsUpdatedValuesReceived arguments are {event.arguments}"
-            )
-
-        elif event.target == "ChallengeListUpdatedValuesReceived":
-            LOG.debug("ic-dev21 ChallengeListUpdatedValuesReceived")
-            challenge = event.arguments[0]
-            LOG.debug(
-                f"ic-dev21 ChallengeListUpdatedValuesReceived arguments are {event.arguments}"
-            )
-            progress = event.arguments[0][0]["progress"]
-            LOG.debug(f"ChallengeListUpdatedValuesReceived progress is {progress}")
-            self.challenge_phase = event.arguments[0][0]["currentPhase"]
-            LOG.debug(
-                f"ic-dev21 ChallengeListUpdatedValuesReceived currentPhase is {self.challenge_phase}"
-            )
-            if progress == "completed":
-                LOG.debug(
-                    "ChallengeListUpdatedValuesReceived tells me it has been completed"
+            LOG.debug("ChallengeDetailsUpdatedValuesReceived")
+            if hasattr(self, "challenge_sensor"):
+                self.challenge_sensor.handle_challenge_details_update(
+                    event.arguments[0]
                 )
 
+        elif event.target == "ChallengeListUpdatedValuesReceived":
+            LOG.debug("ChallengeListUpdatedValuesReceived")
+            if hasattr(self, "challenge_sensor"):
+                self.challenge_sensor.handle_challenge_list_update(event.arguments[0])
+            self.challenge_phase = event.arguments[0][0]["currentPhase"]
+
         elif event.target == "ChallengeAdded":
-            LOG.debug("ic-dev21 ChallengeAdded")
+            LOG.debug("ChallengeAdded")
             challenge = event.arguments[0]
-            LOG.debug(f"ic-dev21 ChallengeAdded arguments are {event.arguments}")
-            challenge_id = challenge.get("id")
-            LOG.debug(f"ic-dev21 ChallengeAdded challenge_id {challenge_id}")
             self.challenge_id = challenge.get("id")
+            if hasattr(self, "challenge_sensor"):
+                self.challenge_sensor.handle_challenge_added(challenge)
             await self.subscribe_to_challenge(1, self.challenge_id)
 
         elif event.target == "ChallengeListInitialValuesReceived":
-            LOG.debug("ic-dev21 ChallengeListInitialValuesReceived")
-            challenges = event.arguments[0]  # This gets the list of all challenges
-            LOG.debug(
-                f"ic-dev21 ChallengeListInitialValuesReceived arguments are {event.arguments}"
-            )
+            LOG.debug("ChallengeListInitialValuesReceived")
+            challenges = event.arguments[0]
+            if hasattr(self, "challenge_sensor"):
+                self.challenge_sensor.handle_challenge_list_initial(challenges)
 
             for challenge in challenges:
                 challenge_id = challenge.get("id")
-                LOG.debug(
-                    f"ic-dev21 ChallengeListInitialValuesReceived challenge_id {challenge_id}"
-                )
                 self.challenge_phase = challenge.get("currentPhase")
-                LOG.debug(
-                    f"ic-dev21 ChallengeListInitialValuesReceived currentPhase is {self.challenge_phase}"
-                )
                 self.challenge_id = challenge.get("id")
-                LOG.debug(
-                    f"ic-dev21 ChallengeListInitialValuesReceived self.challenge_id {self.challenge_id}"
-                )
                 await self.subscribe_to_challenge(1, challenge_id)
-
-        elif event.target == "ChallengeConsumptionUpdatedValuesReceived":
-            LOG.debug("ic-dev21 ChallengeConsumptionUpdatedValuesReceived")
-            LOG.debug(
-                f"ic-dev21 ChallengeConsumptionUpdatedValuesReceived arguments are: {event.arguments}"
-            )
-            consumption_data = event.arguments[0]
-            current_kwh = (
-                consumption_data.get("currentWh", 0) / 1000
-            )  # Conversion de Wh en kWh
-            LOG.debug(f"ic-dev21 Current consumption is {current_kwh} kWh")
 
     async def _handle_device_events(self, event: WebsocketEvent) -> None:
         """Handle all device-related websocket events."""
