@@ -794,7 +794,7 @@ class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
             self._next_events.append(event.as_dict())
 
 
-class HiloChallengeSensorWebsocket(HiloEntity, RestoreEntity, SensorEntity):
+class HiloChallengeSensorWebsocket(HiloEntity, SensorEntity):
     """Hilo challenge sensor.
     Its state will be either:
     - off: no ongoing or scheduled challenge
