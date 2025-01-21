@@ -37,7 +37,9 @@ You can find a recommended minimal configuration [in the wiki](https://github.co
 
 
 You can also find sample automations in YAML format [in the doc/automations directory](https://github.com/dvd-dev/hilo/tree/main/doc/automations)
-If you prefer blueprints, there are some available here [in NumerID's repository](https://github.com/NumerID/blueprint_hilo)
+If you prefer blueprints, there are some available here:
+  - [NumerID's repository](https://github.com/NumerID/blueprint_hilo)
+  - [Arim215's repository](https://github.com/arim215/ha-hilo-blueprints)
 
 ### Shout out
 
