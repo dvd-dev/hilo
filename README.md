@@ -32,7 +32,7 @@ Voir la configuration minimale recommandée [dans le wiki](https://github.com/dv
 
 
 Vous pouvez également trouver des exemples en format YAML [dans la section doc/automations du projet](https://github.com/dvd-dev/hilo/tree/main/doc/automations)
-Si vous préférez les blueprints, vous pouvez les retrouver ici [dans le repository de NumerID](https://github.com/NumerID/blueprint_hilo)
+Si vous préférez les blueprints, vous pouvez les retrouver ici [dans le repository de NumerID](https://github.com/NumerID/blueprint_hilo) ou ici [dans le repository de Arim215](https://github.com/arim215/ha-hilo-blueprints)
 
 
 ### Remerciements
