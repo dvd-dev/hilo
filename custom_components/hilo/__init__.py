@@ -263,15 +263,57 @@ class Hilo:
         self._events: dict = {}
         if self.track_unknown_sources:
             self._api._get_device_callbacks = [self._get_unknown_source_tracker]
+        self._websocket_listeners = []
 
     def validate_heartbeat(self, event: WebsocketEvent) -> None:
         heartbeat_time = from_utc_timestamp(event.arguments[0])  # type: ignore
         if self._api.log_traces:
             LOG.debug(f"Heartbeat: {time_diff(heartbeat_time, event.timestamp)}")
+    
+    def register_websocket_listener(self, listener):
+        """Register a listener for websocket events."""
+        LOG.debug(f"Registering websocket listener: {listener.__class__.__name__}")
+        self._websocket_listeners.append(listener)
+
+    async def _handle_websocket_message(self, event):
+        """Process websocket messages and notify listeners."""
+        
+        LOG.debug(f"Received websocket message type: {event}")
+        target = event.target
+        LOG.debug(f"handle_websocket_message_target {target}")
+        msg_data = event
+        LOG.debug(f"handle_websocket_message_ msg_data {msg_data}")
+
+        if target == "ChallengeListInitialValuesReceived":
+            msg_type = 'challenge_list_initial'
+        elif target == "ChallengeAdded":
+            msg_type = 'challenge_added'
+        elif target == "ChallengeListUpdated":
+            msg_type = 'challenge_list_update'
+        elif target == "ChallengeDetailsUpdated":
+            msg_type = 'challenge_details_update'
+        
+        # ic-dev21 Notify listeners
+        for listener in self._websocket_listeners:
+            handler_name = f'handle_{msg_type}'
+            if hasattr(listener, handler_name):
+                handler = getattr(listener, handler_name)
+                try:
+                    # ic-dev21 Extract the arguments from the WebsocketEvent object
+                    if isinstance(msg_data, WebsocketEvent):
+                        arguments = msg_data.arguments
+                        if arguments: # ic-dev21 check if there are arguments
+                            await handler(arguments[0])
+                        else:
+                            LOG.warning(f"Received empty arguments for {msg_type}")
+                    else:
+                        await handler(msg_data)
+                except Exception as e:
+                    LOG.error(f"Error in websocket handler {handler_name}: {e}")
 
     async def _handle_challenge_events(self, event: WebsocketEvent) -> None:
         """Handle all challenge-related websocket events."""
-        if event.target == "ChallengeDetailsInitialValuesReceived":
+        if event.target == "ChallengeDetailsInitialValuesRecei0ved":
             challenge = event.arguments[0]
             LOG.debug(f"ChallengeDetailsInitialValuesReceived, challenge = {challenge}")
             self.challenge_id = challenge.get("id")
@@ -376,6 +418,7 @@ class Hilo:
 
         elif "Challenge" in event.target:
             await self._handle_challenge_events(event)
+            await self._handle_websocket_message(event)
 
         elif "Device" in event.target or event.target == "GatewayValuesReceived":
             await self._handle_device_events(event)
