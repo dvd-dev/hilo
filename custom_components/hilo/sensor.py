@@ -840,12 +840,13 @@ class HiloChallengeSensorWebsocket(HiloEntity, SensorEntity):
                 self._events[event_id] = event
                 self._update_next_events()
 
-    def handle_challenge_list_initial(self, challenges):
-        LOG.debug("ic-dev21 handle_challenge_list_initial")
+    async def handle_challenge_list_initial(self, challenges):
+        LOG.debug(f"ic-dev21 handle_challenge_list_initial challenges: {challenges}")
         """Handle initial challenge list."""
         self._events.clear()
+        LOG.debug(f"ic-dev21 handle_challenge_list_initial events: {self._events}")
         for challenge in challenges:
-            if challenge.get("progress") == "scheduled":
+            if challenge.get("progress") in ["scheduled", "inProgress"]:
                 event_id = challenge.get("id")
                 if event_id:
                     event = EventWebsocket(**challenge)
@@ -856,7 +857,7 @@ class HiloChallengeSensorWebsocket(HiloEntity, SensorEntity):
                     self._events[event_id] = event
         self._update_next_events()
 
-    def handle_challenge_list_update(self, challenges):
+    async def handle_challenge_list_update(self, challenges):
         LOG.debug("ic-dev21 handle_challenge_list_update")
         """Handle challenge list updates."""
         for challenge in challenges:
@@ -878,11 +879,11 @@ class HiloChallengeSensorWebsocket(HiloEntity, SensorEntity):
                     self._events[event_id] = updated_event
         self._update_next_events()
 
-    def handle_challenge_details_update(self, challenge):
-        LOG.debug("ic-dev21 handle_challenge_details_update")
+    async def handle_challenge_details_update(self, challenge):
+        LOG.debug(f"ic-dev21 handle_challenge_details_update {challenge}")
         """Handle challenge detail updates."""
         event_id = challenge.get("id")
-        progress = challenge.get("progress")
+        progress = challenge.get("progress", "unknown")
         LOG.debug(f"ic-dev21 handle_challenge_details_update progress is {progress}")
         if event_id in self._events:
             if challenge.get("progress") == "completed":
@@ -903,7 +904,7 @@ class HiloChallengeSensorWebsocket(HiloEntity, SensorEntity):
         LOG.debug("ic-dev21 sorting events")
         """Update the next_events list based on current events."""
         # Sort events by start time
-        sorted_events = sorted(self._events.values(), key=lambda x: x.preheat_start, reverse=True)
+        sorted_events = sorted(self._events.values(), key=lambda x: x.preheat_start)#, reverse=True)
 
         self._next_events = [
             event.as_dict() for event in sorted_events #if event.state != "completed"
@@ -918,6 +919,8 @@ class HiloChallengeSensorWebsocket(HiloEntity, SensorEntity):
         """Return the current state based on next events."""
         if len(self._next_events) > 0:
             event = EventWebsocket(**{**{"id": 0}, **self._next_events[0]})
+            LOG.debug(f"def state HiloChallengeSensorWebsocket event: {event}")
+            LOG.debug(f"def state HiloChallengeSensorWebsocket event: {event.state}")
             return event.state
         return "off"
 

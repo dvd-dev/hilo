@@ -292,6 +292,10 @@ class Hilo:
             msg_type = 'challenge_list_update'
         elif target == "ChallengeDetailsUpdated":
             msg_type = 'challenge_details_update'
+        elif target == "ChallengeConsumptionUpdatedValuesReceived":
+            msg_type = 'challenge_details_update'
+        elif target == "ChallengeDetailsInitialValuesReceived":
+            msg_type = 'challenge_details_update'
         
         # ic-dev21 Notify listeners
         for listener in self._websocket_listeners:
