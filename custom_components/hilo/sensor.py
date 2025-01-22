@@ -166,12 +166,7 @@ async def async_setup_entry(
         ) is None:
             energy_entity = f"sensor.{slugify(device.name)}_hilo_energy"
         energy_entity = energy_entity.replace("sensor.", "")
-        if energy_entity == HILO_ENERGY_TOTAL:
-            LOG.error(
-                "An hilo entity can't be named 'total' because it conflicts "
-                "with the generated name for the smart energy meter"
-            )
-            return
+
         tariff_list = default_tariff_list
         if device.type == "Meter":
             tariff_list = validate_tariff_list(tariff_config)
