@@ -286,7 +286,14 @@ class EnergySensor(IntegrationSensor):
 
         if device.type == "Meter":
             self._attr_name = HILO_ENERGY_TOTAL
-        self._source = f"sensor.{slugify(device.name)}_power"
+        power_unique_id = f"{slugify(device.identifier)}-power"
+        if (
+            power_entity_id := hilo.async_get_entity_id_domain(
+                Platform.SENSOR, power_unique_id
+            )
+        ) is None:
+            power_entity_id = f"{Platform.SENSOR}.{slugify(device.name)}_power"
+        self._source = power_entity_id
         # ic-dev21: Set initial state and last_valid_state, removes log errors and unavailable states
         initial_state = 0
         self._attr_native_value = initial_state
