@@ -907,7 +907,7 @@ class HiloChallengeSensorWebsocket(HiloEntity, SensorEntity):
         sorted_events = sorted(self._events.values(), key=lambda x: x.preheat_start)
 
         self._next_events = [
-            event.as_dict() for event in sorted_events #if event.state != "completed"
+            event.as_dict() for event in sorted_events  # if event.state != "completed"
         ]
 
         # Force an update of the entity
@@ -955,8 +955,8 @@ class HiloChallengeSensorWebsocket(HiloEntity, SensorEntity):
     async def async_added_to_hass(self):
         """Handle entity about to be added to hass event."""
         await super().async_added_to_hass()
-        #last_state = await self.async_get_last_state()
-        #if last_state:
+        # last_state = await self.async_get_last_state()
+        # if last_state:
         #    self._last_update = dt_util.utcnow()
         #    self._state = last_state.state
         #    self._next_events = last_state.attributes.get("next_events", [])
