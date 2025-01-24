@@ -288,9 +288,9 @@ class Hilo:
             msg_type = "challenge_list_initial"
         elif target == "ChallengeAdded":
             msg_type = "challenge_added"
-        elif target == "ChallengeListUpdated":
-            msg_type = "challenge_list_update"
         elif target == "ChallengeDetailsUpdated":
+            msg_type = "challenge_details_update"
+        elif target == "ChallengeConsumptionUpdatedValuesReceived":
             msg_type = "challenge_details_update"
         elif target == "ChallengeConsumptionUpdatedValuesReceived":
             msg_type = "challenge_details_update"
@@ -298,6 +298,9 @@ class Hilo:
             msg_type = "challenge_details_update"
         elif target == "ChallengeDetailsInitialValuesReceived":
             msg_type = "challenge_details_update"
+        elif target == "ChallengeListUpdatedValuesReceived":
+            msg_type = "challenge_details_update"
+
 
         # ic-dev21 Notify listeners
         for listener in self._websocket_listeners:
@@ -323,36 +326,23 @@ class Hilo:
             challenge = event.arguments[0]
             LOG.debug(f"ChallengeDetailsInitialValuesReceived, challenge = {challenge}")
             self.challenge_id = challenge.get("id")
-            # Update sensor with challenge details
-            if hasattr(self, "challenge_sensor"):
-                self.challenge_sensor.handle_challenge_details_update(challenge)
 
         elif event.target == "ChallengeDetailsUpdatedValuesReceived":
             LOG.debug("ChallengeDetailsUpdatedValuesReceived")
-            if hasattr(self, "challenge_sensor"):
-                self.challenge_sensor.handle_challenge_details_update(
-                    event.arguments[0]
-                )
 
         elif event.target == "ChallengeListUpdatedValuesReceived":
             LOG.debug("ChallengeListUpdatedValuesReceived")
-            if hasattr(self, "challenge_sensor"):
-                self.challenge_sensor.handle_challenge_list_update(event.arguments[0])
             self.challenge_phase = event.arguments[0][0]["currentPhase"]
 
         elif event.target == "ChallengeAdded":
             LOG.debug("ChallengeAdded")
             challenge = event.arguments[0]
             self.challenge_id = challenge.get("id")
-            if hasattr(self, "challenge_sensor"):
-                self.challenge_sensor.handle_challenge_added(challenge)
             await self.subscribe_to_challenge(1, self.challenge_id)
 
         elif event.target == "ChallengeListInitialValuesReceived":
             LOG.debug("ChallengeListInitialValuesReceived")
             challenges = event.arguments[0]
-            if hasattr(self, "challenge_sensor"):
-                self.challenge_sensor.handle_challenge_list_initial(challenges)
 
             for challenge in challenges:
                 challenge_id = challenge.get("id")
