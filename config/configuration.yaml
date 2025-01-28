@@ -1,0 +1,15 @@
+# This file is only used by the Devcontainer
+# https://www.home-assistant.io/integrations/default_config/
+default_config:
+
+# https://www.home-assistant.io/integrations/homeassistant/
+homeassistant:
+  debug: true
+
+# https://www.home-assistant.io/integrations/logger/
+logger:
+  default: info
+  logs:
+    # Enable debug logging for our custom components
+    custom_components.hilo: debug
+    pyhilo: debug

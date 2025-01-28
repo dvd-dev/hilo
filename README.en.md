@@ -263,60 +263,20 @@ logger:
 
 If you have any kind of python/home-assistant experience and want to contribute to the code, feel free to submit a pull request.
 
-### Prepare a dev  environment in MacOS / Linux
+### Prepare a development environment via VSCode DevContainer
 
-1. Prepare necessary directories:
-```console
-$ HASS_DEV=~/hass-dev/
-$ HASS_RELEASE=2023.12.3
-$ mkdir -p ${HASS_DEV}/config
-$ cd $HASS_DEV
-$ git clone https://github.com/dvd-dev/hilo.git
-$ git clone https://github.com/dvd-dev/python-hilo.git
-$ git clone https://github.com/home-assistant/core.git
-$ git --git-dir core/ checkout $HASS_RELEASE
-```
+To facilitate development, a development environment is available via VSCode DevContainer. To use it, you must have [VSCode](https://code.visualstudio.com/) and [Docker](https://www.docker.com/) installed on your computer.
 
-**NOTE**: We also clone home-assistant's core to make it easier to add logging at that level [repo](https://github.com/home-assistant/core).
-
-2. Launch the container:
-
-```console
-$ docker run -d -p 8123:8123 \
-  --name hass \
-  -v ${HASS_DEV}/config:/config \
-  -v ${HASS_DEV}/python-hilo/pyhilo:/usr/local/lib/python3.11/site-packages/pyhilo:ro \
-  -v ${HASS_DEV}/hilo/custom_components/hilo/:/config/custom_components/hilo:ro \
-  -v ${HASS_DEV}/core/homeassistant:/usr/src/homeassistant/homeassistant:ro \
-  homeassistant/home-assistant:$HASS_RELEASE
-```
-
-3. Check the container is running
-
-```console
-$ docker ps
-CONTAINER ID   IMAGE                                    COMMAND   CREATED       STATUS          PORTS                    NAMES
-bace2264ee54   homeassistant/home-assistant:2023.12.3   "/init"   3 hours ago   Up 28 minutes   0.0.0.0:8123->8123/tcp   hass
-```
-
-4. Check home-assistant logs
-```console
-$ less ${HASS_DEV}/config/home-assistant.log
-$ grep hilo ${HASS_DEV}/config/home-assistant.log
-```
-
-5. Activate debug logs
-
-```console
-$ cat << EOF >> ${HASS_DEV}/config/configuration.yaml
-logger:
-  default: info
-  logs:
-     custom_components.hilo: debug
-     pyhilo: debug
-EOF
-$ docker restart hass
-```
+1. Open the project folder in VSCode
+2. Install the [Remote - Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension
+3. Open the command palette (Ctrl+Shift+P or Cmd+Shift+P) and search for "Remote-Containers: Reopen in Container"
+4. Wait for the environment to be ready
+5. Open a terminal in VSCode and run `scripts/develop` to install dependencies and start Home Assistant
+6. At this point, VSCode should prompt you to open a browser to access Home Assistant. You can also open a browser manually and go to [http://localhost:8123](http://localhost:8123)
+7. You will need to do the initial Home Assistant configuration
+8. You will need to add the Hilo integration via the user interface
+9. You can now modify files in the `custom_components/hilo` folder and see changes in real-time in Home Assistant
+10. In the terminal where you launched `scripts/develop`, Home Assistant and HILO integration logs should be streamed
 
 ### Before submitting a Pull Request
 
