@@ -1,10 +1,11 @@
 """Support for various Hilo sensors."""
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime, timedelta, timezone
 from os.path import isfile
 
-import aiofiles, asyncio
+import aiofiles
 from homeassistant.components.integration.sensor import METHOD_LEFT, IntegrationSensor
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -700,7 +701,6 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
             await yaml_file.write(yaml.dump(history, Dumper=yaml.RoundTripDumper))
 
 
-
 class HiloChallengeSensorWebsocket(HiloEntity, SensorEntity):
     """Hilo challenge sensor.
     Its state will be either:
@@ -775,23 +775,28 @@ class HiloChallengeSensorWebsocket(HiloEntity, SensorEntity):
             progress = challenge.get("progress")
             baselinewH = challenge.get("baselinewH")
             LOG.debug(f"ic-dev21 handle_challenge_list_update progress is {progress}")
-            LOG.debug(f"ic-dev21 handle_challenge_list_update baselinewH is {baselinewH}")
+            LOG.debug(
+                f"ic-dev21 handle_challenge_list_update baselinewH is {baselinewH}"
+            )
             if event_id in self._events:
                 if challenge.get("progress") == "completed":
                     # Find the oldest event based on recovery_end datetime
                     oldest_event_id = min(
-                        self._events.keys(), 
-                        key=lambda key: self._events[key].as_dict().get('phases', {}).get('recovery_end', '')
+                        self._events.keys(),
+                        key=lambda key: self._events[key]
+                        .as_dict()
+                        .get("phases", {})
+                        .get("recovery_end", ""),
                     )
                     await asyncio.sleep(300)
                     del self._events[oldest_event_id]
                     break
                 else:
                     current_event = self._events[event_id]
-                    LOG.debug(f"ic-dev21 handle_challenge_list_update current event is: {current_event}")
-                    updated_event = Event(
-                        **{**current_event.as_dict(), **challenge}
+                    LOG.debug(
+                        f"ic-dev21 handle_challenge_list_update current event is: {current_event}"
                     )
+                    updated_event = Event(**{**current_event.as_dict(), **challenge})
                     if self._hilo.appreciation > 0:
                         updated_event.appreciation(self._hilo.appreciation)
                     if self._hilo.pre_cold > 0:
@@ -805,9 +810,11 @@ class HiloChallengeSensorWebsocket(HiloEntity, SensorEntity):
         event_id = challenge.get("id")
         progress = challenge.get("progress", "unknown")
         baselinewH = challenge.get("baselinewH")
-        used_kWh = challenge.get('currentWh', 0) / 1000
+        used_kWh = challenge.get("currentWh", 0) / 1000
         LOG.debug(f"ic-dev21 handle_challenge_details_update progress is {progress}")
-        LOG.debug(f"ic-dev21 handle_challenge_details_update baselinewH is {baselinewH}")
+        LOG.debug(
+            f"ic-dev21 handle_challenge_details_update baselinewH is {baselinewH}"
+        )
         LOG.debug(f"ic-dev21 handle_challenge_details_update used_kwh is {used_kWh}")
         LOG.debug(f"ic-dev21 handle_challenge_details_update progress is {progress}")
         if event_id in self._events:
@@ -815,9 +822,7 @@ class HiloChallengeSensorWebsocket(HiloEntity, SensorEntity):
                 del self._events[event_id]
             else:
                 current_event = self._events[event_id]
-                updated_event = Event(
-                    **{**current_event.as_dict(), **challenge}
-                )
+                updated_event = Event(**{**current_event.as_dict(), **challenge})
                 if self._hilo.appreciation > 0:
                     updated_event.appreciation(self._hilo.appreciation)
                 if self._hilo.pre_cold > 0:
@@ -889,6 +894,7 @@ class HiloChallengeSensorWebsocket(HiloEntity, SensorEntity):
     async def _async_update(self):
         """This method can be kept for fallback but shouldn't be needed with websockets."""
         pass
+
 
 class DeviceSensor(HiloEntity, SensorEntity):
     """Devices like the gateway or Smoke Detectors don't have many attributes,

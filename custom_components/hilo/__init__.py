@@ -301,7 +301,6 @@ class Hilo:
         elif target == "ChallengeListUpdatedValuesReceived":
             msg_type = "challenge_details_update"
 
-
         # ic-dev21 Notify listeners
         for listener in self._websocket_listeners:
             handler_name = f"handle_{msg_type}"
