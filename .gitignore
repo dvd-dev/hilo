@@ -7,3 +7,11 @@ venv
 .vscode
 .DS_Store
 .idea*
+
+# Home Assistant configuration
+config/*
+!config/configuration.yaml
+
+# Hilo configuration
+hilo_eventhistory_state.yaml
+hilo_state.yaml
