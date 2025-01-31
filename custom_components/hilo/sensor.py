@@ -813,8 +813,9 @@ class HiloChallengeSensorWebsocket(HiloEntity, SensorEntity):
         self._update_next_events()
 
     async def handle_challenge_details_update(self, challenge):
-        LOG.debug(f"ic-dev21 handle_challenge_details_update {challenge}")
         """Handle challenge detail updates."""
+        LOG.debug(f"ic-dev21 handle_challenge_details_update {challenge}")
+        challenge = challenge[0] if isinstance(challenge, list) else challenge
         event_id = challenge.get("id")
         progress = challenge.get("progress", "unknown")
         baselinewH = challenge.get("baselinewH")
