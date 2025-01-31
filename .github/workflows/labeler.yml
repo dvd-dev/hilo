@@ -12,10 +12,6 @@ jobs:
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4.2.2
-
-      - name: Debug Labels YAML
-        run: cat .github/labels.yml
-
       - name: Run Labeler
         uses: crazy-max/ghaction-github-labeler@v5.1.0
         with:

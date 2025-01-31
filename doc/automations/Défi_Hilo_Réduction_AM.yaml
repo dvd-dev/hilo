@@ -1,0 +1,29 @@
+alias: Défi Hilo Réduction AM
+description: "Permet de gérer la période de réduction AM/Manages the AM reduction phase of a Hilo Challenge"
+mode: single
+triggers:
+  - entity_id:
+      - sensor.defi_hilo
+    to: reduction
+    trigger: state
+  - at: "06:00:00"
+    trigger: time
+conditions:
+  - condition: time
+    before: "06:05:00"
+    after: "05:55:00"
+  - condition: or
+    conditions:
+      - condition: state
+        entity_id: sensor.defi_hilo
+        state: pre_heat
+      - condition: state
+        entity_id: sensor.defi_hilo
+        state: reduction
+actions:
+  - data:
+      temperature: 15
+    target:
+      entity_id:
+        - climate.thermostat_cuisine
+    action: climate.set_temperature

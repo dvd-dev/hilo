@@ -847,6 +847,19 @@ class Hilo:
             )
 
     @callback
+    def async_get_entity_id_domain(self, platform: str, unique_id: str) -> str | None:
+        entity_registry = er.async_get(self._hass)
+        entity_id = entity_registry.async_get_entity_id(platform, DOMAIN, unique_id)
+        LOG.debug(
+            "%s-%s:For unique_id get entity_id (%s -> %s)",
+            DOMAIN,
+            platform,
+            unique_id,
+            entity_id,
+        )
+        return entity_id
+
+    @callback
     def async_migrate_unique_id(
         self, old_unique_id: str, new_unique_id: str | None, platform: str
     ) -> None:

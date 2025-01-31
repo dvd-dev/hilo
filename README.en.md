@@ -19,9 +19,6 @@ This is a beta release. There will be some bugs, issues, etc. Please bear with u
 # Hilo
 [Hilo](https://www.hydroquebec.com/hilo/en/) integration for Home Assistant
 
-# :warning: Breaking change (v2024.2.2 and lower unusable)
-Hilo's login has stopped using "Resource Owner Password Flow" and started using "Authorization Code Flow with PKCE". The old login method has been permanently closed on april 10th, 2024.
-
 ## Introduction
 
 This is the unofficial HACS Hilo integration for Home Assistant. [Hilo](https://www.hiloenergie.com/en-ca/) is a smart home platform developed
@@ -33,6 +30,16 @@ instead.
 If you want to help with the development of this integration, you can always submit a feedback form from the Hilo
 application and requesting that they open their API publicly and that they provide a testing environment to the
 developers.
+
+### TL:DR version:
+
+You can find a recommended minimal configuration [in the wiki](https://github.com/dvd-dev/hilo/wiki/FAQ#do-you-have-any-recommended-settings)
+
+
+You can also find sample automations in YAML format [in the doc/automations directory](https://github.com/dvd-dev/hilo/tree/main/doc/automations)
+If you prefer blueprints, there are some available here:
+  - [NumerID's repository](https://github.com/NumerID/blueprint_hilo)
+  - [Arim215's repository](https://github.com/arim215/ha-hilo-blueprints)
 
 ### Shout out
 
@@ -60,7 +67,7 @@ rewrite it. Hilo is now pushing device readings via websocket from SignalR.
 - Add functionalities for other devices
 - unit and functional tests
 - [Adding type hints to the code](https://developers.home-assistant.io/docs/development_typing/)
-- Now available [here](https://github.com/dvd-dev/python-hilo)
+- API calls to Hilo documentation now available [here](https://github.com/dvd-dev/python-hilo)
 - Map send energy meters automatically to energy dashboard
 
 
@@ -69,7 +76,7 @@ rewrite it. Hilo is now pushing device readings via websocket from SignalR.
 ### Step 0: Compatible install
 This custom component requires that Hilo has carried out the installation in your home. It will not be possible to set it up otherwise.
 
-This custom component has been tested to work by various users on HA OS (as bare metal or VM), Docker with the official (ghcr.io) image and Podman. Other types of install may cause permission issues during the creation of a few files by the custom component.
+This custom component has been tested to work by various users on HA OS (as bare metal or VM), Docker with the official (ghcr.io) image and Podman. Other types of install may cause permission issues during the creation of a few files needed by the custom component.
 
 ### Step 1: Download files
 
@@ -222,6 +229,8 @@ Other options are available under the `Configure` button in Home Assistant:
 
 You can find multiple examples and ideas for lovelace dashboard, cards and automation here [in the wiki of the project](https://github.com/dvd-dev/hilo/wiki/Utilisation)
 
+You can also find sample automations in YAML format [in the doc/automations directory](https://github.com/dvd-dev/hilo/tree/main/doc/automations)
+
 
 ## References
 
@@ -254,60 +263,20 @@ logger:
 
 If you have any kind of python/home-assistant experience and want to contribute to the code, feel free to submit a pull request.
 
-### Prepare a dev  environment in MacOS / Linux
+### Prepare a development environment via VSCode DevContainer
 
-1. Prepare necessary directories:
-```console
-$ HASS_DEV=~/hass-dev/
-$ HASS_RELEASE=2023.12.3
-$ mkdir -p ${HASS_DEV}/config
-$ cd $HASS_DEV
-$ git clone https://github.com/dvd-dev/hilo.git
-$ git clone https://github.com/dvd-dev/python-hilo.git
-$ git clone https://github.com/home-assistant/core.git
-$ git --git-dir core/ checkout $HASS_RELEASE
-```
+To facilitate development, a development environment is available via VSCode DevContainer. To use it, you must have [VSCode](https://code.visualstudio.com/) and [Docker](https://www.docker.com/) installed on your computer.
 
-**NOTE**: We also clone home-assistant's core to make it easier to add logging at that level [repo](https://github.com/home-assistant/core).
-
-2. Launch the container:
-
-```console
-$ docker run -d -p 8123:8123 \
-  --name hass \
-  -v ${HASS_DEV}/config:/config \
-  -v ${HASS_DEV}/python-hilo/pyhilo:/usr/local/lib/python3.11/site-packages/pyhilo:ro \
-  -v ${HASS_DEV}/hilo/custom_components/hilo/:/config/custom_components/hilo:ro \
-  -v ${HASS_DEV}/core/homeassistant:/usr/src/homeassistant/homeassistant:ro \
-  homeassistant/home-assistant:$HASS_RELEASE
-```
-
-3. Check the container is running
-
-```console
-$ docker ps
-CONTAINER ID   IMAGE                                    COMMAND   CREATED       STATUS          PORTS                    NAMES
-bace2264ee54   homeassistant/home-assistant:2023.12.3   "/init"   3 hours ago   Up 28 minutes   0.0.0.0:8123->8123/tcp   hass
-```
-
-4. Check home-assistant logs
-```console
-$ less ${HASS_DEV}/config/home-assistant.log
-$ grep hilo ${HASS_DEV}/config/home-assistant.log
-```
-
-5. Activate debug logs
-
-```console
-$ cat << EOF >> ${HASS_DEV}/config/configuration.yaml
-logger:
-  default: info
-  logs:
-     custom_components.hilo: debug
-     pyhilo: debug
-EOF
-$ docker restart hass
-```
+1. Open the project folder in VSCode
+2. Install the [Remote - Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension
+3. Open the command palette (Ctrl+Shift+P or Cmd+Shift+P) and search for "Remote-Containers: Reopen in Container"
+4. Wait for the environment to be ready
+5. Open a terminal in VSCode and run `scripts/develop` to install dependencies and start Home Assistant
+6. At this point, VSCode should prompt you to open a browser to access Home Assistant. You can also open a browser manually and go to [http://localhost:8123](http://localhost:8123)
+7. You will need to do the initial Home Assistant configuration
+8. You will need to add the Hilo integration via the user interface
+9. You can now modify files in the `custom_components/hilo` folder and see changes in real-time in Home Assistant
+10. In the terminal where you launched `scripts/develop`, Home Assistant and HILO integration logs should be streamed
 
 ### Before submitting a Pull Request
 
