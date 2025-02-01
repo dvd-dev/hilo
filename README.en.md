@@ -19,6 +19,12 @@ This is a beta release. There will be some bugs, issues, etc. Please bear with u
 # Hilo
 [Hilo](https://www.hydroquebec.com/hilo/en/) integration for Home Assistant
 
+# :warning: Breaking change to come, update to 2025.2.1 in the meantime :warning:
+
+The API we rely on for Hilo Challenges will be closed in the near future, we are currently working on an alternative
+using Websockets/SignalR. **Updating to 2025.2.1 is strongly suggested** as prior version will likely break due to the way
+pip installs dependencies.
+
 ## Introduction
 
 This is the unofficial HACS Hilo integration for Home Assistant. [Hilo](https://www.hiloenergie.com/en-ca/) is a smart home platform developed
