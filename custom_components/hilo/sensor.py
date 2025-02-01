@@ -854,11 +854,10 @@ class HiloChallengeSensorWebsocket(HiloEntity, SensorEntity):
 
     @property
     def state(self):
-        LOG.debug("ic-dev21 Event define state")
         """Return the current state based on next events."""
         if len(self._next_events) > 0:
             event = Event(**{**{"id": 0}, **self._next_events[0]})
-            LOG.debug(f"def state HiloChallengeSensorWebsocket event: {event}")
+            LOG.debug(f"def state HiloChallengeSensor event: {event}")
             return event.state
         return "off"
 
