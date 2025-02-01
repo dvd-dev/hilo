@@ -809,7 +809,7 @@ class HiloChallengeSensorWebsocket(HiloEntity, SensorEntity):
         challenge = challenge[0] if isinstance(challenge, list) else challenge
         event_id = challenge.get("id")
         progress = challenge.get("progress", "unknown")
-        baselinewH = challenge.get("baselinewH")
+        baselinewH = challenge.get("baselinewH", 0)
         used_wH = challenge.get("currentWh", 0)
         if used_wH is not None and used_wH> 0 :
             used_kWh = used_wH / 1000
