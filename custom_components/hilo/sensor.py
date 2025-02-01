@@ -98,7 +98,7 @@ def generate_entities_from_device(device, hilo, scan_interval):
     entities = []
     if device.type == "Gateway":
         entities.append(
-            HiloChallengeSensorWebsocket(hilo, device, scan_interval),
+            HiloChallengeSensor(hilo, device, scan_interval),
         )
         entities.append(
             HiloRewardSensor(hilo, device, scan_interval),
@@ -701,7 +701,7 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
             await yaml_file.write(yaml.dump(history, Dumper=yaml.RoundTripDumper))
 
 
-class HiloChallengeSensorWebsocket(HiloEntity, SensorEntity):
+class HiloChallengeSensor(HiloEntity, SensorEntity):
     """Hilo challenge sensor.
     Its state will be either:
     - off: no ongoing or scheduled challenge
@@ -724,7 +724,7 @@ class HiloChallengeSensorWebsocket(HiloEntity, SensorEntity):
         hilo.async_migrate_unique_id(
             old_unique_id, self._attr_unique_id, Platform.SENSOR
         )
-        LOG.debug(f"Setting up ChallengeSensorWebsocket entity: {self._attr_name}")
+        LOG.debug(f"Setting up ChallengeSensor entity: {self._attr_name}")
         self.scan_interval = timedelta(seconds=EVENT_SCAN_INTERVAL_REDUCTION)
         self._state = "off"
         self._next_events = []
@@ -852,7 +852,7 @@ class HiloChallengeSensorWebsocket(HiloEntity, SensorEntity):
         """Return the current state based on next events."""
         if len(self._next_events) > 0:
             event = Event(**{**{"id": 0}, **self._next_events[0]})
-            LOG.debug(f"def state HiloChallengeSensorWebsocket event: {event}")
+            LOG.debug(f"def state HiloChallengeSensor event: {event}")
             return event.state
         return "off"
 
