@@ -811,7 +811,7 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
         progress = challenge.get("progress", "unknown")
         baselinewH = challenge.get("baselinewH", 0)
         used_wH = challenge.get("currentWh", 0)
-        if used_wH is not None and used_wH> 0 :
+        if used_wH is not None and used_wH > 0:
             used_kWh = used_wH / 1000
         else:
             used_kWh = 0
@@ -891,7 +891,6 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
     async def _async_update(self):
         """This method can be kept for fallback but shouldn't be needed with websockets."""
         pass
-
 
 
 class DeviceSensor(HiloEntity, SensorEntity):
