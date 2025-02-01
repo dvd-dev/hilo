@@ -21,8 +21,8 @@ Intégration pour Home Assistant d'[Hilo](https://www.hydroquebec.com/hilo/fr/)
 
 # :warning: Changement majeur à venir, mettez à jour vers 2025.2.1 en attendant. :warning:
 
-L'API sur laquelle nous comptons pour les défis Hilo sera fermée prochainement. Nous travaillons actuellement sur une 
-alternative utilisant Websockets/SignalR. **La mise à jour vers la version 2025.2.1 est fortement recommandée**, car 
+L'API sur laquelle nous comptons pour les défis Hilo sera fermée prochainement. Nous travaillons actuellement sur une
+alternative utilisant Websockets/SignalR. **La mise à jour vers la version 2025.2.1 est fortement recommandée**, car
 les versions précédentes risquent de ne plus fonctionner en raison de la façon dont pip installe les dépendances.
 
 ## Introduction et base
