@@ -900,6 +900,7 @@ class HiloChallengeSensorWebsocket(HiloEntity, SensorEntity):
         pass
 
 
+
 class DeviceSensor(HiloEntity, SensorEntity):
     """Devices like the gateway or Smoke Detectors don't have many attributes,
     except for the "disconnected" attribute. These entities are monitoring
