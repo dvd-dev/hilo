@@ -19,6 +19,12 @@ Ceci est une version Bêta. Il y aura probablement des bogues, irritants, etc. M
 # Hilo
 Intégration pour Home Assistant d'[Hilo](https://www.hydroquebec.com/hilo/fr/)
 
+# :warning: Changement majeur à venir, mettez à jour vers 2025.2.1 en attendant.
+
+L'API sur laquelle nous comptons pour les défis Hilo sera fermée prochainement. Nous travaillons actuellement sur une 
+alternative utilisant Websockets/SignalR. **La mise à jour vers la version 2025.2.1 est fortement recommandée**, car 
+les versions précédentes risquent de ne plus fonctionner en raison de la façon dont pip installe les dépendances.
+
 ## Introduction et base
 
 Ceci est l'intégration HACS non-officielle de Hilo sur Home Assistant. [Hilo](https://www.hiloenergie.com/fr-ca/) est une plateforme de domotique développée par une filliale d'[Hydro-Québec](https://www.hydroquebec.com/hilo/fr/).
