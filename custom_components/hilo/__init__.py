@@ -292,8 +292,6 @@ class Hilo:
             msg_type = "challenge_details_update"
         elif target == "ChallengeConsumptionUpdatedValuesReceived":
             msg_type = "challenge_details_update"
-        elif target == "ChallengeConsumptionUpdatedValuesReceived":
-            msg_type = "challenge_details_update"
         elif target == "ChallengeDetailsUpdatedValuesReceived":
             msg_type = "challenge_details_update"
         elif target == "ChallengeDetailsInitialValuesReceived":
