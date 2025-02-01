@@ -715,7 +715,6 @@ class HiloChallengeSensorWebsocket(HiloEntity, SensorEntity):
     """
 
     def __init__(self, hilo, device, scan_interval):
-        LOG.debug("ic-dev21 init HiloChallengeSensorWebsocket")
         self._attr_name = "Defi Hilo"
         super().__init__(hilo, name=self._attr_name, device=device)
         old_unique_id = slugify(self._attr_name)
@@ -748,8 +747,8 @@ class HiloChallengeSensorWebsocket(HiloEntity, SensorEntity):
                 self._update_next_events()
 
     async def handle_challenge_list_initial(self, challenges):
-        LOG.debug(f"ic-dev21 handle_challenge_list_initial challenges: {challenges}")
         """Handle initial challenge list."""
+        LOG.debug(f"ic-dev21 handle_challenge_list_initial challenges: {challenges}")
         self._events.clear()
         LOG.debug(f"ic-dev21 handle_challenge_list_initial events: {self._events}")
         for challenge in challenges:
@@ -768,8 +767,8 @@ class HiloChallengeSensorWebsocket(HiloEntity, SensorEntity):
         self._update_next_events()
 
     async def handle_challenge_list_update(self, challenges):
-        LOG.debug("ic-dev21 handle_challenge_list_update")
         """Handle challenge list updates."""
+        LOG.debug("ic-dev21 handle_challenge_list_update")
         for challenge in challenges:
             event_id = challenge.get("id")
             progress = challenge.get("progress")
@@ -836,8 +835,8 @@ class HiloChallengeSensorWebsocket(HiloEntity, SensorEntity):
             self._update_next_events()
 
     def _update_next_events(self):
-        LOG.debug("ic-dev21 sorting events")
         """Update the next_events list based on current events."""
+        LOG.debug("ic-dev21 sorting events")
         # Sort events by start time
         sorted_events = sorted(self._events.values(), key=lambda x: x.preheat_start)
 
