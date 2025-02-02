@@ -12,8 +12,8 @@ jobs:
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4.2.2
-
       - name: Run Labeler
         uses: crazy-max/ghaction-github-labeler@v5.1.0
         with:
+          configuration-path: .github/labels.yml
           skip-delete: true
