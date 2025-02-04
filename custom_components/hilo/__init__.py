@@ -1,5 +1,4 @@
 """Support for Hilo automation systems."""
-
 from __future__ import annotations
 
 import asyncio
@@ -46,7 +45,7 @@ from pyhilo.device import HiloDevice
 from pyhilo.devices import Devices
 from pyhilo.event import Event
 from pyhilo.exceptions import HiloError, InvalidCredentialsError, WebsocketError
-from pyhilo.oauth2 import AuthCodeWithPKCEImplementation
+from .oauth2 import AuthCodeWithPKCEImplementation
 from pyhilo.util import from_utc_timestamp, time_diff
 from pyhilo.websocket import WebsocketEvent
 
@@ -246,8 +245,7 @@ class Hilo:
             CONF_APPRECIATION_PHASE, DEFAULT_APPRECIATION_PHASE
         )
         self.pre_cold = entry.options.get(
-            CONF_PRE_COLD_PHASE,
-            DEFAULT_PRE_COLD_PHASE,
+            CONF_PRE_COLD_PHASE, DEFAULT_PRE_COLD_PHASE  # this is new
         )
         self.challenge_lock = entry.options.get(
             CONF_CHALLENGE_LOCK, DEFAULT_CHALLENGE_LOCK
@@ -365,6 +363,8 @@ class Hilo:
                 await self.devices.update()
 
             updated_devices = self.devices.parse_values_received(event.arguments[0])
+            # NOTE(dvd): If we don't do this, we need to wait until the coordinator
+            # runs (scan_interval) to have updated data in the dashboard.
             for device in updated_devices:
                 async_dispatcher_send(
                     self._hass, SIGNAL_UPDATE_ENTITY.format(device.id)
@@ -374,6 +374,10 @@ class Hilo:
             await self.devices.update_devicelist_from_signalr(event.arguments[0])
 
         elif event.target == "DeviceListUpdatedValuesReceived":
+            # This message only contains display information, such as the Device's name (as set in the app), it's groupid, icon, etc.
+            # Updating the device name causes issues in the integration, it detects it as a new device and creates a new entity.
+            # Ignore this call, for now... (update_devicelist_from_signalr does work, but causes the issue above)
+            # await self.devices.update_devicelist_from_signalr(event.arguments[0])
             LOG.debug(
                 "Received 'DeviceListUpdatedValuesReceived' message, not implemented yet."
             )
@@ -427,7 +431,7 @@ class Hilo:
     async def subscribe_to_location(self, inv_id: int) -> None:
         """Sends the json payload to receive updates from the location."""
         LOG.debug(f"Subscribing to location {self.devices.location_id}")
-        await self._api.websocket_devices.async_invoke(
+        await self._api.websocket.async_invoke(
             [self.devices.location_id], "SubscribeToLocation", inv_id
         )
 
