@@ -1,4 +1,5 @@
 """Support for Hilo automation systems."""
+
 from __future__ import annotations
 
 import asyncio
@@ -45,7 +46,7 @@ from pyhilo.device import HiloDevice
 from pyhilo.devices import Devices
 from pyhilo.event import Event
 from pyhilo.exceptions import HiloError, InvalidCredentialsError, WebsocketError
-from pyhilo.oauth2 import AuthCodeWithPKCEImplementation
+from .oauth2 import AuthCodeWithPKCEImplementation
 from pyhilo.util import from_utc_timestamp, time_diff
 from pyhilo.websocket import WebsocketEvent
 
@@ -240,7 +241,8 @@ class Hilo:
             CONF_APPRECIATION_PHASE, DEFAULT_APPRECIATION_PHASE
         )
         self.pre_cold = entry.options.get(
-            CONF_PRE_COLD_PHASE, DEFAULT_PRE_COLD_PHASE  # this is new
+            CONF_PRE_COLD_PHASE,
+            DEFAULT_PRE_COLD_PHASE,  # this is new
         )
         self.challenge_lock = entry.options.get(
             CONF_CHALLENGE_LOCK, DEFAULT_CHALLENGE_LOCK
