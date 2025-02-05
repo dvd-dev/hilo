@@ -141,7 +141,7 @@ Si vous rencontrez un problème et souhaitez collaborer, activez la journalisati
 
 ## ⚙️ Autres options de configuration
 Vous pouvez configurer des options supplémentaires en cliquant sur `Configurer` dans Home Assistant :
-
+![alt text](image.png)
 ### ✅ **Générer compteurs de consommation électrique**
 - Génère automatiquement les compteurs de consommation électrique.
 - **Nécessite** la ligne suivante dans `configuration.yaml` :
