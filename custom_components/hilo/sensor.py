@@ -823,6 +823,8 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
         LOG.debug(f"ic-dev21 handle_challenge_details_update progress is {progress}")
         if event_id in self._events:
             if challenge.get("progress") == "completed":
+                # ajout d'un asyncio sleep ici pour avoir l'état completed avant le retrait du challenge
+                await asyncio.sleep(300)
                 del self._events[event_id]
             else:
                 current_event = self._events[event_id]

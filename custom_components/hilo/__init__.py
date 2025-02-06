@@ -433,10 +433,6 @@ class Hilo:
         # ic-dev21 : data structure of the message was incorrect, needed the "fixed" strings
         LOG.debug(f"ic-dev21 subscribe to challenge :{event_id} or {self.challenge_id}")
         event_id = event_id or self.challenge_id
-        if event_id > 0:
-            inv_id = event_id
-        else:
-            inv_id = 1
 
         LOG.debug(
             f"Subscribing to challenge {event_id} at location {self.devices.location_id}"
@@ -457,6 +453,21 @@ class Hilo:
         await self._api.websocket_challenges.async_invoke(
             [{"locationId": self.devices.location_id}],
             "SubscribeToChallengeList",
+            inv_id,
+        )
+
+    @callback
+    async def request_challenge_consumption_update(
+        self, inv_id: int, event_id: int = 0
+    ) -> None:
+        """Sends the json payload to receive energy consumption updates from the challenge."""
+        event_id = event_id or self.challenge_id
+        LOG.debug(
+            f"Requesting challenge {event_id} consumption update at location {self.devices.location_id}"
+        )
+        await self._api.websocket_challenges.async_invoke(
+            [{"locationId": self.devices.location_id, "eventId": event_id}],
+            "RequestChallengeConsumptionUpdate",
             inv_id,
         )
 
