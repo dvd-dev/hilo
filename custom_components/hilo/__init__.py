@@ -9,10 +9,8 @@ from typing import TYPE_CHECKING, Union
 
 from homeassistant.components.select import (
     ATTR_OPTION,
-    SERVICE_SELECT_OPTION,
-)
-from homeassistant.components.select import (
     DOMAIN as SELECT_DOMAIN,
+    SERVICE_SELECT_OPTION,
 )
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
@@ -30,11 +28,7 @@ from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import (
     aiohttp_client,
     config_entry_oauth2_flow,
-)
-from homeassistant.helpers import (
     device_registry as dr,
-)
-from homeassistant.helpers import (
     entity_registry as er,
 )
 from homeassistant.helpers.dispatcher import (
