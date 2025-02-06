@@ -319,7 +319,7 @@ class Hilo:
 
     async def _handle_challenge_events(self, event: WebsocketEvent) -> None:
         """Handle all challenge-related websocket events."""
-        if event.target == "ChallengeDetailsInitialValuesRecei0ved":
+        if event.target == "ChallengeDetailsInitialValuesReceived":
             challenge = event.arguments[0]
             LOG.debug(f"ChallengeDetailsInitialValuesReceived, challenge = {challenge}")
             self.challenge_id = challenge.get("id")
@@ -433,6 +433,10 @@ class Hilo:
         # ic-dev21 : data structure of the message was incorrect, needed the "fixed" strings
         LOG.debug(f"ic-dev21 subscribe to challenge :{event_id} or {self.challenge_id}")
         event_id = event_id or self.challenge_id
+        if event_id > 0:
+            inv_id = event_id
+        else:
+            inv_id = 1
 
         LOG.debug(
             f"Subscribing to challenge {event_id} at location {self.devices.location_id}"
