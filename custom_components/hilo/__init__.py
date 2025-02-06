@@ -1,4 +1,5 @@
 """Support for Hilo automation systems."""
+
 from __future__ import annotations
 
 import asyncio
@@ -8,8 +9,10 @@ from typing import TYPE_CHECKING, Union
 
 from homeassistant.components.select import (
     ATTR_OPTION,
-    DOMAIN as SELECT_DOMAIN,
     SERVICE_SELECT_OPTION,
+)
+from homeassistant.components.select import (
+    DOMAIN as SELECT_DOMAIN,
 )
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
@@ -27,7 +30,11 @@ from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import (
     aiohttp_client,
     config_entry_oauth2_flow,
+)
+from homeassistant.helpers import (
     device_registry as dr,
+)
+from homeassistant.helpers import (
     entity_registry as er,
 )
 from homeassistant.helpers.dispatcher import (
@@ -240,7 +247,8 @@ class Hilo:
             CONF_APPRECIATION_PHASE, DEFAULT_APPRECIATION_PHASE
         )
         self.pre_cold = entry.options.get(
-            CONF_PRE_COLD_PHASE, DEFAULT_PRE_COLD_PHASE  # this is new
+            CONF_PRE_COLD_PHASE,
+            DEFAULT_PRE_COLD_PHASE,  # this is new
         )
         self.challenge_lock = entry.options.get(
             CONF_CHALLENGE_LOCK, DEFAULT_CHALLENGE_LOCK
@@ -787,7 +795,7 @@ class HiloEntity(CoordinatorEntity):
         hilo: Hilo,
         name: Union[str, None] = None,
         *,
-        device: HiloDevice | None = None,
+        device: HiloDevice,
     ) -> None:
         """Initialize."""
         assert hilo.coordinator
