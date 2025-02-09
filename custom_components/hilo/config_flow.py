@@ -14,7 +14,6 @@ from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import config_validation as cv, selector
 from homeassistant.helpers.config_entry_oauth2_flow import AbstractOAuth2FlowHandler
 import jwt
-from .oauth2 import AuthCodeWithPKCEImplementation
 import voluptuous as vol
 
 from .const import (
@@ -39,6 +38,7 @@ from .const import (
     LOG,
     MIN_SCAN_INTERVAL,
 )
+from .oauth2 import AuthCodeWithPKCEImplementation
 
 STEP_OPTION_SCHEMA = vol.Schema(
     {
