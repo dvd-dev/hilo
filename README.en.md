@@ -37,7 +37,7 @@ that momentary "glitches" of the challenge sensor are completely eliminated by t
 ### What remains to be done on this side:
 - The `allowed_kWh` and `used_kWh` attributes are currently **non-functional**, the information arrives in fragments and all
 cases are not handled yet.
--~~ The "completed" state doesn't always work, possibly a race condition~~
+-~~- The "completed" state doesn't always work, possibly a race condition~~
 - Some information like `total_devices`, `opt_out_devices` and `pre_heat_devices` don't persist in memory.
 
 More details available in [issue #486](https://github.com/dvd-dev/hilo/issues/486).
