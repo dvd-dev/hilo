@@ -1,14 +1,13 @@
 """Custom OAuth2 implementation."""
 
-import base64
-import hashlib
-import os
-import re
+# import base64
+# import hashlib
+# import os
+# import re
 from typing import Any, cast
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.config_entry_oauth2_flow import LocalOAuth2Implementation
-
 from pyhilo.const import AUTH_AUTHORIZE, AUTH_CLIENT_ID, AUTH_TOKEN, DOMAIN
 from pyhilo.oauth2helper import OAuth2Helper
 

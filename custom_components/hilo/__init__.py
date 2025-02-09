@@ -45,7 +45,6 @@ from pyhilo.device import HiloDevice
 from pyhilo.devices import Devices
 from pyhilo.event import Event
 from pyhilo.exceptions import HiloError, InvalidCredentialsError, WebsocketError
-from .oauth2 import AuthCodeWithPKCEImplementation
 from pyhilo.util import from_utc_timestamp, time_diff
 from pyhilo.websocket import WebsocketEvent
 
@@ -75,6 +74,7 @@ from .const import (
     LOG,
     MIN_SCAN_INTERVAL,
 )
+from .oauth2 import AuthCodeWithPKCEImplementation
 
 DISPATCHER_TOPIC_WEBSOCKET_EVENT = "pyhilo_websocket_event"
 SIGNAL_UPDATE_ENTITY = "pyhilo_device_update_{}"
