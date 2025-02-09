@@ -37,7 +37,7 @@ that momentary "glitches" of the challenge sensor are completely eliminated by t
 ### What remains to be done on this side:
 - The `allowed_kWh` and `used_kWh` attributes are currently **non-functional**, the information arrives in fragments and all
 cases are not handled yet.
-- The "completed" state doesn't always work, possibly a race condition
+~~- The "completed" state doesn't always work, possibly a race condition~~
 - Some information like `total_devices`, `opt_out_devices` and `pre_heat_devices` don't persist in memory.
 
 More details available in [issue #486](https://github.com/dvd-dev/hilo/issues/486).
@@ -75,6 +75,7 @@ This unofficial HACS integration allows you to use [Hilo](https://www.hiloenergi
 ### 1️⃣ Check Compatibility
 - The integration requires Hilo hardware installed and functional.
 - Tested on HA OS, Docker (ghcr.io), Podman. Other configurations may cause issues.
+- Ongoing issue on Podman/Kubernetes see [issue #497](https://github.com/dvd-dev/hilo/issues/497).
 
 ### 2️⃣ File Installation
 #### 🔹 Option 1: Via HACS

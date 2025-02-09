@@ -32,18 +32,18 @@ briser des installations existantes.
 Dans un premier temps, nous mettrons à jour la librairie `python-hilo` (https://github.com/dvd-dev/python-hilo),
 ce changement devrait être transparent pour tous.
 
-Ensuite, nous migrerons le capteur de défi (`sensor.defi_hilo`) vers Websocket/SignalR. La bonne nouvelle avec ça c'est
+Ensuite, nous migrerons le capteur de défi (`sensor.defi_hilo`) vers Websocket/SignalR. La bonne nouvelle avec ça, c'est
 que les "glitchs" momentanés du capteur de défi sont complètement éliminés par cette méthode.
 
 ### Ce qui reste à faire de ce côté:
-- Les attributs `allowed_kWh` et `used_kWh` sont **non-fonctionnels** actuellement, les information arrivent morcelées et tous
+- Les attributs `allowed_kWh` et `used_kWh` sont **non-fonctionnels** actuellement, les informations arrivent morcelées et tous
 les cas ne sont pas traités encore.
-- L'état "completed" ne fonctionne pas toujours, possiblement un race condition
+~~- L'état "completed" ne fonctionne pas toujours, possiblement une "race condition"~~
 - Certaines informations comme `total_devices`, `opt_out_devices` et `pre_heat_devices` ne persistent pas en mémoire.
 
 Plus de détails disponibles dans [issue #486](https://github.com/dvd-dev/hilo/issues/486).
 
-L'API servant à la lecture initial de la liste d'appareils sur votre compte Hilo subira également le même traitement.
+L'API servant à la lecture initiale de la liste d'appareils sur votre compte Hilo subira également le même traitement.
 
 Plus de détails disponibles dans [issue #564](https://github.com/dvd-dev/hilo/issues/564).
 
@@ -75,7 +75,8 @@ Cette intégration non-officielle HACS permet d'utiliser [Hilo](https://www.hilo
 ## 📥 Installation
 ### 1️⃣ Vérifier la compatibilité
 - L'intégration nécessite le matériel Hilo installé et fonctionnel.
-- Testée sous HA OS, Docker (ghcr.io), Podman. D'autres configurations peuvent poser problème.
+- Testée sous HA OS, Docker (ghcr.io), Podman. D'autres configurations peuvent poser problèmes.
+- Problème connu sur Podman/Kubernetes see [issue #497](https://github.com/dvd-dev/hilo/issues/497).
 
 ### 2️⃣ Installation des fichiers
 #### 🔹 Option 1 : Via HACS
