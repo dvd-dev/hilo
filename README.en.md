@@ -60,12 +60,19 @@ This unofficial HACS integration allows you to use [Hilo](https://www.hiloenergi
 
 ## 🔥 Main Features
 ✅ Supports switches and dimmers as lights
+
 ✅ Thermostat control and temperature reading
+
 ✅ Energy consumption monitoring of Hilo devices
+
 ✅ Sensor for Hilo challenges and gateway
+
 ✅ Configuration via user interface
+
 ✅ Authentication via Hilo website
+
 ✅ Outdoor weather sensor with changing icon
+
 
 📌 **To do**: Support for other devices, improvement of consumption meters, API documentation
 
