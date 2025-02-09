@@ -38,7 +38,7 @@ que les "glitchs" momentanés du capteur de défi sont complètement éliminés 
 ### Ce qui reste à faire de ce côté:
 - Les attributs `allowed_kWh` et `used_kWh` sont **non-fonctionnels** actuellement, les informations arrivent morcelées et tous
 les cas ne sont pas traités encore.
-~~- L'état "completed" ne fonctionne pas toujours, possiblement une "race condition"~~
+- ~~- L'état "completed" ne fonctionne pas toujours, possiblement une "race condition"~~
 - Certaines informations comme `total_devices`, `opt_out_devices` et `pre_heat_devices` ne persistent pas en mémoire.
 
 Plus de détails disponibles dans [issue #486](https://github.com/dvd-dev/hilo/issues/486).
@@ -61,11 +61,17 @@ Cette intégration non-officielle HACS permet d'utiliser [Hilo](https://www.hilo
 
 ## 🔥 Fonctionnalités principales
 ✅ Supporte les interrupteurs et gradateurs comme lumières
+
 ✅ Contrôle des thermostats et lecture des températures
+
 ✅ Suivi de la consommation énergétique des appareils Hilo
+
 ✅ Sensor pour les défis et la passerelle Hilo
+
 ✅ Configuration via l'interface utilisateur
+
 ✅ Authentification via le site web d'Hilo
+
 ✅ Capteur météo extérieure avec icône changeante
 
 📌 **À faire** : Support d'autres appareils, amélioration des compteurs de consommation, documentation API
