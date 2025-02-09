@@ -48,25 +48,25 @@ L'API servant à la lecture initial de la liste d'appareils sur votre compte Hil
 Plus de détails disponibles dans [issue #564](https://github.com/dvd-dev/hilo/issues/564).
 
 ## 📌 Introduction
-Cette intégration non-officielle HACS permet d'utiliser [Hilo](https://www.hiloenergie.com/fr-ca/) avec Home Assistant. **Elle n'est pas affiliée à Hilo ou Hydro-Québec.**  
+Cette intégration non-officielle HACS permet d'utiliser [Hilo](https://www.hiloenergie.com/fr-ca/) avec Home Assistant. **Elle n'est pas affiliée à Hilo ou Hydro-Québec.**
 
 **⚠️ Ne contactez pas Hilo ou Hydro-Québec pour les problèmes liés à cette intégration.**
 
-🔗 [Configuration minimale recommandée](https://github.com/dvd-dev/hilo/wiki/FAQ-%E2%80%90-Français#avez-vous-une-configuration-recommandée)  
-🔗 Blueprints : [NumerID](https://github.com/NumerID/blueprint_hilo) | [Arim215](https://github.com/arim215/ha-hilo-blueprints)  
-🔗 Exemples d'automatisations YAML : [Automatisations](https://github.com/dvd-dev/hilo/tree/main/doc/automations)  
-🔗 Exemples d'interfaces Lovelace : [Interfaces](https://github.com/dvd-dev/hilo/wiki/Utilisation)  
+🔗 [Configuration minimale recommandée](https://github.com/dvd-dev/hilo/wiki/FAQ-%E2%80%90-Français#avez-vous-une-configuration-recommandée)
+🔗 Blueprints : [NumerID](https://github.com/NumerID/blueprint_hilo) | [Arim215](https://github.com/arim215/ha-hilo-blueprints)
+🔗 Exemples d'automatisations YAML : [Automatisations](https://github.com/dvd-dev/hilo/tree/main/doc/automations)
+🔗 Exemples d'interfaces Lovelace : [Interfaces](https://github.com/dvd-dev/hilo/wiki/Utilisation)
 
 ---
 
 ## 🔥 Fonctionnalités principales
-✅ Supporte les interrupteurs et gradateurs comme lumières  
-✅ Contrôle des thermostats et lecture des températures  
-✅ Suivi de la consommation énergétique des appareils Hilo  
-✅ Sensor pour les défis et la passerelle Hilo  
-✅ Configuration via l'interface utilisateur  
-✅ Authentification via le site web d'Hilo  
-✅ Capteur météo extérieure avec icône changeante  
+✅ Supporte les interrupteurs et gradateurs comme lumières
+✅ Contrôle des thermostats et lecture des températures
+✅ Suivi de la consommation énergétique des appareils Hilo
+✅ Sensor pour les défis et la passerelle Hilo
+✅ Configuration via l'interface utilisateur
+✅ Authentification via le site web d'Hilo
+✅ Capteur météo extérieure avec icône changeante
 
 📌 **À faire** : Support d'autres appareils, amélioration des compteurs de consommation, documentation API
 
@@ -102,23 +102,23 @@ Cette intégration non-officielle HACS permet d'utiliser [Hilo](https://www.hilo
 ## 📌 Suivis de la consommation électrique
 Si vous souhaitez utiliser la génération automatique des capteurs de consommation électrique, suivez ces étapes :
 
-1. **Ajouter la plateforme `utility_meter`**  
+1. **Ajouter la plateforme `utility_meter`**
    Ajoutez la ligne suivante dans votre fichier `configuration.yaml` :
    ```yaml
    utility_meter:
    ```
 
-2. **Activer la génération automatique**  
+2. **Activer la génération automatique**
    - Dans l'interface utilisateur de l'intégration, cliquez sur `Configurer`.
    - Cochez **Générer compteurs de consommation électrique**.
 
-3. *(Optionnel)* **Redémarrer Home Assistant**  
+3. *(Optionnel)* **Redémarrer Home Assistant**
    - Attendez environ 5 minutes. L'entité `sensor.hilo_energy_total_low` sera créée et contiendra des données.
    - **Le `status`** devrait être `collecting`.
    - **L'état `state`** devrait être un nombre supérieur à 0.
    - Toutes les entités et capteurs créés seront préfixés ou suffixés par `hilo_energy_` ou `hilo_rate_`.
 
-4. **Erreur connue (à ignorer)**  
+4. **Erreur connue (à ignorer)**
    Si vous voyez cette erreur dans le journal de Home Assistant, elle peut être ignorée :
    ```
    2021-11-29 22:03:46 ERROR (MainThread) [homeassistant] Error doing job: Task exception was never retrieved
@@ -127,7 +127,7 @@ Si vous souhaitez utiliser la génération automatique des capteurs de consommat
    ValueError: could not convert string to float: 'None'
    ```
 
-5. **Ajout manuel au tableau de bord "Énergie"**  
+5. **Ajout manuel au tableau de bord "Énergie"**
    Une fois créés, les compteurs devront être ajoutés manuellement.
 
 ---
@@ -177,7 +177,7 @@ Vous pouvez configurer des options supplémentaires en cliquant sur `Configurer`
 
 
 ## 📌 FAQ et support
-🔗 [FAQ complète](https://github.com/dvd-dev/hilo/wiki/FAQ)  
+🔗 [FAQ complète](https://github.com/dvd-dev/hilo/wiki/FAQ)
 💬 Rejoignez la communauté sur [Discord](https://discord.gg/MD5ydRJxpc)
 
 **Problèmes ?** Ouvrez une "Issue" avec les logs `debug` activés dans `configuration.yaml` :
@@ -189,18 +189,18 @@ logger:
      pyhilo: debug
 ```
 
----  
+---
 
 
-# 👥 Collaborateurs initiaux  
+# 👥 Collaborateurs initiaux
 
-- **[Francis Poisson](https://github.com/francispoisson/)**  
-- **[David Vallee Delisle](https://github.com/valleedelisle/)**  
+- **[Francis Poisson](https://github.com/francispoisson/)**
+- **[David Vallee Delisle](https://github.com/valleedelisle/)**
 
-## 🎖️ Mentions très honorables  
+## 🎖️ Mentions très honorables
 
-- **[Ian Couture](https://github.com/ic-dev21/)** : Il maintient cet addon depuis un certain temps.  
-- **[Hilo](https://www.hiloenergie.com)** : Merci à Hilo pour son soutien et ses contributions.  
+- **[Ian Couture](https://github.com/ic-dev21/)** : Il maintient cet addon depuis un certain temps.
+- **[Hilo](https://www.hiloenergie.com)** : Merci à Hilo pour son soutien et ses contributions.
 
 ---
 💡 **Envie de contribuer ?** Consultez la [section contribution](#contribution) pour voir comment aider au projet.
