@@ -1,6 +1,9 @@
 {
   "name": "dvd-dev/hilo",
   "image": "mcr.microsoft.com/devcontainers/python:3.13",
+  // This is required because there is no conditional mount support in devcontainers.
+  // We create the python-hilo directory if it doesn't exist.
+  "initializeCommand": "mkdir -p ${localWorkspaceFolder}/../python-hilo || true",
   "postCreateCommand": "scripts/setup",
   "forwardPorts": [8123],
   "portsAttributes": {
@@ -34,5 +37,8 @@
       }
     }
   },
-  "remoteUser": "vscode"
+  "remoteUser": "vscode",
+  "mounts": [
+    "source=${localWorkspaceFolder}/../python-hilo,target=/workspaces/python-hilo,type=bind,consistency=cached"
+  ]
 }

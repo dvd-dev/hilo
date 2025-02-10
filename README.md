@@ -16,225 +16,178 @@
 
 Ceci est une version Bêta. Il y aura probablement des bogues, irritants, etc. Merci pour votre patience et d'ouvrir des "Issues".
 
-# Hilo
-Intégration pour Home Assistant d'[Hilo](https://www.hydroquebec.com/hilo/fr/)
+# Hilo - Home Assistant
+Intégration pour Home Assistant d'[Hilo](https://www.hiloenergie.com/fr-ca/)
 
-## Introduction et base
+# ⚠️ Changement majeur à venir, merci de garder votre component à jour ⚠️
 
-Ceci est l'intégration HACS non-officielle de Hilo sur Home Assistant. [Hilo](https://www.hiloenergie.com/fr-ca/) est une plateforme de domotique développée par une filliale d'[Hydro-Québec](https://www.hydroquebec.com/hilo/fr/).
-Cette intégration n'a aucun liens direct avec Hilo ou Hydro Québec. C'est une initiative communautaire. Merci de ne pas contacter Hilo ou Hydro-Québec pour tout problème avec cette intégration Home Assistant. Vous pouvez ouvrir un "issue" dans ce "repository" github à la place.
+L'API sur laquelle nous comptons pour les défis Hilo sera fermée prochainement. Nous travaillons actuellement sur une
+alternative utilisant Websocket/SignalR. **La mise à jour vers la version 2025.2.1 ou ultérieur est fortement recommandée**, car
+les versions précédentes risquent de ne plus fonctionner en raison de la façon dont pip installe les dépendances.
 
-Si vous souhaitez aider avec le développement de cette intégration, vous pouvez toujours soumettre vos commentaires à partir du formulaire de l'app Hilo et demander à ce qu'ils ouvrent leur API publiquement et qu'ils fournissent un environnement de test pour les développeurs.
+Plusieurs utilisateurs et moi-même sommes en train de migrer nos communications avec l'API Hilo vers Websocket/SignalR
+plutôt que des appels d'API. Le procéssus se fera graduellement et nous ferons tout ce qu l'on peut pour éviter de
+briser des installations existantes.
 
-### Version TL:DR ("too long, didn't read")
+Dans un premier temps, nous mettrons à jour la librairie `python-hilo` (https://github.com/dvd-dev/python-hilo),
+ce changement devrait être transparent pour tous.
 
-Voir la configuration minimale recommandée [dans le wiki](https://github.com/dvd-dev/hilo/wiki/FAQ-%E2%80%90-Français#avez-vous-une-configuration-recommandée)
+Ensuite, nous migrerons le capteur de défi (`sensor.defi_hilo`) vers Websocket/SignalR. La bonne nouvelle avec ça, c'est
+que les "glitchs" momentanés du capteur de défi sont complètement éliminés par cette méthode.
 
+### Ce qui reste à faire de ce côté:
+- Les attributs `allowed_kWh` et `used_kWh` sont **non-fonctionnels** actuellement, les informations arrivent morcelées et tous
+les cas ne sont pas traités encore.
+- ~~- L'état "completed" ne fonctionne pas toujours, possiblement une "race condition"~~
+- Certaines informations comme `total_devices`, `opt_out_devices` et `pre_heat_devices` ne persistent pas en mémoire.
 
-Vous pouvez également trouver des exemples en format YAML [dans la section doc/automations du projet](https://github.com/dvd-dev/hilo/tree/main/doc/automations)
-Si vous préférez les blueprints, en voici quelques-uns:
-  - [Repo de NumerID](https://github.com/NumerID/blueprint_hilo)
-  - [Repo de Arim215](https://github.com/arim215/ha-hilo-blueprints)
+Plus de détails disponibles dans [issue #486](https://github.com/dvd-dev/hilo/issues/486).
 
+L'API servant à la lecture initiale de la liste d'appareils sur votre compte Hilo subira également le même traitement.
 
-### Remerciements
+Plus de détails disponibles dans [issue #564](https://github.com/dvd-dev/hilo/issues/564).
 
-Gros merci à [Francis Poisson](https://github.com/francispoisson/) qui est l'auteur de l'intégration originale. Sans le travail qu'il a fait sur cette intégration, je n'aurais probablement jamais considéré utiliser Hilo.
+## 📌 Introduction
+Cette intégration non-officielle HACS permet d'utiliser [Hilo](https://www.hiloenergie.com/fr-ca/) avec Home Assistant. **Elle n'est pas affiliée à Hilo ou Hydro-Québec.**
 
-Un autre gros merci à @ic-dev21 pour son implication à plusieurs niveaux.
+**⚠️ Ne contactez pas Hilo ou Hydro-Québec pour les problèmes liés à cette intégration.**
 
-J'ai décidé de déplacer l'intégration ici, car la dernière mise à jour de Hilo a brisé l'original et j'ai pris le temps de complètement la récrire. Hilo pousse maintenant les lectures des appareils via websocket de SignalR.
+🔗 [Configuration minimale recommandée](https://github.com/dvd-dev/hilo/wiki/FAQ-%E2%80%90-Français#avez-vous-une-configuration-recommandée)
+🔗 Blueprints : [NumerID](https://github.com/NumerID/blueprint_hilo) | [Arim215](https://github.com/arim215/ha-hilo-blueprints)
+🔗 Exemples d'automatisations YAML : [Automatisations](https://github.com/dvd-dev/hilo/tree/main/doc/automations)
+🔗 Exemples d'interfaces Lovelace : [Interfaces](https://github.com/dvd-dev/hilo/wiki/Utilisation)
 
-### Caractéristiques.
-- Supporte les interrupteurs et gradateurs en tant que lumières.
-- Voir la température actuelle et changer la consigne des thermostats.
-- Obtenir la consommation énergétique des tous les appareils Hilo.
-- Générer les "sensor" de puissance et d'énergie consommée.
-- Sensor pour les Défis.
-- Sensor pour la passerelle Hilo
-- Configuration est maintenant faite via l'interface utilisateur
-- Mise à jour des lectures plus près du temps réel.
-- **NOUVEAU**: Authentification via le site de Hilo
-- **NOUVEAU**: Capteur pour la météo extérieure avec icône changeante comme dans l'app Hilo
+---
 
-### À faire:
-- Ajouter la fonctionnalité pour d'autres appareils.
-- Tests fonctionnels
-- [Ajouter des "type hints" au code](https://developers.home-assistant.io/docs/development_typing/)
-- Documentation des appels API à Hilo [ici](https://github.com/dvd-dev/python-hilo)
-- Ajout automatique des compteurs de consommation électrique
+## 🔥 Fonctionnalités principales
+✅ Supporte les interrupteurs et gradateurs comme lumières
 
-## Installation
+✅ Contrôle des thermostats et lecture des températures
 
-### Étape 0 : Avoir une installation compatible
-L'intégration nécessite que l'installation du matériel Hilo soit complétée à votre domicile. Il ne sera pas possible de faire l'installation si ça n'est pas fait.
+✅ Suivi de la consommation énergétique des appareils Hilo
 
-Cette intégration a été testée par des utilisateurs sous HA OS (bare metal et VM), Docker avec l'image officielle (ghcr.io), Podman. Tout autre type d'installation peut mener à des problèmes de permission pour certains fichiers créés lors de l'installation initiale du custom_component.
+✅ Sensor pour les défis et la passerelle Hilo
 
-### Étape 1 : Télécharger les fichiers
+✅ Configuration via l'interface utilisateur
 
-#### Option 1 : Via HACS
+✅ Authentification via le site web d'Hilo
 
-[![Ouvrir Hilo dans Home Assistant Community Store (HACS).](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=dvd-dev&repository=hilo&category=integration)
+✅ Capteur météo extérieure avec icône changeante
 
-Assurez-vous d'avoir [HACS](https://hacs.xyz/docs/setup/download/) d'installé.
-Sous HACS, cliquer le bouton '+ EXPLORE & DOWNLOAD REPOSITORIES' au bas de la page, rechercher "Hilo", le choisir, et cliquer sur _download_ dans HACS.
+📌 **À faire** : Support d'autres appareils, amélioration des compteurs de consommation, documentation API
 
-#### Option 2 : Manuellement
+---
 
-Télécharger et copier le dossier `custom_components/hilo` de la [dernière version](https://github.com/dvd-dev/hilo/releases/latest) dans votre dossier `custom_components` de Home Assistant.
+## 📥 Installation
+### 1️⃣ Vérifier la compatibilité
+- L'intégration nécessite le matériel Hilo installé et fonctionnel.
+- Testée sous HA OS, Docker (ghcr.io), Podman. D'autres configurations peuvent poser problèmes.
+- Problème connu sur Podman/Kubernetes see [issue #497](https://github.com/dvd-dev/hilo/issues/497).
 
-### Étape 2 : Ajouter l'intégration à HA (<--- étape souvent oubliée)
+### 2️⃣ Installation des fichiers
+#### 🔹 Option 1 : Via HACS
+[![Installer via HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=dvd-dev&repository=hilo&category=integration)
 
-[![Ouvrir Home Assistant et démarrer la configuration d'une nouvelle intégration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=hilo)
+1. Assurez-vous d'avoir [HACS](https://hacs.xyz/docs/setup/download/) installé.
+2. Dans HACS, cliquez sur `+ EXPLORE & DOWNLOAD REPOSITORIES`, recherchez "Hilo" et téléchargez-le.
+3. Redémarrer Home Assistant
 
-Dans HA, aller à Paramètres > Appareils et services > Intégrations.
-Dans le coin inférieur droit, cliquer sur le bouton '+ AJOUTER UNE INTÉGRATION'.
+#### 🔹 Option 2 : Manuellement
+1. Téléchargez la dernière version depuis [GitHub](https://github.com/dvd-dev/hilo/releases/latest).
+2. Copiez `custom_components/hilo` dans le dossier `custom_components` de Home Assistant.
+3. Redémarrer Home Assistant
 
-![Ajout intégration](https://github.com/dvd-dev/hilo/assets/108159253/e0529aca-9b13-40e0-9be4-29e347b980ab)
+### 3️⃣ Ajouter l'intégration à Home Assistant
+[![Ajouter l'intégration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=hilo)
 
-Si l'intégration est correctement installée, vous devriez pouvoir trouver "Hilo" dans la liste. Il est possible d'avoir besoin de vider la mémoire cache de votre navigateur pour que l'intégration s'affiche.
+1. Allez à **Paramètres > Appareils et services > Intégrations**.
+2. Cliquez sur `+ AJOUTER UNE INTÉGRATION` et recherchez "Hilo".
+3. Authentifiez-vous sur le site web d'Hilo et liez votre compte.
 
-![Recherche intégration](https://github.com/dvd-dev/hilo/assets/108159253/7003a402-9369-4063-ac02-709bd0294e42)
+---
 
-## Configuration (initiale)
+## 📌 Suivis de la consommation électrique
+Si vous souhaitez utiliser la génération automatique des capteurs de consommation électrique, suivez ces étapes :
 
-La configuration est faite via l'interface utilisateur. Lorsque vous ajoutez l'intégration, vous êtes redirigés vers le site de connexion d'Hilo afin de vous y authentifier.
+1. **Ajouter la plateforme `utility_meter`**
+   Ajoutez la ligne suivante dans votre fichier `configuration.yaml` :
+   ```yaml
+   utility_meter:
+   ```
 
-![Auth step 1](https://github.com/dvd-dev/hilo/assets/108159253/d2e396ea-e6df-40e6-9a14-626ef3be87c8)
+2. **Activer la génération automatique**
+   - Dans l'interface utilisateur de l'intégration, cliquez sur `Configurer`.
+   - Cochez **Générer compteurs de consommation électrique**.
 
-![Auth Hilo](https://github.com/dvd-dev/hilo/assets/108159253/e4e98b32-78d0-4c49-a2d7-3bd0ae95e9e0)
+3. *(Optionnel)* **Redémarrer Home Assistant**
+   - Attendez environ 5 minutes. L'entité `sensor.hilo_energy_total_low` sera créée et contiendra des données.
+   - **Le `status`** devrait être `collecting`.
+   - **L'état `state`** devrait être un nombre supérieur à 0.
+   - Toutes les entités et capteurs créés seront préfixés ou suffixés par `hilo_energy_` ou `hilo_rate_`.
 
-Vous devez ensuite accepter de lier votre compte. Pour ce faire, saisir l'adresse (URL ou IP) de votre instance Home Assistant et appuyer sur Link Account.
+4. **Erreur connue (à ignorer)**
+   Si vous voyez cette erreur dans le journal de Home Assistant, elle peut être ignorée :
+   ```
+   2021-11-29 22:03:46 ERROR (MainThread) [homeassistant] Error doing job: Task exception was never retrieved
+   Traceback (most recent call last):
+   [...]
+   ValueError: could not convert string to float: 'None'
+   ```
 
-![Link](https://github.com/dvd-dev/hilo/assets/108159253/5eb945f7-fa5e-458f-b0fe-ef252aaadf93)
+5. **Ajout manuel au tableau de bord "Énergie"**
+   Une fois créés, les compteurs devront être ajoutés manuellement.
 
-Après, vous devrez assigner une pièce de votre maison à chaque appareil.
+---
 
-## Configuration (mise à jour depuis une version antérieure à v2024.3.1)
+## ⚠️ Avertissement
+Lorsque l'on active les compteurs, il est recommandé de **retirer les anciens capteurs manuels** afin d'éviter des données en double.
 
-Après la mise à jour, vous obtiendrez une erreur comme quoi vous devez vous réauthentifier pour que l'intégration fonctionne.
+Si vous rencontrez un problème et souhaitez collaborer, activez la journalisation **debug** et fournissez un extrait du fichier `home-assistant.log`. La méthode est expliquée ci-dessous.
 
-![Reconfigurer](https://github.com/dvd-dev/hilo/assets/108159253/5b69da7f-d547-4ba7-8b64-8eb1d8f28bdb)
+---
 
-![Réauthentifier](https://github.com/dvd-dev/hilo/assets/108159253/6b1bf2c3-0d7a-4eb8-815b-594401fc09ef)
-
-Après avoir lié votre compte comme montré à la section configuration initiale, le message suivant apparaitra.
-
-![Réauthentifié succès](https://github.com/dvd-dev/hilo/assets/108159253/7708b449-24c3-43c1-843b-8697ae192db1)
-
-### Compteurs de consommation électrique
-
-Les compteurs de consommation électrique sont une fonctionalité de cette intégration. Ils étaient initialement générés
-par des capteurs "template" et des automatisations mais sont maintenant intégré dans l'intégration.
-
-#### Avertissement
-
-Lorsque l'on active les compteurs, il est recommandé de retirer les anciens capteurs manuels afin de ne pas avoir de
-données en double.
-
-Si vous avez un problème et voulez collaborer, merci de mettre en marche la journalisation `debug` et de fournir
-un extrait du fichier `home-assistant.log`. La méthode est expliquée [ci-bas.](https://github.com/dvd-dev/hilo?tab=readme-ov-file#contribuer).
-
-
-#### Procédure
-
-Si vous souhaitez utiliser la génération automatique des capteurs de consommation électrique, suivez les étapes suivantes:
-
-* S'assurer que la plateforme `utility_meter` est chargée dans votre fichier `configuration.yaml` de
-Home Assistant. Vous n'avez qu'à ajouter une ligne au fichier comme suit :
-
-    ```
-    utility_meter:
-    ```
-
-* Cliquer sur `Configure` dans l'interface utilisateur de l'intégration et cocher `Générer compteurs de consommation électrique`.
-
-* (Optionnel) Redémarrez Home Assistant et attendez 5 minutes environ, l'entité `sensor.hilo_energy_total_low` sera créée
-  et contiendra des données:
-  * Le `status` devrait être `collecting`
-  * L'état `state` devrait être un nombre plus grand que 0.
-
-* Toutes les entités et capteurs créés seront préfixés ou suffixés de `hilo_energy_` ou `hilo_rate_`.
-
-* Si vous voyez l'erreur suivante dans le journal de Home Assistant, ceci est du à un bogue de Home Assistant causé par
-  le fait que le compteur n'a pas encore accumulé suffisamment de données pour fonctionner. Elle peut être ignorée.
-
-    ```
-    2021-11-29 22:03:46 ERROR (MainThread) [homeassistant] Error doing job: Task exception was never retrieved
-    Traceback (most recent call last):
-    [...]
-    ValueError: could not convert string to float: 'None'
-    ```
-Une fois créés, les compteurs devront être ajoutés manuellement au tableau de bord "Énergie".
-
-
-### Autres options de configuration
-
-D'autres options sont disponibles sous le bouton "Configurer" dans Home Assistant:
-
-- `Générer compteurs de consommation électrique`: Case à cocher
-
-  Générer automatiquement des compteurs de consommation électrique, voir la procédure ci-dessus pour la configuration
-  Nécessite la ligne suivante dans votre fichier configuration.yaml :
-  ```
+## ⚙️ Autres options de configuration
+Vous pouvez configurer des options supplémentaires en cliquant sur `Configurer` dans Home Assistant :
+![alt text](image.png)
+### ✅ **Générer compteurs de consommation électrique**
+- Génère automatiquement les compteurs de consommation électrique.
+- **Nécessite** la ligne suivante dans `configuration.yaml` :
+  ```yaml
   utility_meter:
   ```
 
-- `Générer seulement les compteurs totaux pour chaque appareil`: Case à cocher
+### ✅ **Générer seulement les compteurs totaux pour chaque appareil**
+- Calcule uniquement le total d'énergie **sans division** entre coût faible et coût élevé.
 
-  Calculez uniquement le total d'énergie sans diviser entre le cout faible et le cout élevé
+### ✅ **Enregistrer les données de demande et les messages Websocket**
+- Nécessite un **niveau de journalisation `debug`** sur l'intégration et `pyhilo`.
+- Permet un suivi détaillé pour le développement et le débogage.
 
-- `Enregistrer également les données de demande et les messages Websocket (nécessite un niveau de journal de débogage à la fois sur l'intégration et sur pyhilo)`: Case à cocher
+### ✅ **Verrouiller les entités `climate` lors des défis Hilo**
+- Empêche toute modification des consignes de température **pendant un défi** Hilo.
 
-  Permets un niveau de journalisation plus élevé pour les développeurs/le débogage
+### ✅ **Suivre des sources de consommation inconnues dans un compteur séparé**
+- Toutes les sources **non Hilo** sont regroupées dans un capteur dédié.
+- Utilise la lecture du **compteur intelligent** de la maison.
 
-- `Vérouiller les entités climate lors de défis Hilo, empêchant tout changement lorsqu'un défi est en cours.`: Case à cocher
+### 📌 **Nom du tarif Hydro-Québec** (`rate d` ou `flex d`)
+- Définissez le **nom du plan tarifaire**.
+- **Valeurs supportées** :
+  - `'rate d'`
+  - `'flex d'`
 
-  Empêche la modification des consignes de température lors des défis Hilo
+### ⏳ **Intervalle de mise à jour (min : 60s)**
+- Définit le **nombre de secondes** entre chaque mise à jour.
+- **Valeur par défaut** : `60s`.
+- **Ne pas descendre sous 30s** pour éviter une suspension de Hilo.
+- Depuis **2023.11.1**, le minimum est passé de **15s à 60s**.
 
-- `Suivre des sources de consommation inconnues dans un compteur séparé. Ceci est une approximation calculée à partir de la lecture du compteur intelligent.`: Case à cocher
 
-  Toutes les sources d'énergie autres que le matériel Hilo sont regroupées dans un seul capteur. Utilise la lecture du compteur intelligent de la maison.
+## 📌 FAQ et support
+🔗 [FAQ complète](https://github.com/dvd-dev/hilo/wiki/FAQ)
+💬 Rejoignez la communauté sur [Discord](https://discord.gg/MD5ydRJxpc)
 
-- `Nom du tarif Hydro Québec ('rate d' ou 'flex d')`: chaine
-
-  Définissez le nom du plan tarifaire d'Hydro-Québec.
-  Seules 2 valeurs sont prises en charge pour le moment:
-  - 'rate d'
-  - 'flex d'
-
-- `Intervalle de mise à jour (min: 60s)`: Nombre entier
-
-  Nombre de secondes entre chaque mise à jour de l'appareil. Par défaut à 60s. Il n'est pas recommandé d'aller en dessous de 30, car cela pourrait entrainer une suspension de Hilo. Depuis [2023.11.1](https://github.com/dvd-dev/hilo/releases/tag/v2023.11.1) le minimum est passé de 15s à 60s.
-
-## Exemples d'intégrations Lovelace et d'automatisations
-
-Vous pouvez trouver de nombres exemples et idées pour votre tableau de bord, vos cartes et vos automatisations [dans le wiki du projet](https://github.com/dvd-dev/hilo/wiki/Utilisation)
-
-Vous pouvez également trouver des exemples en format YAML [dans la section doc/automations du projet](https://github.com/dvd-dev/hilo/tree/main/doc/automations)
-
-## Références
-
-Comme indiqué ci-dessus, il s'agit d'une intégration non officielle. Hilo ne prend pas en charge les appels API directs et peut obscurcir le service ou
-nous empêcher de l'utiliser.
-
-Pour l'instant, voici les liens Swagger que nous avons trouvés:
-* https://wapphqcdev01-automation.azurewebsites.net/swagger/index.html
-* https://wapphqcdev01-notification.azurewebsites.net/swagger/index.html
-* https://wapphqcdev01-clientele.azurewebsites.net/swagger/index.html
-
-## FAQ
-
-Vous pouvez trouver la FAQ dans le wiki du projet: https://github.com/dvd-dev/hilo/wiki/FAQ
-
-## Contribuer
-
-Rapporter tout problème est une bonne manière disponible à tous de contribuer au projet.
-
-Si vous éprouvez des problèmes ou voyez des comportements étranges, merci de soumettre une "Issue" et d'y attacher vos journaux.
-
-Pour mettre en fonction la journalisation de débogage, vous devez ajouter ceci dans votre fichier `configuration.yaml`:
+**Problèmes ?** Ouvrez une "Issue" avec les logs `debug` activés dans `configuration.yaml` :
 ```yaml
 logger:
   default: info
@@ -243,78 +196,22 @@ logger:
      pyhilo: debug
 ```
 
-Si vous avez de l'expérience python ou Home Assistant et que vous souhaitez contribuer au code, n'hésitez pas à soumettre un pull request.
+---
 
-### Préparer un environnement de développement via VSCode DevContainer
 
-Pour faciliter le développement, un environnement de développement est disponible via DevContainer de VSCode. Pour l'utiliser, vous devez avoir [VSCode](https://code.visualstudio.com/) et [Docker](https://www.docker.com/) installés sur votre ordinateur.
+# 👥 Collaborateurs initiaux
 
-1. Ouvrir le dossier du projet dans VSCode
-2. Installer l'extension [Remote - Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
-3. Ouvrir la palette de commande (Ctrl+Shift+P ou Cmd+Shift+P) et chercher "Remote-Containers: Reopen in Container"
-4. Attendre que l'environnement soit prêt
-5. Ouvrir un terminal dans VSCode et exécuter `scripts/develop` pour installer les dépendances et lancer Home Assistant.
-6. VSCode devrait vous proposer d'ouvrir un navigateur pour accéder à Home Assistant. Vous pouvez aussi ouvrir un navigateur manuellement et accéder à [http://localhost:8123](http://localhost:8123).
-7. Vous allez devoir faire la configuration initiale de Home Assistant.
-8. Vous allez devoir ajouter l'intégration Hilo via l'interface utilisateur.
-9. Vous pouvez maintenant modifier les fichiers dans le dossier `custom_components/hilo` et voir les changements en temps réel dans Home Assistant.
-10. Dans le terminal ou vous avez lancé `scripts/develop`, les logs de Home Assistant et de l'intégration HILO devraient défiler.
+- **[Francis Poisson](https://github.com/francispoisson/)**
+- **[David Vallee Delisle](https://github.com/valleedelisle/)**
 
-### Avant de soumettre une Pull Request
+## 🎖️ Mentions très honorables
 
-Il va sans dire qu'il est important de tester vos modifications sur une installation locale. Il est possible de modifier les fichiers .py de l'intégration directement dans votre dossier `custom_components/hilo`.
-
-N'oubliez pas votre copie de sauvegarde!
-
-Si vous devez modifier python-hilo pour vos tests, il est possible d'installer votre "fork" avec la commande suivante dans votre CLI :
-
-```console
-$ pip install -e git+https://github.com/VOTRE_FORK_ICI/python-hilo.git#egg=python-hilo
-```
-
-Vous devrez ensuite redémarrer Home Assistant pour que votre installation prenne effet. Pour revenir en arrière, il suffit de faire:
-
-```console
-$ pip install python-hilo
-```
-
-Et redémarrez Home Assistant
-
-### Soumettre une Pull Request
-
-- D'abord, vous devez créer un `fork` du "repository" dans votre propre espace utilisateur.
-- Ensuite, vous pouvez en faire un `clone` sur votre ordinateur.
-- Afin de maintenir une sorte de propreté et de standard dans le code, nous avons des linters et des validateurs qui doivent être exécutés via `pre-commit` hooks :
-```console
-$ pre-commit install --install-hooks
-```
-- Vous pouvez maintenant procéder à votre modification au code.
-- Lorsque vous avez terminé, vous pouvez `stage` les fichiers pour un `commit`:
-```console
-$ git add path/to/file
-```
-- Et vous pouvez créer un `commit`:
-```console
-$ git commit -m "J'ai changé ceci parce que ..."
-```
-
-- Finalement, vous pouvez `push` le changement vers votre "upstream repository" :
-```console
-$ git push
-```
-
-- Ensuite, si vous visitez le [upstream repository](https://github.com/dvd-dev/hilo), Github devrait vous proposer de créer un "Pull Request" (PR). Vous n'avez qu'à suivre les instructions.
-
-### Collaborateurs initiaux
-
-* [Francis Poisson](https://github.com/francispoisson/)
-* [David Vallee Delisle](https://github.com/valleedelisle/)
-
-### Mentions très honorables
-* [Ian Couture](https://github.com/ic-dev21/): Il tient cet addon du bout de ces bras depuis un certain temps
-* [Hilo](https://www.hiloenergie.com): Merci à Hilo pour son support et ses contributions.
+- **[Ian Couture](https://github.com/ic-dev21/)** : Il maintient cet addon depuis un certain temps.
+- **[Hilo](https://www.hiloenergie.com)** : Merci à Hilo pour son soutien et ses contributions.
 
 ---
+💡 **Envie de contribuer ?** Consultez la [section contribution](/CONTRIBUTING.md) pour voir comment aider au projet.
+
 
 [integration_blueprint]: https://github.com/custom-components/integration_blueprint
 [commits-shield]: https://img.shields.io/github/commit-activity/y/dvd-dev/hilo.svg?style=for-the-badge
