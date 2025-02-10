@@ -779,17 +779,18 @@ class HiloEntity(CoordinatorEntity):
         """Initialize."""
         assert hilo.coordinator
         super().__init__(hilo.coordinator)
+        device_info_args = {
+            "identifiers": {(DOMAIN, device.identifier)},
+            "manufacturer": device.manufacturer,
+            "model": device.model,
+            "name": device.name,
+        }
         try:
-            gateway = device.gateway_external_id
+            device_info_args["via_device"] = (DOMAIN, device.gateway_external_id)
         except AttributeError:
-            gateway = None
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, device.identifier)},
-            manufacturer=device.manufacturer,
-            model=device.model,
-            name=device.name,
-            via_device=(DOMAIN, gateway),
-        )
+            # If a device doesn't have a gateway_external_id, it's most likely the gateway itself.
+            pass  # Do nothing.
+        self._attr_device_info = DeviceInfo(**device_info_args)
         try:
             mac_address = dr.format_mac(device.sdi)
             self._attr_device_info[ATTR_CONNECTIONS] = {
