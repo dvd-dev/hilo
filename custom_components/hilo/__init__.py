@@ -1,4 +1,5 @@
 """Support for Hilo automation systems."""
+
 from __future__ import annotations
 
 import asyncio
@@ -244,7 +245,10 @@ class Hilo:
         self.appreciation = entry.options.get(
             CONF_APPRECIATION_PHASE, DEFAULT_APPRECIATION_PHASE
         )
-        self.pre_cold = entry.options.get(CONF_PRE_COLD_PHASE, DEFAULT_PRE_COLD_PHASE)
+        self.pre_cold = entry.options.get(
+            CONF_PRE_COLD_PHASE,
+            DEFAULT_PRE_COLD_PHASE,
+        )
         self.challenge_lock = entry.options.get(
             CONF_CHALLENGE_LOCK, DEFAULT_CHALLENGE_LOCK
         )
@@ -911,7 +915,7 @@ class HiloEntity(CoordinatorEntity):
         hilo: Hilo,
         name: Union[str, None] = None,
         *,
-        device: HiloDevice | None = None,
+        device: HiloDevice,
     ) -> None:
         """Initialize."""
         assert hilo.coordinator
