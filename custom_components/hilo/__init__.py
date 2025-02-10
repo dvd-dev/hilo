@@ -725,19 +725,6 @@ class Hilo:
             )
 
     @callback
-    def async_get_entity_id_domain(self, platform: str, unique_id: str) -> str | None:
-        entity_registry = er.async_get(self._hass)
-        entity_id = entity_registry.async_get_entity_id(platform, DOMAIN, unique_id)
-        LOG.debug(
-            "%s-%s:For unique_id get entity_id (%s -> %s)",
-            DOMAIN,
-            platform,
-            unique_id,
-            entity_id,
-        )
-        return entity_id
-
-    @callback
     def async_migrate_unique_id(
         self, old_unique_id: str, new_unique_id: str | None, platform: str
     ) -> None:
@@ -794,17 +781,18 @@ class HiloEntity(CoordinatorEntity):
         """Initialize."""
         assert hilo.coordinator
         super().__init__(hilo.coordinator)
+        device_info_args = {
+            "identifiers": {(DOMAIN, device.identifier)},
+            "manufacturer": device.manufacturer,
+            "model": device.model,
+            "name": device.name,
+        }
         try:
-            gateway = device.gateway_external_id
+            device_info_args["via_device"] = (DOMAIN, device.gateway_external_id)
         except AttributeError:
-            gateway = None
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, device.identifier)},
-            manufacturer=device.manufacturer,
-            model=device.model,
-            name=device.name,
-            via_device=(DOMAIN, gateway),
-        )
+            # If a device doesn't have a gateway_external_id, it's most likely the gateway itself.
+            pass  # Do nothing.
+        self._attr_device_info = DeviceInfo(**device_info_args)
         try:
             mac_address = dr.format_mac(device.sdi)
             self._attr_device_info[ATTR_CONNECTIONS] = {

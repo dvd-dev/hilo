@@ -158,17 +158,16 @@ async def async_setup_entry(
     def create_energy_entity(hilo, device):
         device._energy_entity = EnergySensor(hilo, device)
         new_entities.append(device._energy_entity)
-        energy_unique_id = f"{slugify(device.identifier)}-energy"
-        if (
-            energy_entity := hilo.async_get_entity_id_domain(
-                Platform.SENSOR, energy_unique_id
+        energy_entity = f"{slugify(device.name)}_hilo_energy"
+        if energy_entity == HILO_ENERGY_TOTAL:
+            LOG.error(
+                "An hilo entity can't be named 'total' because it conflicts "
+                "with the generated name for the smart energy meter"
             )
-        ) is None:
-            energy_entity = f"sensor.{slugify(device.name)}_hilo_energy"
-        energy_entity = energy_entity.replace("sensor.", "")
-
+            return
         tariff_list = default_tariff_list
         if device.type == "Meter":
+            energy_entity = HILO_ENERGY_TOTAL
             tariff_list = validate_tariff_list(tariff_config)
         net_consumption = device.net_consumption
         utility_manager.add_meter(energy_entity, tariff_list, net_consumption)
@@ -287,14 +286,7 @@ class EnergySensor(IntegrationSensor):
 
         if device.type == "Meter":
             self._attr_name = HILO_ENERGY_TOTAL
-        power_unique_id = f"{slugify(device.identifier)}-power"
-        if (
-            power_entity_id := hilo.async_get_entity_id_domain(
-                Platform.SENSOR, power_unique_id
-            )
-        ) is None:
-            power_entity_id = f"{Platform.SENSOR}.{slugify(device.name)}_power"
-        self._source = power_entity_id
+        self._source = f"sensor.{slugify(device.name)}_power"
         # ic-dev21: Set initial state and last_valid_state, removes log errors and unavailable states
         initial_state = 0
         self._attr_native_value = initial_state
