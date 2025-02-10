@@ -242,7 +242,7 @@ class Hilo:
         )
         self.pre_cold = entry.options.get(
             CONF_PRE_COLD_PHASE,
-            DEFAULT_PRE_COLD_PHASE,  # this is new
+            DEFAULT_PRE_COLD_PHASE,
         )
         self.challenge_lock = entry.options.get(
             CONF_CHALLENGE_LOCK, DEFAULT_CHALLENGE_LOCK
