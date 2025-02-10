@@ -210,7 +210,7 @@ logger:
 - **[Hilo](https://www.hiloenergie.com)** : Merci à Hilo pour son soutien et ses contributions.
 
 ---
-💡 **Envie de contribuer ?** Consultez la [section contribution](#contribution) pour voir comment aider au projet.
+💡 **Envie de contribuer ?** Consultez la [section contribution](/CONTRIBUTING.md) pour voir comment aider au projet.
 
 
 [integration_blueprint]: https://github.com/custom-components/integration_blueprint
@@ -236,7 +236,3 @@ logger:
 [English]: https://github.com/dvd-dev/hilo/blob/main/README.en.md
 [Françaisshield]: https://img.shields.io/badge/fr-Français-blue?style=for-the-badge
 [Français]: https://github.com/dvd-dev/hilo/blob/main/README.md
-
-
-
-

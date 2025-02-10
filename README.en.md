@@ -206,7 +206,7 @@ logger:
 - **[Hilo](https://www.hiloenergie.com)**: Thanks to Hilo for their support and contributions.
 
 ---
-💡 **Want to contribute?** Check out the [contribution section](#contribution) to see how to help with the project.
+💡 **Want to contribute?** Check out the [contribution section](/CONTRIBUTING.md) to see how to help with the project.
 
 [integration_blueprint]: https://github.com/custom-components/integration_blueprint
 [commits-shield]: https://img.shields.io/github/commit-activity/y/dvd-dev/hilo.svg?style=for-the-badge
