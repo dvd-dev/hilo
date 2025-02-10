@@ -55,6 +55,8 @@ repos:
     rev: v2.4.0
     hooks:
       - id: check-json
+        # Exclude .devcontainer.json since it uses JSONC
+        exclude: .devcontainer.json
       - id: no-commit-to-branch
         args:
           - --branch=main

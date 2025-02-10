@@ -19,11 +19,34 @@ Ceci est une version Bêta. Il y aura probablement des bogues, irritants, etc. M
 # Hilo
 Intégration pour Home Assistant d'[Hilo](https://www.hydroquebec.com/hilo/fr/)
 
-# :warning: Changement majeur à venir, mettez à jour vers 2025.2.1 en attendant. :warning:
+# :warning: Changement majeur à venir, merci de garder votre component à jour :warning:
 
 L'API sur laquelle nous comptons pour les défis Hilo sera fermée prochainement. Nous travaillons actuellement sur une
-alternative utilisant Websockets/SignalR. **La mise à jour vers la version 2025.2.1 est fortement recommandée**, car
+alternative utilisant Websocket/SignalR. **La mise à jour vers la version 2025.2.1 ou ultérieur est fortement recommandée**, car
 les versions précédentes risquent de ne plus fonctionner en raison de la façon dont pip installe les dépendances.
+
+Plusieurs utilisateurs et moi-même sommes en train de migrer nos communications avec l'API Hilo vers Websocket/SignalR
+plutôt que des appels d'API. Le procéssus se fera graduellement et nous ferons tout ce qu l'on peut pour éviter de
+briser des installations existantes.
+
+Dans un premier temps, nous mettrons à jour la librairie `python-hilo` (https://github.com/dvd-dev/python-hilo),
+ce changement devrait être transparent pour tous.
+
+Ensuite, nous migrerons le capteur de défi (`sensor.defi_hilo`) vers Websocket/SignalR. La bonne nouvelle avec ça c'est
+que les "glitchs" momentanés du capteur de défi sont complètement éliminés par cette méthode.
+
+### Ce qui reste à faire de ce côté:
+- Les attributs `allowed_kWh` et `used_kWh` sont **non-fonctionnels** actuellement, les information arrivent morcelées et tous
+les cas ne sont pas traités encore.
+- L'état "completed" ne fonctionne pas toujours, possiblement un race condition
+- Certaines informations comme `total_devices`, `opt_out_devices` et `pre_heat_devices` ne persistent pas en mémoire.
+
+Plus de détails disponibles dans issue #486.
+
+L'API servant à la lecture initial de la liste d'appareils sur votre compte Hilo subira également le même traitement.
+
+Plus de détails disponibles dans issue #564.
+
 
 ## Introduction et base
 
@@ -257,6 +280,12 @@ Pour faciliter le développement, un environnement de développement est disponi
 
 1. Ouvrir le dossier du projet dans VSCode
 2. Installer l'extension [Remote - Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+3. Si vous souhaitez travailler en même temps sur `python-hilo`, vous devez cloner le [repository python-hilo](https://github.com/dvd-dev/python-hilo) dans un dossier adjacent à celui de `hilo`. Le nom du dossier `python-hilo` est **REQUIS** pour que l'environnement de développement fonctionne correctement. ex:
+
+        parent_folder/
+        ├── hilo/
+        └── python-hilo/
+
 3. Ouvrir la palette de commande (Ctrl+Shift+P ou Cmd+Shift+P) et chercher "Remote-Containers: Reopen in Container"
 4. Attendre que l'environnement soit prêt
 5. Ouvrir un terminal dans VSCode et exécuter `scripts/develop` pour installer les dépendances et lancer Home Assistant.
