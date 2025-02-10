@@ -4,6 +4,7 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import slugify
+from pyhilo.device.switch import Switch
 
 from . import Hilo, HiloEntity
 from .const import DOMAIN, LOG, SWITCH_CLASSES
@@ -23,7 +24,7 @@ async def async_setup_entry(
 
 
 class HiloSwitch(HiloEntity, SwitchEntity):
-    def __init__(self, hilo: Hilo, device):
+    def __init__(self, hilo: Hilo, device: Switch):
         super().__init__(hilo, device=device, name=device.name)
         old_unique_id = f"{slugify(device.name)}-switch"
         self._attr_unique_id = f"{slugify(device.identifier)}-switch"
