@@ -294,6 +294,12 @@ To facilitate development, a development environment is available via VSCode Dev
 
 1. Open the project folder in VSCode
 2. Install the [Remote - Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension
+3. If you want to work on `python-hilo` at the same time, you need to clone the [python-hilo repository](https://github.com/dvd-dev/python-hilo) in a folder adjacent to the `hilo` folder. The `python-hilo` folder name is **REQUIRED** for the development environment to work properly. ex:
+
+        parent_folder/
+        ├── hilo/
+        └── python-hilo/
+
 3. Open the command palette (Ctrl+Shift+P or Cmd+Shift+P) and search for "Remote-Containers: Reopen in Container"
 4. Wait for the environment to be ready
 5. Open a terminal in VSCode and run `scripts/develop` to install dependencies and start Home Assistant
