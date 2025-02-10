@@ -195,8 +195,6 @@ logger:
      pyhilo: debug
 ```
 
----
-
 # 👥 Initial Contributors
 
 - **[Francis Poisson](https://github.com/francispoisson/)**

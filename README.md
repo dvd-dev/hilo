@@ -212,26 +212,8 @@ logger:
 ---
 💡 **Envie de contribuer ?** Consultez la [section contribution](#contribution) pour voir comment aider au projet.
 
-[integration_blueprint]: https://github.com/custom-components/integration_blueprint
-[commits-shield]: https://img.shields.io/github/commit-activity/y/dvd-dev/hilo.svg?style=for-the-badge
-[commits]: https://github.com/dvd-dev/hilo/commits/main
-[hacs]: https://hacs.xyz
-[hacsbadge]: https://img.shields.io/badge/HACS-Default-41BDF5.svg?style=for-the-badge
-[license]: https://github.com/dvd-dev/hilo/blob/main/LICENSE
-[license-shield]: https://img.shields.io/github/license/dvd-dev/hilo.svg?style=for-the-badge
-[maintenance-shield]: https://img.shields.io/badge/maintainer-%40dvd--dev-blue.svg?style=for-the-badge
-[releases-shield]: https://img.shields.io/github/release/dvd-dev/hilo.svg?style=for-the-badge
-[releases]: https://github.com/dvd-dev/hilo/releases
-[user_profile]: https://github.com/dvd-dev
-[pre-commit-shield]: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white&style=for-the-badge
-[pre-commit]: https://github.com/pre-commit/pre-commit
-[calver-shield]: https://img.shields.io/badge/calver-YYYY.MM.Micro-22bfda.svg?style=for-the-badge
-[calver]: http://calver.org/
-[black-shield]: https://img.shields.io/badge/code%20style-black-000000.svg?style=for-the-badge
-[black]: https://github.com/psf/black
-[discord-shield]: https://img.shields.io/badge/discord-Chat-green?logo=discord&style=for-the-badge
-[discord]: https://discord.gg/MD5ydRJxpc
-[Englishshield]: https://img.shields.io/badge/en-English-red?style=for-the-badge
-[English]: https://github.com/dvd-dev/hilo/blob/main/README.en.md
-[Françaisshield]: https://img.shields.io/badge/fr-Français-blue?style=for-the-badge
-[Français]: https://github.com/dvd-dev/hilo/blob/main/README.md
+
+
+
+
+
