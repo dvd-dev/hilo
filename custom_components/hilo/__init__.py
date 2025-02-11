@@ -998,3 +998,4 @@ class HiloEntity(CoordinatorEntity):
 
         if self._device.type != "Gateway":
             await self.coordinator.async_request_refresh()
+            
