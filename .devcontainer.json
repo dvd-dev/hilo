@@ -1,10 +1,16 @@
 {
   "name": "dvd-dev/hilo",
-  "image": "mcr.microsoft.com/devcontainers/python:3.13",
+  "dockerFile": "Dockerfile.dev",
   // This is required because there is no conditional mount support in devcontainers.
   // We create the python-hilo directory if it doesn't exist.
   "initializeCommand": "mkdir -p ${localWorkspaceFolder}/../python-hilo || true",
   "postCreateCommand": "scripts/setup",
+  "containerEnv": {
+    "PYTHONASYNCIODEBUG": "1"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
   "forwardPorts": [8123],
   "portsAttributes": {
     "8123": {
@@ -16,28 +22,53 @@
     "vscode": {
       "extensions": [
         "charliermarsh.ruff",
-        "github.vscode-pull-request-github",
-        "ms-python.python",
+        "ms-python.pylint",
         "ms-python.vscode-pylance",
+        "visualstudioexptteam.vscodeintellicode",
+        "redhat.vscode-yaml",
+        "esbenp.prettier-vscode",
+        "github.vscode-pull-request-github",
         "ryanluker.vscode-coverage-gutters"
       ],
+      // Please keep this file in sync with settings in settings.default.json
       "settings": {
-        "files.eol": "\n",
-        "editor.tabSize": 4,
-        "editor.formatOnPaste": true,
+        "python.experiments.optOutFrom": ["pythonTestAdapter"],
+        //"python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.defaultInterpreterPath": "/home/vscode/.local/ha-venv/bin/python",
+        "python.pythonPath": "/home/vscode/.local/ha-venv/bin/python",
+        "python.terminal.activateEnvInCurrentTerminal": true,
+        "python.testing.pytestArgs": ["--no-cov"],
+        "pylint.importStrategy": "fromEnvironment",
+        "editor.formatOnPaste": false,
         "editor.formatOnSave": true,
-        "editor.formatOnType": false,
+        "editor.formatOnType": true,
         "files.trimTrailingWhitespace": true,
-        "python.analysis.typeCheckingMode": "basic",
-        "python.analysis.autoImportCompletions": true,
-        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "terminal.integrated.profiles.linux": {
+          "zsh": {
+            "path": "/usr/bin/zsh"
+          }
+        },
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "yaml.customTags": [
+          "!input scalar",
+          "!secret scalar",
+          "!include_dir_named scalar",
+          "!include_dir_list scalar",
+          "!include_dir_merge_list scalar",
+          "!include_dir_merge_named scalar"
+        ],
         "[python]": {
           "editor.defaultFormatter": "charliermarsh.ruff"
-        }
+        },
+        "json.schemas": [
+          {
+            "fileMatch": ["homeassistant/components/*/manifest.json"],
+            "url": "${containerWorkspaceFolder}/script/json_schemas/manifest_schema.json"
+          }
+        ]
       }
     }
   },
-  "remoteUser": "vscode",
   "mounts": [
     "source=${localWorkspaceFolder}/../python-hilo,target=/workspaces/python-hilo,type=bind,consistency=cached"
   ]
