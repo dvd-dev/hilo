@@ -1,4 +1,5 @@
 """Support for various Hilo sensors."""
+
 from __future__ import annotations
 
 import asyncio
@@ -59,12 +60,14 @@ from .const import (
     HILO_SENSOR_CLASSES,
     LOG,
     MAX_SUB_INTERVAL,
+    MIN_SCAN_INTERVAL,
     NOTIFICATION_SCAN_INTERVAL,
     REWARD_SCAN_INTERVAL,
     TARIFF_LIST,
     WEATHER_CONDITIONS,
 )
 from .managers import EnergyManager, UtilityManager
+from custom_components import hilo
 
 WIFI_STRENGTH = {
     "Low": 1,
@@ -729,7 +732,9 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
         self._state = "off"
         self._next_events = []
         self._events = {}  # Store active events
-        self.async_update = Throttle(self.scan_interval)(self._async_update)
+        self.async_update = Throttle(timedelta(seconds=MIN_SCAN_INTERVAL))(
+            self._async_update
+        )
         hilo.register_websocket_listener(self)
 
     async def handle_challenge_added(self, event_data):
@@ -808,6 +813,11 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
         LOG.debug(f"ic-dev21 handle_challenge_details_update {challenge}")
         challenge = challenge[0] if isinstance(challenge, list) else challenge
         event_id = challenge.get("id")
+
+        # In case we get a consumption update (there is no event id)
+        if event_id is None:
+            event_id = self._next_events[0]["event_id"]
+
         progress = challenge.get("progress", "unknown")
         baselinewH = challenge.get("baselinewH", 0)
         used_wH = challenge.get("currentWh", 0)
@@ -826,6 +836,11 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
                 # ajout d'un asyncio sleep ici pour avoir l'état completed avant le retrait du challenge
                 await asyncio.sleep(300)
                 del self._events[event_id]
+
+            # Consumption update
+            elif used_wH > 0:
+                current_event = self._events[event_id]
+                current_event.update_wh(used_wH)
             else:
                 current_event = self._events[event_id]
                 updated_event = Event(**{**current_event.as_dict(), **challenge})
@@ -843,7 +858,8 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
         sorted_events = sorted(self._events.values(), key=lambda x: x.preheat_start)
 
         self._next_events = [
-            event.as_dict() for event in sorted_events  # if event.state != "completed"
+            event.as_dict()
+            for event in sorted_events  # if event.state != "completed"
         ]
 
         # Force an update of the entity
@@ -880,7 +896,7 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
     @property
     def should_poll(self):
         """No need to poll with websockets."""
-        return False
+        return True
 
     @property
     def extra_state_attributes(self):
@@ -892,7 +908,9 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
 
     async def _async_update(self):
         """This method can be kept for fallback but shouldn't be needed with websockets."""
-        pass
+        for event_id in self._events:
+            LOG.debug(f"ASYNC UPDATE: EVENT: {event_id}")
+            await self._hilo.request_challenge_consumption_update(1, event_id)
 
 
 class DeviceSensor(HiloEntity, SensorEntity):
