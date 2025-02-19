@@ -1,3 +1,6 @@
+pytest
+pytest-cov
+pytest-homeassistant-custom-component
 bandit>=1.7.1
 black>=21.12b0
 flake8>=4.0.1
