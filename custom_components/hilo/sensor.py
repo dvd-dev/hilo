@@ -67,7 +67,6 @@ from .const import (
     WEATHER_CONDITIONS,
 )
 from .managers import EnergyManager, UtilityManager
-from custom_components import hilo
 
 WIFI_STRENGTH = {
     "Low": 1,
@@ -858,8 +857,7 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
         sorted_events = sorted(self._events.values(), key=lambda x: x.preheat_start)
 
         self._next_events = [
-            event.as_dict()
-            for event in sorted_events  # if event.state != "completed"
+            event.as_dict() for event in sorted_events  # if event.state != "completed"
         ]
 
         # Force an update of the entity
@@ -895,8 +893,11 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
 
     @property
     def should_poll(self):
-        """No need to poll with websockets."""
-        return True
+        """No need to poll with websockets. Polling to update consumption in reduction phase"""
+        if self.state == "reduction":
+            return True
+        else:
+            return False
 
     @property
     def extra_state_attributes(self):
