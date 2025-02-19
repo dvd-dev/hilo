@@ -837,7 +837,7 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
                 del self._events[event_id]
 
             # Consumption update
-            elif used_wH > 0:
+            elif used_wH is not None and used_wH > 0:
                 current_event = self._events[event_id]
                 current_event.update_wh(used_wH)
             else:
@@ -857,7 +857,8 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
         sorted_events = sorted(self._events.values(), key=lambda x: x.preheat_start)
 
         self._next_events = [
-            event.as_dict() for event in sorted_events  # if event.state != "completed"
+            event.as_dict()
+            for event in sorted_events  # if event.state != "completed"
         ]
 
         # Force an update of the entity
@@ -893,11 +894,8 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
 
     @property
     def should_poll(self):
-        """No need to poll with websockets. Polling to update consumption in reduction phase"""
-        if self.state == "reduction":
-            return True
-        else:
-            return False
+        """No need to poll with websockets. Polling to update allowed_wh in pre_heat phrase and consumption in reduction phase"""
+        return self.state in ["reduction", "pre_heat"]
 
     @property
     def extra_state_attributes(self):
@@ -910,8 +908,13 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
     async def _async_update(self):
         """This method can be kept for fallback but shouldn't be needed with websockets."""
         for event_id in self._events:
-            LOG.debug(f"ASYNC UPDATE: EVENT: {event_id}")
-            await self._hilo.request_challenge_consumption_update(1, event_id)
+            event = self._events.get(event_id)
+            if event.should_check_for_allowed_wh():
+                LOG.debug(f"ASYNC UPDATE SUB: EVENT: {event_id}")
+                await self._hilo.subscribe_to_challenge(1, event_id)
+            elif self.state == "reduction":
+                LOG.debug(f"ASYNC UPDATE: EVENT: {event_id}")
+                await self._hilo.request_challenge_consumption_update(1, event_id)
 
 
 class DeviceSensor(HiloEntity, SensorEntity):
