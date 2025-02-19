@@ -909,10 +909,9 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
 
     async def _async_update(self):
         """This method can be kept for fallback but shouldn't be needed with websockets."""
-        if self.state == "reduction":
-            for event_id in self._events:
-                LOG.debug(f"ASYNC UPDATE: EVENT: {event_id}")
-                await self._hilo.request_challenge_consumption_update(1, event_id)
+        for event_id in self._events:
+            LOG.debug(f"ASYNC UPDATE: EVENT: {event_id}")
+            await self._hilo.request_challenge_consumption_update(1, event_id)
 
 
 class DeviceSensor(HiloEntity, SensorEntity):
