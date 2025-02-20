@@ -608,7 +608,9 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
         self.scan_interval = timedelta(seconds=REWARD_SCAN_INTERVAL)
         self._state = 0
         self._history = []
+        self._events_to_poll = dict()
         self.async_update = Throttle(self.scan_interval)(self._async_update)
+        hilo.register_websocket_listener(self)
 
     @property
     def state(self):
@@ -636,8 +638,44 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
             self._last_update = dt_util.utcnow()
             self._state = last_state.state
 
+    async def handle_challenge_details_update(self, challenge):
+        LOG.debug(f"UPDATING challenge in reward: {challenge}")
+        if len(self._events_to_poll.items()) == 0:
+            return
+
+        event = Event(**challenge).as_dict()
+        corresponding_season = self._events_to_poll[event["event_id"]]
+        del self._events_to_poll[event["event_id"]]
+
+        for season in self._history:
+            if season.get("season") == corresponding_season:
+                for i, season_event in enumerate(season["events"]):
+                    if season_event["event_id"] == event["event_id"]:
+                        LOG.debug(
+                            f"ChallengeId matched, replacing: {event['event_id']}"
+                        )
+                        season["events"][i] = event  # On update
+                        season["events"] = [
+                            item
+                            for item in sorted(
+                                season["events"], key=lambda x: int(x["event_id"])
+                            )
+                        ]
+                        await self._save_history(self._history)
+                        return
+                LOG.debug(f"ChallengeId did not match, appending: {event['event_id']}")
+                season["events"].append(event)
+                season["events"] = [
+                    item
+                    for item in sorted(
+                        season["events"], key=lambda x: int(x["event_id"])
+                    )
+                ]
+                await self._save_history(self._history)
+
     async def _async_update(self):
         seasons = await self._hilo._api.get_seasons(self._hilo.devices.location_id)
+        self._events_to_poll = dict()
         if seasons:
             current_history = await self._load_history()
             new_history = []
@@ -679,14 +717,22 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
                         # No point updating events for previously completed events, they won't change.
                         event = current_history_event
                     else:
-                        details = await self._hilo.get_event_details(raw_event["id"])
-                        event = Event(**details).as_dict()
+                        # Save the event to poll in a dict so that we can easily lookup the season when the websocket event comes in
+                        self._events_to_poll[raw_event["id"]] = season.get("season")
 
-                    events.append(event)
+                        # details = await self._hilo.get_event_details(raw_event["id"])
+                        # event = Event(**details).as_dict()
+
+                    if event:
+                        events.append(event)
+
                 season["events"] = events
                 new_history.append(season)
+
             self._history = new_history
             await self._save_history(new_history)
+            for eventId in self._events_to_poll:
+                await self._hilo.subscribe_to_challenge(1, eventId)
 
     async def _load_history(self) -> list:
         history: list = []
