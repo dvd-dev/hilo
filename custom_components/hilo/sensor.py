@@ -903,8 +903,7 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
         sorted_events = sorted(self._events.values(), key=lambda x: x.preheat_start)
 
         self._next_events = [
-            event.as_dict()
-            for event in sorted_events  # if event.state != "completed"
+            event.as_dict() for event in sorted_events
         ]
 
         # Force an update of the entity
