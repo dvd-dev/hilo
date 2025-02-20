@@ -902,9 +902,7 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
         # Sort events by start time
         sorted_events = sorted(self._events.values(), key=lambda x: x.preheat_start)
 
-        self._next_events = [
-            event.as_dict() for event in sorted_events
-        ]
+        self._next_events = [event.as_dict() for event in sorted_events]
 
         # Force an update of the entity
         self.async_write_ha_state()
