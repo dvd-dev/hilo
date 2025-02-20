@@ -315,8 +315,13 @@ class Hilo:
                         if arguments:  # ic-dev21 check if there are arguments
                             await handler(arguments[0])
                         else:
-                            LOG.warning(f"Received empty arguments for {msg_type}")
+                            LOG.warning(
+                                f"SHOULD NOT HAPPEN: Received empty arguments for {msg_type}"
+                            )
                     else:
+                        LOG.warning(
+                            f"SHOULD NOT HAPPEN: Not WebsocketEvent: {msg_data}"
+                        )
                         await handler(msg_data)
                 except Exception as e:
                     LOG.error(f"Error in websocket handler {handler_name}: {e}")
