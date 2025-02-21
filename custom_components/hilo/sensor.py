@@ -822,10 +822,10 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
         for challenge in challenges:
             event_id = challenge.get("id")
             progress = challenge.get("progress")
-            baselinewH = challenge.get("baselinewH")
+            baselineWh = challenge.get("baselineWh")
             LOG.debug(f"ic-dev21 handle_challenge_list_update progress is {progress}")
             LOG.debug(
-                f"ic-dev21 handle_challenge_list_update baselinewH is {baselinewH}"
+                f"ic-dev21 handle_challenge_list_update baselineWh is {baselineWh}"
             )
             if event_id in self._events:
                 if challenge.get("progress") == "completed":
@@ -864,15 +864,15 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
             event_id = self._next_events[0]["event_id"]
 
         progress = challenge.get("progress", "unknown")
-        baselinewH = challenge.get("baselinewH", 0)
-        used_wH = challenge.get("currentWh", 0)
-        if used_wH is not None and used_wH > 0:
-            used_kWh = used_wH / 1000
+        baselineWh = challenge.get("baselineWh", 0)
+        used_Wh = challenge.get("currentWh", 0)
+        if used_Wh is not None and used_Wh > 0:
+            used_kWh = used_Wh / 1000
         else:
             used_kWh = 0
         LOG.debug(f"ic-dev21 handle_challenge_details_update progress is {progress}")
         LOG.debug(
-            f"ic-dev21 handle_challenge_details_update baselinewH is {baselinewH}"
+            f"ic-dev21 handle_challenge_details_update baselineWh is {baselineWh}"
         )
         LOG.debug(f"ic-dev21 handle_challenge_details_update used_kwh is {used_kWh}")
         LOG.debug(f"ic-dev21 handle_challenge_details_update progress is {progress}")
@@ -883,9 +883,9 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
                 del self._events[event_id]
 
             # Consumption update
-            elif used_wH is not None and used_wH > 0:
+            elif used_Wh is not None and used_Wh > 0:
                 current_event = self._events[event_id]
-                current_event.update_wh(used_wH)
+                current_event.update_wh(used_Wh)
             else:
                 current_event = self._events[event_id]
                 updated_event = Event(**{**current_event.as_dict(), **challenge})
