@@ -1,8 +1,4 @@
-"""Fixtures for Hilo integration tests."""
-
-import json
-from collections.abc import Generator
-from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
+"""Fixtures for testing."""
 
 import pytest
 from homeassistant.core import HomeAssistant
