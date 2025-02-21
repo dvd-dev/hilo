@@ -608,8 +608,6 @@ class Hilo:
         if TYPE_CHECKING:
             assert websocket
 
-        should_reconnect = True
-
         try:
             await websocket.async_connect()
             await websocket.async_listen()
@@ -629,7 +627,7 @@ class Hilo:
             )
             await self.cancel_websocket_loop(websocket, id)
 
-        if should_reconnect:
+        if self.should_websocket_reconnect:
             LOG.info("Disconnected from websocket; reconnecting in 5 seconds.")
             await asyncio.sleep(5)
             self._websocket_reconnect_tasks[id] = self._hass.async_create_task(
@@ -656,6 +654,13 @@ class Hilo:
         if TYPE_CHECKING:
             assert websocket
         await websocket.async_disconnect()
+
+    @property
+    def should_websocket_reconnect(self) -> bool:
+        """Determine if a websocket should reconnect when the connection is lost.
+
+        Currently only used to disable websockets in the unit tests."""
+        return True
 
     async def async_update(self) -> None:
         """Updates tarif periodically."""

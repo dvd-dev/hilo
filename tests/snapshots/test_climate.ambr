@@ -1,0 +1,60 @@
+# serializer version: 1
+# name: test_climate[climate.thermostat_1-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': set({
+    }),
+    'area_id': None,
+    'capabilities': dict({
+      'hvac_modes': list([
+        <HVACMode.HEAT: 'heat'>,
+      ]),
+      'max_temp': 36.0,
+      'min_temp': 5.0,
+    }),
+    'config_entry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'climate',
+    'entity_category': None,
+    'entity_id': 'climate.thermostat_1',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'options': dict({
+    }),
+    'original_device_class': None,
+    'original_icon': 'mdi:radiator-disabled',
+    'original_name': 'Thermostat 1',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'supported_features': <ClimateEntityFeature: 1>,
+    'translation_key': None,
+    'unique_id': '1a2b3c4d5e6f-climate',
+    'unit_of_measurement': None,
+  })
+# ---
+# name: test_climate[climate.thermostat_1-state]
+  StateSnapshot({
+    'attributes': ReadOnlyDict({
+      'friendly_name': 'Thermostat 1',
+      'hvac_modes': list([
+        <HVACMode.HEAT: 'heat'>,
+      ]),
+      'icon': 'mdi:radiator-disabled',
+      'max_temp': 36.0,
+      'min_temp': 5.0,
+      'supported_features': <ClimateEntityFeature: 1>,
+    }),
+    'context': <ANY>,
+    'entity_id': 'climate.thermostat_1',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'unavailable',
+  })
+# ---
