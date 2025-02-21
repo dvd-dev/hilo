@@ -865,9 +865,9 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
 
         progress = challenge.get("progress", "unknown")
         baselineWh = challenge.get("baselineWh", 0)
-        used_Wh = challenge.get("currentWh", 0)
-        if used_Wh is not None and used_Wh > 0:
-            used_kWh = used_Wh / 1000
+        used_wH = challenge.get("currentWh", 0)
+        if used_wH is not None and used_wH > 0:
+            used_kWh = used_wH / 1000
         else:
             used_kWh = 0
         LOG.debug(f"ic-dev21 handle_challenge_details_update progress is {progress}")
@@ -883,9 +883,9 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
                 del self._events[event_id]
 
             # Consumption update
-            elif used_Wh is not None and used_Wh > 0:
+            elif used_wH is not None and used_wH > 0:
                 current_event = self._events[event_id]
-                current_event.update_wh(used_Wh)
+                current_event.update_wh(used_wH)
             else:
                 current_event = self._events[event_id]
                 updated_event = Event(**{**current_event.as_dict(), **challenge})
@@ -995,6 +995,7 @@ class DeviceSensor(HiloEntity, SensorEntity):
 
 class HiloCostSensor(HiloEntity, SensorEntity):
     """This sensor generates cost entities"""
+
     _attr_device_class = SensorDeviceClass.MONETARY
     _attr_native_unit_of_measurement = (
         f"{CURRENCY_DOLLAR}/{UnitOfEnergy.KILO_WATT_HOUR}"
