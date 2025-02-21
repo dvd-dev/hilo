@@ -578,7 +578,7 @@ class HiloNotificationSensor(HiloEntity, RestoreEntity, SensorEntity):
 
 class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
     """Hilo Reward sensor.
-    Its state will be either the total amount rewarded this season.
+    Its state will be either 0 or the total amount rewarded this season.
     """
 
     _attr_device_class = SensorDeviceClass.MONETARY
@@ -994,6 +994,7 @@ class DeviceSensor(HiloEntity, SensorEntity):
 
 
 class HiloCostSensor(HiloEntity, SensorEntity):
+    """This sensor generates cost entities"""
     _attr_device_class = SensorDeviceClass.MONETARY
     _attr_native_unit_of_measurement = (
         f"{CURRENCY_DOLLAR}/{UnitOfEnergy.KILO_WATT_HOUR}"
