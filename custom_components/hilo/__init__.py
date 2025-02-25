@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 from collections import OrderedDict
 from datetime import datetime, timedelta
+import traceback
 from typing import TYPE_CHECKING, Union
 
 from homeassistant.components.select import (
@@ -315,11 +316,17 @@ class Hilo:
                         if arguments:  # ic-dev21 check if there are arguments
                             await handler(arguments[0])
                         else:
-                            LOG.warning(f"Received empty arguments for {msg_type}")
+                            LOG.warning(
+                                f"SHOULD NOT HAPPEN: Received empty arguments for {msg_type}"
+                            )
                     else:
+                        LOG.warning(
+                            f"SHOULD NOT HAPPEN: Not WebsocketEvent: {msg_data}"
+                        )
                         await handler(msg_data)
                 except Exception as e:
                     LOG.error(f"Error in websocket handler {handler_name}: {e}")
+                    LOG.error(traceback.format_exc())
 
     async def _handle_challenge_events(self, event: WebsocketEvent) -> None:
         """Handle all challenge-related websocket events."""
