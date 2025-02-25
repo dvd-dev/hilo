@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import asyncio
-import traceback
 from collections import OrderedDict
 from datetime import datetime, timedelta
+import traceback
 from typing import TYPE_CHECKING, Union
 
 from homeassistant.components.select import (
