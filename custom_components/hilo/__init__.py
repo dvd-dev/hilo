@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import traceback
 from collections import OrderedDict
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Union
@@ -325,6 +326,7 @@ class Hilo:
                         await handler(msg_data)
                 except Exception as e:
                     LOG.error(f"Error in websocket handler {handler_name}: {e}")
+                    LOG.error(traceback.format_exc())
 
     async def _handle_challenge_events(self, event: WebsocketEvent) -> None:
         """Handle all challenge-related websocket events."""

@@ -640,7 +640,13 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
 
     async def handle_challenge_details_update(self, challenge):
         LOG.debug(f"UPDATING challenge in reward: {challenge}")
+
+        # We're getting events but didn't request any, do not process them
         if len(self._events_to_poll.items()) == 0:
+            return
+
+        # Only process events that contain an id and phases
+        if challenge.get("id") is None or challenge.get("phases") is None:
             return
 
         event = Event(**challenge).as_dict()
@@ -860,7 +866,7 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
         event_id = challenge.get("id")
 
         # In case we get a consumption update (there is no event id)
-        if event_id is None:
+        if event_id is None and len(self._next_events) > 0:
             event_id = self._next_events[0]["event_id"]
 
         progress = challenge.get("progress", "unknown")
