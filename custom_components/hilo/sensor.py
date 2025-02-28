@@ -1,6 +1,8 @@
 """Support for various Hilo sensors."""
+
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime, timedelta, timezone
 from os.path import isfile
 
@@ -58,6 +60,7 @@ from .const import (
     HILO_SENSOR_CLASSES,
     LOG,
     MAX_SUB_INTERVAL,
+    MIN_SCAN_INTERVAL,
     NOTIFICATION_SCAN_INTERVAL,
     REWARD_SCAN_INTERVAL,
     TARIFF_LIST,
@@ -158,17 +161,16 @@ async def async_setup_entry(
     def create_energy_entity(hilo, device):
         device._energy_entity = EnergySensor(hilo, device)
         new_entities.append(device._energy_entity)
-        energy_unique_id = f"{slugify(device.identifier)}-energy"
-        if (
-            energy_entity := hilo.async_get_entity_id_domain(
-                Platform.SENSOR, energy_unique_id
+        energy_entity = f"{slugify(device.name)}_hilo_energy"
+        if energy_entity == HILO_ENERGY_TOTAL:
+            LOG.error(
+                "An hilo entity can't be named 'total' because it conflicts "
+                "with the generated name for the smart energy meter"
             )
-        ) is None:
-            energy_entity = f"sensor.{slugify(device.name)}_hilo_energy"
-        energy_entity = energy_entity.replace("sensor.", "")
-
+            return
         tariff_list = default_tariff_list
         if device.type == "Meter":
+            energy_entity = HILO_ENERGY_TOTAL
             tariff_list = validate_tariff_list(tariff_config)
         net_consumption = device.net_consumption
         utility_manager.add_meter(energy_entity, tariff_list, net_consumption)
@@ -287,14 +289,7 @@ class EnergySensor(IntegrationSensor):
 
         if device.type == "Meter":
             self._attr_name = HILO_ENERGY_TOTAL
-        power_unique_id = f"{slugify(device.identifier)}-power"
-        if (
-            power_entity_id := hilo.async_get_entity_id_domain(
-                Platform.SENSOR, power_unique_id
-            )
-        ) is None:
-            power_entity_id = f"{Platform.SENSOR}.{slugify(device.name)}_power"
-        self._source = power_entity_id
+        self._source = f"sensor.{slugify(device.name)}_power"
         # ic-dev21: Set initial state and last_valid_state, removes log errors and unavailable states
         initial_state = 0
         self._attr_native_value = initial_state
@@ -583,7 +578,7 @@ class HiloNotificationSensor(HiloEntity, RestoreEntity, SensorEntity):
 
 class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
     """Hilo Reward sensor.
-    Its state will be either the total amount rewarded this season.
+    Its state will be either 0 or the total amount rewarded this season.
     """
 
     _attr_device_class = SensorDeviceClass.MONETARY
@@ -613,7 +608,9 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
         self.scan_interval = timedelta(seconds=REWARD_SCAN_INTERVAL)
         self._state = 0
         self._history = []
+        self._events_to_poll = dict()
         self.async_update = Throttle(self.scan_interval)(self._async_update)
+        hilo.register_websocket_listener(self)
 
     @property
     def state(self):
@@ -641,8 +638,50 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
             self._last_update = dt_util.utcnow()
             self._state = last_state.state
 
+    async def handle_challenge_details_update(self, challenge):
+        LOG.debug(f"UPDATING challenge in reward: {challenge}")
+
+        # We're getting events but didn't request any, do not process them
+        if len(self._events_to_poll.items()) == 0:
+            return
+
+        # Only process events that contain an id and phases
+        if challenge.get("id") is None or challenge.get("phases") is None:
+            return
+
+        event = Event(**challenge).as_dict()
+        corresponding_season = self._events_to_poll[event["event_id"]]
+        del self._events_to_poll[event["event_id"]]
+
+        for season in self._history:
+            if season.get("season") == corresponding_season:
+                for i, season_event in enumerate(season["events"]):
+                    if season_event["event_id"] == event["event_id"]:
+                        LOG.debug(
+                            f"ChallengeId matched, replacing: {event['event_id']}"
+                        )
+                        season["events"][i] = event  # On update
+                        season["events"] = [
+                            item
+                            for item in sorted(
+                                season["events"], key=lambda x: int(x["event_id"])
+                            )
+                        ]
+                        await self._save_history(self._history)
+                        return
+                LOG.debug(f"ChallengeId did not match, appending: {event['event_id']}")
+                season["events"].append(event)
+                season["events"] = [
+                    item
+                    for item in sorted(
+                        season["events"], key=lambda x: int(x["event_id"])
+                    )
+                ]
+                await self._save_history(self._history)
+
     async def _async_update(self):
         seasons = await self._hilo._api.get_seasons(self._hilo.devices.location_id)
+        self._events_to_poll = dict()
         if seasons:
             current_history = await self._load_history()
             new_history = []
@@ -684,14 +723,22 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
                         # No point updating events for previously completed events, they won't change.
                         event = current_history_event
                     else:
-                        details = await self._hilo.get_event_details(raw_event["id"])
-                        event = Event(**details).as_dict()
+                        # Save the event to poll in a dict so that we can easily lookup the season when the websocket event comes in
+                        self._events_to_poll[raw_event["id"]] = season.get("season")
 
-                    events.append(event)
+                        # details = await self._hilo.get_event_details(raw_event["id"])
+                        # event = Event(**details).as_dict()
+
+                    if event:
+                        events.append(event)
+
                 season["events"] = events
                 new_history.append(season)
+
             self._history = new_history
             await self._save_history(new_history)
+            for eventId in self._events_to_poll:
+                await self._hilo.subscribe_to_challenge(1, eventId)
 
     async def _load_history(self) -> list:
         history: list = []
@@ -708,7 +755,7 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
             await yaml_file.write(yaml.dump(history, Dumper=yaml.RoundTripDumper))
 
 
-class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
+class HiloChallengeSensor(HiloEntity, SensorEntity):
     """Hilo challenge sensor.
     Its state will be either:
     - off: no ongoing or scheduled challenge
@@ -732,19 +779,147 @@ class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
             old_unique_id, self._attr_unique_id, Platform.SENSOR
         )
         LOG.debug(f"Setting up ChallengeSensor entity: {self._attr_name}")
-        # note ic-dev21: scan time at 5 minutes (300s) will force local update
         self.scan_interval = timedelta(seconds=EVENT_SCAN_INTERVAL_REDUCTION)
         self._state = "off"
         self._next_events = []
-        self.async_update = Throttle(self.scan_interval)(self._async_update)
+        self._events = {}  # Store active events
+        self.async_update = Throttle(timedelta(seconds=MIN_SCAN_INTERVAL))(
+            self._async_update
+        )
+        hilo.register_websocket_listener(self)
+
+    async def handle_challenge_added(self, event_data):
+        """Handle new challenge event."""
+        LOG.debug("ic-dev21 handle_challenge_added")
+        if event_data.get("progress") == "scheduled":
+            event_id = event_data.get("id")
+            if event_id:
+                event = Event(**event_data)
+                if self._hilo.appreciation > 0:
+                    event.appreciation(self._hilo.appreciation)
+                if self._hilo.pre_cold > 0:
+                    event.pre_cold(self._hilo.pre_cold)
+                self._events[event_id] = event
+                self._update_next_events()
+
+    async def handle_challenge_list_initial(self, challenges):
+        """Handle initial challenge list."""
+        LOG.debug(f"ic-dev21 handle_challenge_list_initial challenges: {challenges}")
+        self._events.clear()
+        LOG.debug(f"ic-dev21 handle_challenge_list_initial events: {self._events}")
+        for challenge in challenges:
+            event_id = challenge.get("id")
+            progress = challenge.get("progress")
+            LOG.debug(f"ic-dev21 handle_challenge_list_initial progress is {progress}")
+            if challenge.get("progress") in ["scheduled", "inProgress"]:
+                event_id = challenge.get("id")
+                if event_id:
+                    event = Event(**challenge)
+                    if self._hilo.appreciation > 0:
+                        event.appreciation(self._hilo.appreciation)
+                    if self._hilo.pre_cold > 0:
+                        event.pre_cold(self._hilo.pre_cold)
+                    self._events[event_id] = event
+        self._update_next_events()
+
+    async def handle_challenge_list_update(self, challenges):
+        """Handle challenge list updates."""
+        LOG.debug("ic-dev21 handle_challenge_list_update")
+        for challenge in challenges:
+            event_id = challenge.get("id")
+            progress = challenge.get("progress")
+            baselineWh = challenge.get("baselineWh")
+            LOG.debug(f"ic-dev21 handle_challenge_list_update progress is {progress}")
+            LOG.debug(
+                f"ic-dev21 handle_challenge_list_update baselineWh is {baselineWh}"
+            )
+            if event_id in self._events:
+                if challenge.get("progress") == "completed":
+                    # Find the oldest event based on recovery_end datetime
+                    oldest_event_id = min(
+                        self._events.keys(),
+                        key=lambda key: self._events[key]
+                        .as_dict()
+                        .get("phases", {})
+                        .get("recovery_end", ""),
+                    )
+                    await asyncio.sleep(300)
+                    del self._events[oldest_event_id]
+                    break
+                else:
+                    current_event = self._events[event_id]
+                    LOG.debug(
+                        f"ic-dev21 handle_challenge_list_update current event is: {current_event}"
+                    )
+                    updated_event = Event(**{**current_event.as_dict(), **challenge})
+                    if self._hilo.appreciation > 0:
+                        updated_event.appreciation(self._hilo.appreciation)
+                    if self._hilo.pre_cold > 0:
+                        updated_event.pre_cold(self._hilo.pre_cold)
+                    self._events[event_id] = updated_event
+        self._update_next_events()
+
+    async def handle_challenge_details_update(self, challenge):
+        """Handle challenge detail updates."""
+        LOG.debug(f"ic-dev21 handle_challenge_details_update {challenge}")
+        challenge = challenge[0] if isinstance(challenge, list) else challenge
+        event_id = challenge.get("id")
+
+        # In case we get a consumption update (there is no event id)
+        if event_id is None and len(self._next_events) > 0:
+            event_id = self._next_events[0]["event_id"]
+
+        progress = challenge.get("progress", "unknown")
+        baselineWh = challenge.get("baselineWh", 0)
+        used_wH = challenge.get("currentWh", 0)
+        if used_wH is not None and used_wH > 0:
+            used_kWh = used_wH / 1000
+        else:
+            used_kWh = 0
+        LOG.debug(f"ic-dev21 handle_challenge_details_update progress is {progress}")
+        LOG.debug(
+            f"ic-dev21 handle_challenge_details_update baselineWh is {baselineWh}"
+        )
+        LOG.debug(f"ic-dev21 handle_challenge_details_update used_kwh is {used_kWh}")
+        LOG.debug(f"ic-dev21 handle_challenge_details_update progress is {progress}")
+        if event_id in self._events:
+            if challenge.get("progress") == "completed":
+                # ajout d'un asyncio sleep ici pour avoir l'état completed avant le retrait du challenge
+                await asyncio.sleep(300)
+                del self._events[event_id]
+
+            # Consumption update
+            elif used_wH is not None and used_wH > 0:
+                current_event = self._events[event_id]
+                current_event.update_wh(used_wH)
+            else:
+                current_event = self._events[event_id]
+                updated_event = Event(**{**current_event.as_dict(), **challenge})
+                if self._hilo.appreciation > 0:
+                    updated_event.appreciation(self._hilo.appreciation)
+                if self._hilo.pre_cold > 0:
+                    updated_event.pre_cold(self._hilo.pre_cold)
+                self._events[event_id] = updated_event
+            self._update_next_events()
+
+    def _update_next_events(self):
+        """Update the next_events list based on current events."""
+        LOG.debug("ic-dev21 sorting events")
+        # Sort events by start time
+        sorted_events = sorted(self._events.values(), key=lambda x: x.preheat_start)
+
+        self._next_events = [event.as_dict() for event in sorted_events]
+
+        # Force an update of the entity
+        self.async_write_ha_state()
 
     @property
     def state(self):
+        """Return the current state based on next events."""
         if len(self._next_events) > 0:
             event = Event(**{**{"id": 0}, **self._next_events[0]})
             return event.state
-        else:
-            return "off"
+        return "off"
 
     @property
     def icon(self):
@@ -768,7 +943,8 @@ class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
 
     @property
     def should_poll(self):
-        return True
+        """No need to poll with websockets. Polling to update allowed_wh in pre_heat phrase and consumption in reduction phase"""
+        return self.state in ["reduction", "pre_heat"]
 
     @property
     def extra_state_attributes(self):
@@ -777,25 +953,17 @@ class HiloChallengeSensor(HiloEntity, RestoreEntity, SensorEntity):
     async def async_added_to_hass(self):
         """Handle entity about to be added to hass event."""
         await super().async_added_to_hass()
-        last_state = await self.async_get_last_state()
-        if last_state:
-            self._last_update = dt_util.utcnow()
-            self._state = last_state.state
-            self._next_events = last_state.attributes.get("next_events", [])
 
     async def _async_update(self):
-        tmp_next_events = []
-        events = await self._hilo._api.get_gd_events(self._hilo.devices.location_id)
-        LOG.debug(f"Events received from Hilo: {events}")
-        for raw_event in events:
-            details = await self._hilo.get_event_details(raw_event["id"])
-            event = Event(**details)
-            if self._hilo.appreciation > 0:
-                event.appreciation(self._hilo.appreciation)
-            if self._hilo.pre_cold > 0:
-                event.pre_cold(self._hilo.pre_cold)
-            tmp_next_events.append(event.as_dict())
-        self._next_events = tmp_next_events
+        """This method can be kept for fallback but shouldn't be needed with websockets."""
+        for event_id in self._events:
+            event = self._events.get(event_id)
+            if event.should_check_for_allowed_wh():
+                LOG.debug(f"ASYNC UPDATE SUB: EVENT: {event_id}")
+                await self._hilo.subscribe_to_challenge(1, event_id)
+            elif self.state == "reduction":
+                LOG.debug(f"ASYNC UPDATE: EVENT: {event_id}")
+                await self._hilo.request_challenge_consumption_update(1, event_id)
 
 
 class DeviceSensor(HiloEntity, SensorEntity):
@@ -832,6 +1000,8 @@ class DeviceSensor(HiloEntity, SensorEntity):
 
 
 class HiloCostSensor(HiloEntity, SensorEntity):
+    """This sensor generates cost entities"""
+
     _attr_device_class = SensorDeviceClass.MONETARY
     _attr_native_unit_of_measurement = (
         f"{CURRENCY_DOLLAR}/{UnitOfEnergy.KILO_WATT_HOUR}"

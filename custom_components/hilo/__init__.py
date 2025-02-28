@@ -1,10 +1,10 @@
 """Support for Hilo automation systems."""
-
 from __future__ import annotations
 
 import asyncio
 from collections import OrderedDict
 from datetime import datetime, timedelta
+import traceback
 from typing import TYPE_CHECKING, Union
 
 from homeassistant.components.select import (
@@ -46,6 +46,7 @@ from pyhilo.device import HiloDevice
 from pyhilo.devices import Devices
 from pyhilo.event import Event
 from pyhilo.exceptions import HiloError, InvalidCredentialsError, WebsocketError
+from pyhilo.oauth2 import AuthCodeWithPKCEImplementation
 from pyhilo.util import from_utc_timestamp, time_diff
 from pyhilo.websocket import WebsocketEvent
 
@@ -75,7 +76,6 @@ from .const import (
     LOG,
     MIN_SCAN_INTERVAL,
 )
-from .oauth2 import AuthCodeWithPKCEImplementation
 
 DISPATCHER_TOPIC_WEBSOCKET_EVENT = "pyhilo_websocket_event"
 SIGNAL_UPDATE_ENTITY = "pyhilo_device_update_{}"
@@ -242,7 +242,7 @@ class Hilo:
         )
         self.pre_cold = entry.options.get(
             CONF_PRE_COLD_PHASE,
-            DEFAULT_PRE_COLD_PHASE,  # this is new
+            DEFAULT_PRE_COLD_PHASE,
         )
         self.challenge_lock = entry.options.get(
             CONF_CHALLENGE_LOCK, DEFAULT_CHALLENGE_LOCK
