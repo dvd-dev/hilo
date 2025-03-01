@@ -63,6 +63,23 @@ Dans le terminal où vous avez lancé `scripts/develop`, les journaux de Home As
 
 ---
 
+## 🧪 Tester le code
+
+Des tests existent pour s'assurer que les changements ne brisent pas les fonctionalités existantes. Ils sont situés dans le dossier `/tests`. Il est encouragé de créer des nouveaux tests pour les nouvelles fonctionalités.
+
+Pour exécuter les tests:
+
+1. Ouvrez le projet dans l'environement de votre choix (ex: VSCode DevContainer, tel qu'expliquer en haut).
+2. Dans le terminal, exécutez `pytest`.
+3. Pour mettre à jours les tests "snapshots", exécutez `pytest --update-snapshots`.
+
+Vous devriez voir le résultat des tests dans le terminal ainsi que les statistiques de couverture des tests.
+
+Il est aussi possible d'exécuter les tests à partir de l'interface graphique de VSCode. Il suffit d'utiliser l'onglet "Testing" dans le menu de gauche.
+
+
+---
+
 ## ✅ Avant de soumettre une Pull Request
 
 Il est essentiel de tester vos modifications sur une installation locale. Vous pouvez modifier les fichiers `.py` de l'intégration directement dans votre dossier `custom_components/hilo`.
