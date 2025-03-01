@@ -831,7 +831,7 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
             baselinewH = challenge.get("baselineWh")
             LOG.debug(f"ic-dev21 handle_challenge_list_update progress is {progress}")
             LOG.debug(
-                f"ic-dev21 handle_challenge_list_update baselineWh is {baselineWh}"
+                f"ic-dev21 handle_challenge_list_update baselineWh is {baselinewH}"
             )
             if event_id in self._events:
                 if challenge.get("progress") == "completed":
@@ -878,7 +878,7 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
             used_kWh = 0
         LOG.debug(f"ic-dev21 handle_challenge_details_update progress is {progress}")
         LOG.debug(
-            f"ic-dev21 handle_challenge_details_update baselineWh is {baselineWh}"
+            f"ic-dev21 handle_challenge_details_update baselineWh is {baselinewH}"
         )
         LOG.debug(f"ic-dev21 handle_challenge_details_update used_kwh is {used_kWh}")
         LOG.debug(f"ic-dev21 handle_challenge_details_update progress is {progress}")
