@@ -828,7 +828,7 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
         for challenge in challenges:
             event_id = challenge.get("id")
             progress = challenge.get("progress")
-            baselineWh = challenge.get("baselineWh")
+            baselinewH = challenge.get("baselineWh")
             LOG.debug(f"ic-dev21 handle_challenge_list_update progress is {progress}")
             LOG.debug(
                 f"ic-dev21 handle_challenge_list_update baselineWh is {baselineWh}"
@@ -870,7 +870,7 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
             event_id = self._next_events[0]["event_id"]
 
         progress = challenge.get("progress", "unknown")
-        baselineWh = challenge.get("baselineWh", 0)
+        baselinewH = challenge.get("baselineWh", 0)
         used_wH = challenge.get("currentWh", 0)
         if used_wH is not None and used_wH > 0:
             used_kWh = used_wH / 1000
