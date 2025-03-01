@@ -438,7 +438,7 @@ class Hilo:
     async def subscribe_to_location(self, inv_id: int) -> None:
         """Sends the json payload to receive updates from the location."""
         LOG.debug(f"Subscribing to location {self.devices.location_id}")
-        await self._api.websocket.async_invoke(
+        await self._api.websocket_devices.async_invoke(
             [self.devices.location_id], "SubscribeToLocation", inv_id
         )
 
