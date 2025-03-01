@@ -1,9 +1,5 @@
 """Custom OAuth2 implementation."""
 
-# import base64
-# import hashlib
-# import os
-# import re
 from typing import Any, cast
 
 from homeassistant.core import HomeAssistant
