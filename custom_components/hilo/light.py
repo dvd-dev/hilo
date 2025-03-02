@@ -7,8 +7,9 @@ from homeassistant.helpers.debounce import Debouncer
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import slugify
 
-from . import Hilo, HiloEntity
+from . import Hilo
 from .const import DOMAIN, LIGHT_CLASSES, LOG
+from .entity import HiloEntity
 
 
 async def async_setup_entry(

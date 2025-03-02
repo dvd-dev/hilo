@@ -6,8 +6,9 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import slugify
 from pyhilo.device.switch import Switch
 
-from . import Hilo, HiloEntity
+from . import Hilo
 from .const import DOMAIN, LOG, SWITCH_CLASSES
+from .entity import HiloEntity
 
 
 async def async_setup_entry(
