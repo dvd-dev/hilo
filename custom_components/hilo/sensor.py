@@ -864,8 +864,10 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
         LOG.debug(f"ic-dev21 handle_challenge_details_update {challenge}")
         challenge = challenge[0] if isinstance(challenge, list) else challenge
         event_id = challenge.get("id")
+        event_has_id = event_id is not None
 
-        # In case we get a consumption update (there is no event id)
+        # In case we get a consumption update (there is no event id),
+        # get the event id of the next event so that we can update it
         if event_id is None and len(self._next_events) > 0:
             event_id = self._next_events[0]["event_id"]
 
@@ -892,7 +894,8 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
             elif used_wH is not None and used_wH > 0:
                 current_event = self._events[event_id]
                 current_event.update_wh(used_wH)
-            else:
+            # For non consumption updates, we need an event id
+            elif event_has_id:
                 current_event = self._events[event_id]
                 updated_event = Event(**{**current_event.as_dict(), **challenge})
                 if self._hilo.appreciation > 0:
