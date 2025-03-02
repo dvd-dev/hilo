@@ -4,7 +4,6 @@ pythonenv*
 .coverage
 venv
 .venv
-.vscode
 .DS_Store
 .idea*
 
@@ -15,3 +14,9 @@ config/*
 # Hilo configuration
 hilo_eventhistory_state.yaml
 hilo_state.yaml
+
+# Visual Studio Code
+.vscode/*
+!.vscode/tasks.json
+!.vscode/launch.json
+.env
