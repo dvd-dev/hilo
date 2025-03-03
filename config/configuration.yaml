@@ -13,3 +13,6 @@ logger:
     # Enable debug logging for our custom components
     custom_components.hilo: debug
     pyhilo: debug
+
+# https://www.home-assistant.io/integrations/debugpy/
+debugpy:
