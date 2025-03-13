@@ -43,6 +43,7 @@ from pyhilo.const import UNMONITORED_DEVICES
 from pyhilo.device import HiloDevice
 from pyhilo.event import Event
 from pyhilo.util import from_utc_timestamp
+from ruyaml.scanner import ScannerError
 
 from . import Hilo, HiloEntity
 from .const import (
@@ -748,9 +749,12 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
             async with aiofiles.open(self._history_state_yaml, mode="r") as yaml_file:
                 LOG.debug("Loading history state from yaml")
                 content = await yaml_file.read()
-                history = yaml.load(content, Loader=yaml.Loader)
+                try:
+                    history = yaml.load(content, Loader=yaml.Loader)
+                except ScannerError:
+                    LOG.error("History state YAML is corrupted, resetting to default.")
                 if not history or not isinstance(history, dict):
-                    LOG.warning("History state is corrupted, resetting to default.")
+                    LOG.error("History state YAML is invalid, resetting to default.")
                     history = []
 
         return history
