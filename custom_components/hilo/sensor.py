@@ -749,7 +749,7 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
                 LOG.debug("Loading history state from yaml")
                 content = await yaml_file.read()
                 history = yaml.load(content, Loader=yaml.Loader)
-                if not history:
+                if not history or not isinstance(history, dict):
                     LOG.warning("History state is corrupted, resetting to default.")
                     history = []
 
