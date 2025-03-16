@@ -1,4 +1,5 @@
 """Support for Hilo automation systems."""
+
 from __future__ import annotations
 
 import asyncio
@@ -44,6 +45,7 @@ from homeassistant.helpers.update_coordinator import (
 from pyhilo import API
 from pyhilo.device import HiloDevice
 from pyhilo.devices import Devices
+from pyhilo.graphql import GraphQlHelper
 from pyhilo.event import Event
 from pyhilo.exceptions import HiloError, InvalidCredentialsError, WebsocketError
 from pyhilo.util import from_utc_timestamp, time_diff
@@ -233,6 +235,7 @@ class Hilo:
         self.find_meter(self._hass)
         self.entry = entry
         self.devices: Devices = Devices(api)
+        self.graphql_helper: GraphQlHelper = GraphQlHelper(api, self.devices)
         self.challenge_id = 0
         self._websocket_reconnect_tasks: list[asyncio.Task | None] = [None, None]
         self._update_task: list[asyncio.Task | None] = [None, None]
@@ -552,6 +555,7 @@ class Hilo:
             assert self._api.websocket
 
         await self.devices.async_init()
+        await self.graphql_helper.async_init()
 
         _async_register_custom_device(
             self._hass, self.entry, self.devices.find_device(1)
