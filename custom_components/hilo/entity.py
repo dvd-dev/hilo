@@ -4,27 +4,17 @@ from __future__ import annotations
 
 from typing import Union
 
-from homeassistant.const import (
-    ATTR_CONNECTIONS,
-)
+from homeassistant.const import ATTR_CONNECTIONS
 from homeassistant.core import callback
-from homeassistant.helpers import (
-    device_registry as dr,
-)
-from homeassistant.helpers.dispatcher import (
-    async_dispatcher_connect,
-)
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-)
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from pyhilo.device import HiloDevice
 from pyhilo.websocket import WebsocketEvent
 
 from . import SIGNAL_UPDATE_ENTITY, Hilo
-from .const import (
-    DOMAIN,
-)
+from .const import DOMAIN
 
 
 class HiloEntity(CoordinatorEntity):
