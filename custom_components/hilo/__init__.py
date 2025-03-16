@@ -37,9 +37,9 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from pyhilo import API
 from pyhilo.device import HiloDevice
 from pyhilo.devices import Devices
+from pyhilo.graphql import GraphQlHelper
 from pyhilo.event import Event
 from pyhilo.exceptions import HiloError, InvalidCredentialsError, WebsocketError
-from pyhilo.graphql import GraphQlHelper
 from pyhilo.util import from_utc_timestamp, time_diff
 from pyhilo.websocket import WebsocketEvent
 
@@ -550,12 +550,6 @@ class Hilo:
 
         await self.devices.async_init()
         await self.graphql_helper.async_init()
-        self.subscriptions[0] = asyncio.create_task(
-            self.graphql_helper.subscribe_to_device_updated(
-                self.devices.location_hilo_id,
-                self.handle_subscription_result,
-            )
-        )
 
         _async_register_custom_device(
             self._hass, self.entry, self.devices.find_device(1)
