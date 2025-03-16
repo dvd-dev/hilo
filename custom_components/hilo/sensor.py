@@ -45,7 +45,7 @@ from pyhilo.event import Event
 from pyhilo.util import from_utc_timestamp
 from ruyaml.scanner import ScannerError
 
-from . import Hilo, HiloEntity
+from . import Hilo
 from .const import (
     CONF_ENERGY_METER_PERIOD,
     CONF_GENERATE_ENERGY_METERS,
@@ -69,6 +69,7 @@ from .const import (
     TARIFF_LIST,
     WEATHER_CONDITIONS,
 )
+from .entity import HiloEntity
 from .managers import EnergyManager, UtilityManager
 
 WIFI_STRENGTH = {

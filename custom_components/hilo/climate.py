@@ -17,8 +17,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import slugify
 
-from . import Hilo, HiloEntity
+from . import Hilo
 from .const import CLIMATE_CLASSES, DOMAIN, LOG
+from .entity import HiloEntity
 
 
 def validate_reduction_phase(events, tag):
