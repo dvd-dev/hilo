@@ -1,10 +1,10 @@
 """Support for Hilo automation systems."""
-
 from __future__ import annotations
 
 import asyncio
 from collections import OrderedDict
 from datetime import datetime, timedelta
+import traceback
 from typing import TYPE_CHECKING, Union
 
 from homeassistant.components.select import (
@@ -46,7 +46,6 @@ from pyhilo.device import HiloDevice
 from pyhilo.devices import Devices
 from pyhilo.event import Event
 from pyhilo.exceptions import HiloError, InvalidCredentialsError, WebsocketError
-from pyhilo.oauth2 import AuthCodeWithPKCEImplementation
 from pyhilo.util import from_utc_timestamp, time_diff
 from pyhilo.websocket import WebsocketEvent
 
@@ -76,6 +75,7 @@ from .const import (
     LOG,
     MIN_SCAN_INTERVAL,
 )
+from .oauth2 import AuthCodeWithPKCEImplementation
 
 DISPATCHER_TOPIC_WEBSOCKET_EVENT = "pyhilo_websocket_event"
 SIGNAL_UPDATE_ENTITY = "pyhilo_device_update_{}"
@@ -245,10 +245,7 @@ class Hilo:
         self.appreciation = entry.options.get(
             CONF_APPRECIATION_PHASE, DEFAULT_APPRECIATION_PHASE
         )
-        self.pre_cold = entry.options.get(
-            CONF_PRE_COLD_PHASE,
-            DEFAULT_PRE_COLD_PHASE,
-        )
+        self.pre_cold = entry.options.get(CONF_PRE_COLD_PHASE, DEFAULT_PRE_COLD_PHASE)
         self.challenge_lock = entry.options.get(
             CONF_CHALLENGE_LOCK, DEFAULT_CHALLENGE_LOCK
         )
@@ -315,11 +312,17 @@ class Hilo:
                         if arguments:  # ic-dev21 check if there are arguments
                             await handler(arguments[0])
                         else:
-                            LOG.warning(f"Received empty arguments for {msg_type}")
+                            LOG.warning(
+                                f"SHOULD NOT HAPPEN: Received empty arguments for {msg_type}"
+                            )
                     else:
+                        LOG.warning(
+                            f"SHOULD NOT HAPPEN: Not WebsocketEvent: {msg_data}"
+                        )
                         await handler(msg_data)
                 except Exception as e:
                     LOG.error(f"Error in websocket handler {handler_name}: {e}")
+                    LOG.error(traceback.format_exc())
 
     async def _handle_challenge_events(self, event: WebsocketEvent) -> None:
         """Handle all challenge-related websocket events."""
@@ -365,6 +368,8 @@ class Hilo:
                 await self.devices.update()
 
             updated_devices = self.devices.parse_values_received(event.arguments[0])
+            # NOTE(dvd): If we don't do this, we need to wait until the coordinator
+            # runs (scan_interval) to have updated data in the dashboard.
             for device in updated_devices:
                 async_dispatcher_send(
                     self._hass, SIGNAL_UPDATE_ENTITY.format(device.id)
@@ -374,6 +379,10 @@ class Hilo:
             await self.devices.update_devicelist_from_signalr(event.arguments[0])
 
         elif event.target == "DeviceListUpdatedValuesReceived":
+            # This message only contains display information, such as the Device's name (as set in the app), it's groupid, icon, etc.
+            # Updating the device name causes issues in the integration, it detects it as a new device and creates a new entity.
+            # Ignore this call, for now... (update_devicelist_from_signalr does work, but causes the issue above)
+            # await self.devices.update_devicelist_from_signalr(event.arguments[0])
             LOG.debug(
                 "Received 'DeviceListUpdatedValuesReceived' message, not implemented yet."
             )
@@ -598,8 +607,6 @@ class Hilo:
         if TYPE_CHECKING:
             assert websocket
 
-        should_reconnect = True
-
         try:
             await websocket.async_connect()
             await websocket.async_listen()
@@ -619,7 +626,7 @@ class Hilo:
             )
             await self.cancel_websocket_loop(websocket, id)
 
-        if should_reconnect:
+        if self.should_websocket_reconnect:
             LOG.info("Disconnected from websocket; reconnecting in 5 seconds.")
             await asyncio.sleep(5)
             self._websocket_reconnect_tasks[id] = self._hass.async_create_task(
@@ -646,6 +653,13 @@ class Hilo:
         if TYPE_CHECKING:
             assert websocket
         await websocket.async_disconnect()
+
+    @property
+    def should_websocket_reconnect(self) -> bool:
+        """Determine if a websocket should reconnect when the connection is lost.
+
+        Currently only used to disable websockets in the unit tests."""
+        return True
 
     async def async_update(self) -> None:
         """Updates tarif periodically."""
