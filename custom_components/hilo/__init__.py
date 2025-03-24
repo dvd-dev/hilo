@@ -6,7 +6,7 @@ import asyncio
 from collections import OrderedDict
 from datetime import datetime, timedelta
 import traceback
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List, Optional, Union
 
 from homeassistant.components.select import (
     ATTR_OPTION,
@@ -352,26 +352,26 @@ class Hilo:
 
     async def _handle_device_events(self, event: WebsocketEvent) -> None:
         """Handle all device-related websocket events."""
-        if event.target == "DevicesValuesReceived":
-            new_devices = any(
-                self.devices.find_device(item["deviceId"]) is None
-                for item in event.arguments[0]
-            )
-            if new_devices:
-                LOG.warning(
-                    "Device list appears to be desynchronized, forcing a refresh thru the API..."
-                )
-                await self.devices.update()
+        # if event.target == "DevicesValuesReceived":
+        #     new_devices = any(
+        #         self.devices.find_device(item["deviceId"]) is None
+        #         for item in event.arguments[0]
+        #     )
+        #     if new_devices:
+        #         LOG.warning(
+        #             "Device list appears to be desynchronized, forcing a refresh thru the API..."
+        #         )
+        #         await self.devices.update()
 
-            updated_devices = self.devices.parse_values_received(event.arguments[0])
-            # NOTE(dvd): If we don't do this, we need to wait until the coordinator
-            # runs (scan_interval) to have updated data in the dashboard.
-            for device in updated_devices:
-                async_dispatcher_send(
-                    self._hass, SIGNAL_UPDATE_ENTITY.format(device.id)
-                )
+        #     updated_devices = self.devices.parse_values_received(event.arguments[0])
+        #     # NOTE(dvd): If we don't do this, we need to wait until the coordinator
+        #     # runs (scan_interval) to have updated data in the dashboard.
+        #     for device in updated_devices:
+        #         async_dispatcher_send(
+        #             self._hass, SIGNAL_UPDATE_ENTITY.format(device.id)
+        #         )
 
-        elif event.target == "DeviceListInitialValuesReceived":
+        if event.target == "DeviceListInitialValuesReceived":
             await self.devices.update_devicelist_from_signalr(event.arguments[0])
 
         elif event.target == "DeviceListUpdatedValuesReceived":
@@ -393,17 +393,17 @@ class Hilo:
         elif event.target == "DeviceDeleted":
             LOG.debug("Received 'DeviceDeleted' message, not implemented yet.")
 
-        elif event.target == "GatewayValuesReceived":
-            gateway = self.devices.find_device(1)
-            if gateway:
-                gateway.id = event.arguments[0][0]["deviceId"]
-                LOG.debug(f"Updated Gateway's deviceId from default 1 to {gateway.id}")
+        # elif event.target == "GatewayValuesReceived":
+        #     gateway = self.devices.find_device(1)
+        #     if gateway:
+        #         gateway.id = event.arguments[0][0]["deviceId"]
+        #         LOG.debug(f"Updated Gateway's deviceId from default 1 to {gateway.id}")
 
-            updated_devices = self.devices.parse_values_received(event.arguments[0])
-            for device in updated_devices:
-                async_dispatcher_send(
-                    self._hass, SIGNAL_UPDATE_ENTITY.format(device.id)
-                )
+        #     updated_devices = self.devices.parse_values_received(event.arguments[0])
+        #     for device in updated_devices:
+        #         async_dispatcher_send(
+        #             self._hass, SIGNAL_UPDATE_ENTITY.format(device.id)
+        #         )
 
     @callback
     async def on_websocket_event(self, event: WebsocketEvent) -> None:
@@ -550,6 +550,12 @@ class Hilo:
 
         await self.devices.async_init()
         await self.graphql_helper.async_init()
+        self.subscriptions[0] = asyncio.create_task(
+            self.graphql_helper.subscribe_to_device_updated(
+                self.devices.location_hilo_id,
+                self.handle_subscription_result,
+            )
+        )
 
         _async_register_custom_device(
             self._hass, self.entry, self.devices.find_device(1)
