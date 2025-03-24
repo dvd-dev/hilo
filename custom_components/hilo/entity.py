@@ -83,7 +83,7 @@ class HiloEntity(CoordinatorEntity):
         await super().async_added_to_hass()
         self._remove_signal_update = async_dispatcher_connect(
             self._hilo._hass,
-            SIGNAL_UPDATE_ENTITY.format(self._device.id),
+            SIGNAL_UPDATE_ENTITY.format(self._device.hilo_id),
             self._update_callback,
         )
 
