@@ -20,3 +20,4 @@ hilo_state.yaml
 !.vscode/tasks.json
 !.vscode/launch.json
 .env
+/python-hilo
