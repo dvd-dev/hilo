@@ -6,7 +6,7 @@ import asyncio
 from collections import OrderedDict
 from datetime import datetime, timedelta
 import traceback
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import TYPE_CHECKING, List, Optional
 
 from homeassistant.components.select import (
     ATTR_OPTION,
@@ -16,7 +16,6 @@ from homeassistant.components.select import (
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
-    ATTR_CONNECTIONS,
     ATTR_DEVICE_CLASS,
     ATTR_UNIT_OF_MEASUREMENT,
     CONF_SCAN_INTERVAL,
@@ -32,16 +31,9 @@ from homeassistant.helpers import (
     device_registry as dr,
     entity_registry as er,
 )
-from homeassistant.helpers.dispatcher import (
-    async_dispatcher_connect,
-    async_dispatcher_send,
-)
-from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.event import async_call_later
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-    DataUpdateCoordinator,
-)
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from pyhilo import API
 from pyhilo.device import HiloDevice
 from pyhilo.devices import Devices
