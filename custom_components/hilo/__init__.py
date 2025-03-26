@@ -45,9 +45,9 @@ from homeassistant.helpers.update_coordinator import (
 from pyhilo import API
 from pyhilo.device import HiloDevice
 from pyhilo.devices import Devices
-from pyhilo.graphql import GraphQlHelper
 from pyhilo.event import Event
 from pyhilo.exceptions import HiloError, InvalidCredentialsError, WebsocketError
+from pyhilo.graphql import GraphQlHelper
 from pyhilo.util import from_utc_timestamp, time_diff
 from pyhilo.websocket import WebsocketEvent
 
