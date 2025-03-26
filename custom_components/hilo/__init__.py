@@ -6,7 +6,7 @@ import asyncio
 from collections import OrderedDict
 from datetime import datetime, timedelta
 import traceback
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import TYPE_CHECKING, List, Optional
 
 from homeassistant.components.select import (
     ATTR_OPTION,
