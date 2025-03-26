@@ -7,7 +7,6 @@ from datetime import datetime, timedelta, timezone
 from os.path import isfile
 
 import aiofiles
-import homeassistant.util.dt as dt_util
 import yaml
 from homeassistant.components.integration.sensor import METHOD_LEFT, IntegrationSensor
 from homeassistant.components.sensor import (
