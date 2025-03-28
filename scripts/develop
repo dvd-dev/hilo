@@ -4,6 +4,9 @@ set -e
 
 cd "$(dirname "$0")/.."
 
+# Activate the virtual environment
+source "${VIRTUAL_ENV}/bin/activate"
+
 # Create config dir if not present
 if [[ ! -d "${PWD}/config" ]]; then
     mkdir -p "${PWD}/config"
@@ -19,7 +22,7 @@ export PYTHONPATH="${PYTHONPATH}:${PWD}/custom_components"
 # Check if python-hilo exists and install it in development mode
 if [[ -d "/workspaces/python-hilo/pyhilo" ]]; then
     echo "Installing custom version of python-hilo..."
-    pip install -e "/workspaces/python-hilo"
+    uv pip install -e "/workspaces/python-hilo"
     SKIP_PACKAGES="--skip-pip-packages python-hilo"
 else
     echo "Using PyPI version of python-hilo..."
