@@ -1,11 +1,12 @@
 """Support for Hilo automation systems."""
+
 from __future__ import annotations
 
 import asyncio
 from collections import OrderedDict
 from datetime import datetime, timedelta
 import traceback
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, List, Optional
 
 from homeassistant.components.select import (
     ATTR_OPTION,
@@ -15,7 +16,6 @@ from homeassistant.components.select import (
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
-    ATTR_CONNECTIONS,
     ATTR_DEVICE_CLASS,
     ATTR_UNIT_OF_MEASUREMENT,
     CONF_SCAN_INTERVAL,
@@ -31,21 +31,15 @@ from homeassistant.helpers import (
     device_registry as dr,
     entity_registry as er,
 )
-from homeassistant.helpers.dispatcher import (
-    async_dispatcher_connect,
-    async_dispatcher_send,
-)
-from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.event import async_call_later
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-    DataUpdateCoordinator,
-)
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from pyhilo import API
 from pyhilo.device import HiloDevice
 from pyhilo.devices import Devices
 from pyhilo.event import Event
 from pyhilo.exceptions import HiloError, InvalidCredentialsError, WebsocketError
+from pyhilo.graphql import GraphQlHelper
 from pyhilo.util import from_utc_timestamp, time_diff
 from pyhilo.websocket import WebsocketEvent
 
@@ -233,9 +227,11 @@ class Hilo:
         self.find_meter(self._hass)
         self.entry = entry
         self.devices: Devices = Devices(api)
+        self.graphql_helper: GraphQlHelper = GraphQlHelper(api, self.devices)
         self.challenge_id = 0
         self._websocket_reconnect_tasks: list[asyncio.Task | None] = [None, None]
         self._update_task: list[asyncio.Task | None] = [None, None]
+        self.subscriptions: List[Optional[asyncio.Task]] = [None]
         self.invocations = {
             0: self.subscribe_to_location,
             1: self.subscribe_to_challenge,
@@ -506,6 +502,7 @@ class Hilo:
             "supportedAttributes": "Power",
             "settableAttributes": "",
             "id": 0,
+            "hilo_id": "",
             "identifier": "hass-hilo-unknown_source_tracker",
             "provider": 0,
             "model_number": "Hass-hilo-2022.1",
@@ -552,6 +549,13 @@ class Hilo:
             assert self._api.websocket
 
         await self.devices.async_init()
+        await self.graphql_helper.async_init()
+        self.subscriptions[0] = asyncio.create_task(
+            self.graphql_helper.subscribe_to_device_updated(
+                self.devices.location_hilo_id,
+                self.handle_subscription_result,
+            )
+        )
 
         _async_register_custom_device(
             self._hass, self.entry, self.devices.find_device(1)
@@ -919,3 +923,7 @@ class Hilo:
             new_unique_id,
         )
         entity_registry.async_update_entity(entity_id, new_unique_id=new_unique_id)
+
+    @callback
+    def handle_subscription_result(self, hilo_id: str) -> None:
+        async_dispatcher_send(self._hass, SIGNAL_UPDATE_ENTITY.format(hilo_id))
