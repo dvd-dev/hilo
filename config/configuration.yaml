@@ -2,6 +2,9 @@
 # https://www.home-assistant.io/integrations/default_config/
 default_config:
 
+# This will let us test energy meters:
+utility_meter:
+
 # https://www.home-assistant.io/integrations/homeassistant/
 homeassistant:
   debug: true
