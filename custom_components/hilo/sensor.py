@@ -40,8 +40,8 @@ from pyhilo.const import UNMONITORED_DEVICES
 from pyhilo.device import HiloDevice
 from pyhilo.event import Event
 from pyhilo.util import from_utc_timestamp
-import ruyaml as yaml
-from ruyaml.scanner import ScannerError
+import yaml
+from yaml.scanner import ScannerError
 
 from . import Hilo
 from .const import (
@@ -761,7 +761,11 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
     async def _save_history(self, history: list):
         async with aiofiles.open(self._history_state_yaml, mode="w") as yaml_file:
             LOG.debug("Saving history state to yaml file")
-            await yaml_file.write(yaml.dump(history, Dumper=yaml.RoundTripDumper))
+            # TODO: Use asyncio.get_running_loop() and run_in_executor to write
+            # to the file in a non blocking manner. Currently, the file writes
+            # are properly async but the yaml dump is done synchroniously on the
+            # main event loop
+            await yaml_file.write(yaml.dump(history))
 
 
 class HiloChallengeSensor(HiloEntity, SensorEntity):
