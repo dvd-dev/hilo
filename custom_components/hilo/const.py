@@ -49,25 +49,25 @@ REWARD_SCAN_INTERVAL = 7200
 CONF_TARIFF = {
     "rate d": {
         "low_threshold": 40,
-        "low": 0.06704,
-        "medium": 0.10342,
+        "low": 0.06905,
+        "medium": 0.10652,
         "high": 0,
-        "access": 0.44810,
+        "access": 0.46154,
         "reward_rate": 0.55,
     },
     "flex d": {
         "low_threshold": 40,
-        "low": 0.04719,
-        "medium": 0.08116,
-        "high": 0.55132,
-        "access": 0.44810,
+        "low": 0.04774,
+        "medium": 0.08699,
+        "high": 0.45088,
+        "access": 0.46154,
         "reward_rate": 0.55,
     },
 }
 
 CONF_HIGH_PERIODS = {
     "am": {"from": time(6, 00, 00), "to": time(9, 0, 0)},
-    "pm": {"from": time(16, 0, 0), "to": time(19, 0, 0)},
+    "pm": {"from": time(16, 0, 0), "to": time(20, 0, 0)},
 }
 
 TARIFF_LIST = ["high", "medium", "low"]
