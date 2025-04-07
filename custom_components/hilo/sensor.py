@@ -29,6 +29,7 @@ from homeassistant.const import (
     __short_version__ as current_version,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.debounce import Debouncer
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event
@@ -614,6 +615,21 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
         self.async_update = Throttle(self.scan_interval)(self._async_update)
         hilo.register_websocket_listener(self)
 
+        # When we update the list of reward history, we can end up making
+        # hundreds of calls to _save_history in a very short amount of time.
+        # With a debouncer, we can reduce this to a single save, which is more
+        # efficient (save can become pretty slow when the history is long) and
+        # makes sure Home Assistant is not slowed down. Some websocket could
+        # even lose connection due to the delay introduced by saving many times.
+        LOG.debug("Setting up debouncer for history saver")
+        self._save_history_debouncer = Debouncer(
+            hilo._hass,
+            LOG,
+            cooldown=5,  # Wait for 5 seconds before writing to file
+            immediate=False,
+            function=self._save_history,
+        )
+
     @property
     def state(self):
         return self._state
@@ -669,7 +685,7 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
                                 season["events"], key=lambda x: int(x["event_id"])
                             )
                         ]
-                        await self._save_history(self._history)
+                        await self._save_history_debouncer.async_call()
                         return
                 LOG.debug(f"ChallengeId did not match, appending: {event['event_id']}")
                 season["events"].append(event)
@@ -679,7 +695,8 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
                         season["events"], key=lambda x: int(x["event_id"])
                     )
                 ]
-                await self._save_history(self._history)
+
+        await self._save_history_debouncer.async_call()
 
     async def _async_update(self):
         seasons = await self._hilo._api.get_seasons(self._hilo.devices.location_id)
@@ -738,7 +755,7 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
                 new_history.append(season)
 
             self._history = new_history
-            await self._save_history(new_history)
+            await self._save_history_debouncer.async_call()
             for eventId in self._events_to_poll:
                 await self._hilo.subscribe_to_challenge(1, eventId)
 
@@ -758,14 +775,14 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
 
         return history
 
-    async def _save_history(self, history: list):
+    async def _save_history(self):
         async with aiofiles.open(self._history_state_yaml, mode="w") as yaml_file:
             LOG.debug("Saving history state to yaml file")
             # TODO: Use asyncio.get_running_loop() and run_in_executor to write
             # to the file in a non blocking manner. Currently, the file writes
             # are properly async but the yaml dump is done synchroniously on the
             # main event loop
-            await yaml_file.write(yaml.dump(history))
+            await yaml_file.write(yaml.dump(self._history))
 
 
 class HiloChallengeSensor(HiloEntity, SensorEntity):
