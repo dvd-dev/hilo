@@ -784,6 +784,7 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
             # main event loop
             await yaml_file.write(yaml.dump(history))
 
+
 class HiloChallengeSensor(HiloEntity, SensorEntity):
     """Hilo challenge sensor.
     Its state will be either:
