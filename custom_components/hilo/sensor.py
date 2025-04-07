@@ -7,6 +7,8 @@ from datetime import datetime, timedelta, timezone
 from os.path import isfile
 
 import aiofiles
+import homeassistant.util.dt as dt_util
+import yaml
 from homeassistant.components.integration.sensor import METHOD_LEFT, IntegrationSensor
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -26,6 +28,8 @@ from homeassistant.const import (
     UnitOfPower,
     UnitOfSoundPressure,
     UnitOfTemperature,
+)
+from homeassistant.const import (
     __short_version__ as current_version,
 )
 from homeassistant.core import HomeAssistant
@@ -35,13 +39,11 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import Throttle, slugify
-import homeassistant.util.dt as dt_util
 from packaging.version import Version
 from pyhilo.const import UNMONITORED_DEVICES
 from pyhilo.device import HiloDevice
 from pyhilo.event import Event
 from pyhilo.util import from_utc_timestamp
-import yaml
 from yaml.scanner import ScannerError
 
 from . import Hilo
@@ -782,7 +784,8 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
             # to the file in a non blocking manner. Currently, the file writes
             # are properly async but the yaml dump is done synchroniously on the
             # main event loop
-            await yaml_file.write(yaml.dump(history))
+            await yaml_file.write(yaml.dump(self._history))
+
 
 
 class HiloChallengeSensor(HiloEntity, SensorEntity):
