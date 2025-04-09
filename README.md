@@ -19,33 +19,21 @@ Ceci est une version Bêta. Il y aura probablement des bogues, irritants, etc. M
 # Hilo - Home Assistant
 Intégration pour Home Assistant d'[Hilo](https://www.hiloenergie.com/fr-ca/)
 
-# ⚠️ Changement majeur à venir, merci de garder votre component à jour ⚠️
+# ⚠️ Changement majeur en cours, bien lire ci-dessous et mettre à jour vers 2025.4.1 ou plus ⚠️
 
-L'API sur laquelle nous comptons pour les défis Hilo sera fermée prochainement. Nous travaillons actuellement sur une
-alternative utilisant Websocket/SignalR. **La mise à jour vers la version 2025.2.1 ou ultérieur est fortement recommandée**, car
-les versions précédentes risquent de ne plus fonctionner en raison de la façon dont pip installe les dépendances.
-
-Plusieurs utilisateurs et moi-même sommes en train de migrer nos communications avec l'API Hilo vers Websocket/SignalR
-plutôt que des appels d'API. Le procéssus se fera graduellement et nous ferons tout ce qu l'on peut pour éviter de
-briser des installations existantes.
-
-Dans un premier temps, nous mettrons à jour la librairie `python-hilo` (https://github.com/dvd-dev/python-hilo),
-ce changement devrait être transparent pour tous.
-
-Ensuite, nous migrerons le capteur de défi (`sensor.defi_hilo`) vers Websocket/SignalR. La bonne nouvelle avec ça, c'est
-que les "glitchs" momentanés du capteur de défi sont complètement éliminés par cette méthode.
-
-### Ce qui reste à faire de ce côté:
-- Les attributs `allowed_kWh` et `used_kWh` sont **non-fonctionnels** actuellement, les informations arrivent morcelées et tous
-les cas ne sont pas traités encore.
-- ~~- L'état "completed" ne fonctionne pas toujours, possiblement une "race condition"~~
-- Certaines informations comme `total_devices`, `opt_out_devices` et `pre_heat_devices` ne persistent pas en mémoire.
-
-Plus de détails disponibles dans [issue #486](https://github.com/dvd-dev/hilo/issues/486).
-
-L'API servant à la lecture initiale de la liste d'appareils sur votre compte Hilo subira également le même traitement.
+L'API servant à la lecture initiale de la liste d'appareils et la télémétrie sur votre compte Hilo sera très prochainement FERMÉ
+Lorsque celui-ci sera fermé, il ne sera plus possible d'utiliser le component sans la mise à jour.
 
 Plus de détails disponibles dans [issue #564](https://github.com/dvd-dev/hilo/issues/564).
+
+# ⚠️ Sensor défi Hilo ⚠️
+
+### Ce qui reste à faire de ce côté:
+- Les attributs `allowed_kWh` et `used_kWh` sont **partiellement fonctionnels** actuellement, les informations arrivent morcelées et tous
+les cas ne sont pas traités encore.
+- Certaines informations comme `total_devices`, `opt_out_devices` et `pre_heat_devices` ne persistent pas en mémoire.
+
+
 
 ## 📌 Introduction
 Cette intégration non-officielle HACS permet d'utiliser [Hilo](https://www.hiloenergie.com/fr-ca/) avec Home Assistant. **Elle n'est pas affiliée à Hilo ou Hydro-Québec.**
