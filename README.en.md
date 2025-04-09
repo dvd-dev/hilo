@@ -15,36 +15,23 @@
 
 This is a Beta version. There will likely be bugs, issues, etc. Thank you for your patience and for opening "Issues".
 
-# Hilo - Home Assistant
-Home Assistant integration for [Hilo](https://www.hiloenergie.com/fr-ca/)
+# ⚠️ Major Change in Progress ⚠️
 
-# ⚠️ Major change coming, please keep your component up to date ⚠️
+Please read carefully below and update to **2025.4.1 or later**:
 
-The API we rely on for Hilo challenges will be shut down soon. We are currently working on an
-alternative using Websocket/SignalR. **Updating to version 2025.2.1 or later is strongly recommended**, as
-previous versions may stop working due to how pip installs dependencies.
+The API used for the initial retrieval of the list of devices and telemetry on your Hilo account will **soon be CLOSED**.  
+Once it is closed, it will **no longer be possible** to use the component without the update.
 
-Several users and I are migrating our communications with the Hilo API to Websocket/SignalR
-rather than API calls. The process will be gradual and we will do everything we can to avoid
-breaking existing installations.
+For further information, see [issue #564](https://github.com/dvd-dev/hilo/issues/564).
 
-First, we will update the `python-hilo` library (https://github.com/dvd-dev/python-hilo),
-this change should be transparent for everyone.
 
-Then, we will migrate the challenge sensor (`sensor.defi_hilo`) to Websocket/SignalR. The good news with this is
-that momentary "glitches" of the challenge sensor are completely eliminated by this method.
+# ⚠️ Hilo Challenge Sensor ⚠️
 
-### What remains to be done on this side:
-- The `allowed_kWh` and `used_kWh` attributes are currently **non-functional**, the information arrives in fragments and all
-cases are not handled yet.
-- ~~- The "completed" state doesn't always work, possibly a race condition~~
-- Some information like `total_devices`, `opt_out_devices` and `pre_heat_devices` don't persist in memory.
+### Current State:
+- The `allowed_kWh` and `used_kWh` attributes are **partially functional**: the information arrives in fragments, and not all cases are handled yet.  
+- Some information, such as `total_devices`, `opt_out_devices`, and `pre_heat_devices`, do not **persist in memory**.
 
-More details available in [issue #486](https://github.com/dvd-dev/hilo/issues/486).
 
-The API used for initially reading the list of devices on your Hilo account will also undergo the same treatment.
-
-More details available in [issue #564](https://github.com/dvd-dev/hilo/issues/564).
 
 ## 📌 Introduction
 This unofficial HACS integration allows you to use [Hilo](https://www.hiloenergie.com/fr-ca/) with Home Assistant. **It is not affiliated with Hilo or Hydro-Québec.**
