@@ -1,5 +1,5 @@
 colorlog==6.9.0
 homeassistant>=2025.3.4
 pip>=21.3.1
-ruff==0.11.4
+ruff==0.11.5
 pyyaml>=6.0.2
