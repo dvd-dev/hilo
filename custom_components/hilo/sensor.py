@@ -736,7 +736,7 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
                     event_age = datetime.now(timezone.utc) - start_date_utc
                     if (
                         current_history_event
-                        and current_history_event.get("state") == "completed"
+                        and current_history_event.get("state") == "off"
                         and event_age > timedelta(days=1)
                     ):
                         # No point updating events for previously completed events, they won't change.
@@ -769,7 +769,7 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
                     history = yaml.load(content, Loader=yaml.Loader)
                 except ScannerError:
                     LOG.error("History state YAML is corrupted, resetting to default.")
-                if not history or not isinstance(history, dict):
+                if not history or not isinstance(history, list):
                     LOG.error("History state YAML is invalid, resetting to default.")
                     history = []
 
