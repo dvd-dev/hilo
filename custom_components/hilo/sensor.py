@@ -769,7 +769,7 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
                     history = yaml.load(content, Loader=yaml.Loader)
                 except ScannerError:
                     LOG.error("History state YAML is corrupted, resetting to default.")
-                if not history or not isinstance(history, dict):
+                if not history or not isinstance(history, list):
                     LOG.error("History state YAML is invalid, resetting to default.")
                     history = []
 
