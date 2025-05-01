@@ -501,11 +501,11 @@ class Hilo:
             "category": "Tracker",
             "supportedAttributes": "Power",
             "settableAttributes": "",
-            "id": 0,
-            "hilo_id": "",
+            "id": 69420,
+            "hilo_id": "AB-A2025",
             "identifier": "hass-hilo-unknown_source_tracker",
             "provider": 0,
-            "model_number": "Hass-hilo-2022.1",
+            "model_number": "Hass-hilo-2025.5",
             "sw_version": "0.0.1",
         }
 
@@ -806,7 +806,7 @@ class Hilo:
             self.devices.parse_values_received(
                 [
                     {
-                        "deviceId": 0,
+                        "deviceId": 69420,
                         "locationId": self.devices.location_id,
                         "timeStampUTC": datetime.utcnow().isoformat(),
                         "attribute": "Power",
