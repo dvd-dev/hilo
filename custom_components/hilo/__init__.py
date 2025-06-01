@@ -439,7 +439,7 @@ class Hilo:
     @callback
     async def subscribe_to_challenge(self, inv_id: int, event_id: int = 0) -> None:
         """Sends the json payload to receive updates from the challenge."""
-        LOG.debug(f"ic-dev21 subscribe to challenge :{event_id} or {self.challenge_id}")
+        LOG.debug(f"Subscribing to challenge :{event_id} or {self.challenge_id}")
         event_id = event_id or self.challenge_id
 
         LOG.debug(
