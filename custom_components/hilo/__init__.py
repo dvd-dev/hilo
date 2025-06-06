@@ -631,6 +631,9 @@ class Hilo:
         if self.should_websocket_reconnect:
             LOG.info("Disconnected from websocket; reconnecting in 5 seconds.")
             await asyncio.sleep(5)
+            LOG.info("Finished 5 second wait, canceling websocket loop")
+            # trying lit-af suggestion
+            await self.cancel_websocket_loop(websocket, id)
             self._websocket_reconnect_tasks[id] = self._hass.async_create_task(
                 self.start_websocket_loop(websocket, id)
             )
