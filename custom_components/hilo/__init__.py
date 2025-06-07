@@ -439,8 +439,7 @@ class Hilo:
     @callback
     async def subscribe_to_challenge(self, inv_id: int, event_id: int = 0) -> None:
         """Sends the json payload to receive updates from the challenge."""
-        # ic-dev21 : data structure of the message was incorrect, needed the "fixed" strings
-        LOG.debug(f"ic-dev21 subscribe to challenge :{event_id} or {self.challenge_id}")
+        LOG.debug(f"Subscribing to challenge :{event_id} or {self.challenge_id}")
         event_id = event_id or self.challenge_id
 
         LOG.debug(
@@ -455,7 +454,6 @@ class Hilo:
     @callback
     async def subscribe_to_challengelist(self, inv_id: int) -> None:
         """Sends the json payload to receive updates from the challenge list."""
-        # ic-dev21 this will be necessary to get the challenge list
         LOG.debug(
             f"Subscribing to challenge list at location {self.devices.location_id}"
         )
