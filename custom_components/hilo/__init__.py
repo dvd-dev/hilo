@@ -634,10 +634,6 @@ class Hilo:
             self._websocket_reconnect_tasks[id] = self._hass.async_create_task(
                 self.start_websocket_loop(websocket, id)
             )
-            await self.graphql_helper.subscribe_to_device_updated(
-                self.devices.location_hilo_id,
-                self.handle_subscription_result,
-            )
 
     async def cancel_task(self, task) -> None:
         LOG.debug(f"Cancelling task {task}")
