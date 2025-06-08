@@ -621,7 +621,10 @@ class Hilo:
         except InvalidCredentialsError:
             LOG.warning("Invalid credentials? Refreshing websocket infos")
             await self.cancel_websocket_loop(websocket, id)
-            await self._api.refresh_ws_token()
+            try:
+                await self._api.refresh_ws_token()
+            except Exception as err:
+                LOG.error(f"Exception while refreshing the token: {err}", exc_info=err)
         except Exception as err:  # pylint: disable=broad-except
             LOG.error(
                 f"Unknown exception while connecting to websocket: {err}", exc_info=err
