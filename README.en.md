@@ -15,21 +15,8 @@
 
 This is a Beta version. There will likely be bugs, issues, etc. Thank you for your patience and for opening "Issues".
 
-# ⚠️ Major Change in Progress ⚠️
-
-Please read carefully below and update to **2025.4.1 or later**:
-
-The API used for the initial retrieval of the list of devices and telemetry on your Hilo account will **soon be CLOSED**.
-Once it is closed, it will **no longer be possible** to use the component without the update.
-
-For further information, see [issue #564](https://github.com/dvd-dev/hilo/issues/564).
 
 
-# ⚠️ Hilo Challenge Sensor ⚠️
-
-### Current State:
-- The `allowed_kWh` and `used_kWh` attributes are **partially functional**: the information arrives in fragments, and not all cases are handled yet.
-- Some information, such as `total_devices`, `opt_out_devices`, and `pre_heat_devices`, do not **persist in memory**.
 
 
 
@@ -62,6 +49,12 @@ This unofficial HACS integration allows you to use [Hilo](https://www.hiloenergi
 
 
 📌 **To do**: Support for other devices, improvement of consumption meters, API documentation
+
+# ⚠️ Hilo Challenge Sensor ⚠️
+
+### Current State:
+- The `allowed_kWh` and `used_kWh` attributes are **partially functional**: the information arrives in fragments, and not all cases are handled yet.
+- Some information, such as `total_devices`, `opt_out_devices`, and `pre_heat_devices`, do not **persist in memory**.
 
 ---
 

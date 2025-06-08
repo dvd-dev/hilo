@@ -19,21 +19,6 @@ Ceci est une version Bêta. Il y aura probablement des bogues, irritants, etc. M
 # Hilo - Home Assistant
 Intégration pour Home Assistant d'[Hilo](https://www.hiloenergie.com/fr-ca/)
 
-# ⚠️ Changement majeur en cours, bien lire ci-dessous et mettre à jour vers 2025.4.1 ou plus ⚠️
-
-L'API servant à la lecture initiale de la liste d'appareils et la télémétrie sur votre compte Hilo sera très prochainement FERMÉ
-Lorsque celui-ci sera fermé, il ne sera plus possible d'utiliser le component sans la mise à jour.
-
-Plus de détails disponibles dans [issue #564](https://github.com/dvd-dev/hilo/issues/564).
-
-# ⚠️ Sensor défi Hilo ⚠️
-
-### Ce qui reste à faire de ce côté:
-- Les attributs `allowed_kWh` et `used_kWh` sont **partiellement fonctionnels** actuellement, les informations arrivent morcelées et tous
-les cas ne sont pas traités encore.
-- Certaines informations comme `total_devices`, `opt_out_devices` et `pre_heat_devices` ne persistent pas en mémoire.
-
-
 
 ## 📌 Introduction
 Cette intégration non-officielle HACS permet d'utiliser [Hilo](https://www.hiloenergie.com/fr-ca/) avec Home Assistant. **Elle n'est pas affiliée à Hilo ou Hydro-Québec.**
@@ -63,6 +48,13 @@ Cette intégration non-officielle HACS permet d'utiliser [Hilo](https://www.hilo
 ✅ Capteur météo extérieure avec icône changeante
 
 📌 **À faire** : Support d'autres appareils, amélioration des compteurs de consommation, documentation API
+
+# ⚠️ Sensor défi Hilo ⚠️
+
+### Ce qui reste à faire de ce côté:
+- Les attributs `allowed_kWh` et `used_kWh` sont **partiellement fonctionnels** actuellement, les informations arrivent morcelées et tous
+les cas ne sont pas traités encore.
+- Certaines informations comme `total_devices`, `opt_out_devices` et `pre_heat_devices` ne persistent pas en mémoire.
 
 ---
 
