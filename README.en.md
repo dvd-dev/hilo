@@ -68,7 +68,7 @@ This unofficial HACS integration allows you to use [Hilo](https://www.hiloenergi
 #### 🔹 Option 1: Via HACS
 [![Install via HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=dvd-dev&repository=hilo&category=integration)
 
-1. Make sure you have [HACS](https://hacs.xyz/docs/setup/download/) installed.
+1. Make sure you have [HACS](https://hacs.xyz/docs/use/download/download/) installed.
 2. In HACS, click `+ EXPLORE & DOWNLOAD REPOSITORIES`, search for "Hilo" and download it.
 3. Restart Home Assistant
 
