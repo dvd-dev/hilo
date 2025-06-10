@@ -68,7 +68,7 @@ les cas ne sont pas traités encore.
 #### 🔹 Option 1 : Via HACS
 [![Installer via HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=dvd-dev&repository=hilo&category=integration)
 
-1. Assurez-vous d'avoir [HACS](https://hacs.xyz/docs/setup/download/) installé.
+1. Assurez-vous d'avoir [HACS](https://hacs.xyz/docs/use/download/download/) installé.
 2. Dans HACS, cliquez sur `+ EXPLORE & DOWNLOAD REPOSITORIES`, recherchez "Hilo" et téléchargez-le.
 3. Redémarrer Home Assistant
 
