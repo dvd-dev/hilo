@@ -7,6 +7,7 @@ from homeassistant.helpers.config_entry_oauth2_flow import LocalOAuth2Implementa
 
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from aiohttp import CookieJar
+
 from pyhilo.const import AUTH_AUTHORIZE, AUTH_CLIENT_ID, AUTH_TOKEN, DOMAIN
 from pyhilo.oauth2helper import OAuth2Helper
 
@@ -61,12 +62,5 @@ class AuthCodeWithPKCEImplementation(LocalOAuth2Implementation):  # type: ignore
             data["client_secret"] = self.client_secret
 
         resp = await self.session.post(self.token_url, data=data)
-        if resp.status >= 400:
-            try:
-                error_response = await resp.json()
-            except (ClientError, JSONDecodeError):
-                error_response = {}
-            error_code = error_response.get("error", "unknown")
-            error_description = error_response.get("error_description", "unknown error")
         resp.raise_for_status()
         return cast(dict, await resp.json())
