@@ -2,7 +2,9 @@
 
 from typing import Any, cast
 
+from aiohttp import CookieJar
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from homeassistant.helpers.config_entry_oauth2_flow import LocalOAuth2Implementation
 from pyhilo.const import AUTH_AUTHORIZE, AUTH_CLIENT_ID, AUTH_TOKEN, DOMAIN
 from pyhilo.oauth2helper import OAuth2Helper
@@ -25,6 +27,9 @@ class AuthCodeWithPKCEImplementation(LocalOAuth2Implementation):  # type: ignore
             AUTH_TOKEN,
         )
 
+        self.session = async_create_clientsession(
+            self.hass, cookie_jar=CookieJar(quote_cookie=False)
+        )
         self.oauth_helper = OAuth2Helper()
 
     # ... Override AbstractOAuth2Implementation details
@@ -48,3 +53,14 @@ class AuthCodeWithPKCEImplementation(LocalOAuth2Implementation):  # type: ignore
                 )
             ),
         )
+
+    async def _token_request(self, data: dict) -> dict:
+        """Make a token request."""
+        data["client_id"] = self.client_id
+
+        if self.client_secret:
+            data["client_secret"] = self.client_secret
+
+        resp = await self.session.post(self.token_url, data=data)
+        resp.raise_for_status()
+        return cast(dict, await resp.json())
