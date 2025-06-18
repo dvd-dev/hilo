@@ -8,7 +8,6 @@ from datetime import datetime, timedelta
 import traceback
 from typing import TYPE_CHECKING, List, Optional
 
-from aiohttp import CookieJar
 from homeassistant.components.select import (
     ATTR_OPTION,
     DOMAIN as SELECT_DOMAIN,
@@ -27,11 +26,11 @@ from homeassistant.const import (
 from homeassistant.core import Context, Event, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import (
+    aiohttp_client,
     config_entry_oauth2_flow,
     device_registry as dr,
     entity_registry as er,
 )
-from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
@@ -141,9 +140,7 @@ async def async_setup_entry(  # noqa: C901
 
     try:
         api = await API.async_create(
-            session=async_create_clientsession(
-                hass, cookie_jar=CookieJar(quote_cookie=False)
-            ),
+            session=aiohttp_client.async_get_clientsession(hass),
             oauth_session=config_entry_oauth2_flow.OAuth2Session(
                 hass, entry, implementation
             ),
