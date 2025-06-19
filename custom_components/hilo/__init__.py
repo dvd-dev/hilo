@@ -215,21 +215,22 @@ async def async_migrate_entry(hass, config_entry: ConfigEntry):
     """Migrate old entry."""
     LOG.debug("Migrating from version %s", config_entry.version)
 
-    if config_entry.version > 2:
+    if config_entry.version > 3:
         # This means the user has downgraded from a future version
         return False
 
     if config_entry.version == 1:
-        config_entry.version = 2
         # For version 1 to 2, keep the old unique_id format for backward compatibility
         hass.config_entries.async_update_entry(
-            config_entry, unique_id="hilo", data={"auth_implementation": "hilo"}
+            config_entry,
+            version=2,
+            unique_id="hilo",
+            data={"auth_implementation": "hilo"}
         )
 
     if config_entry.version == 2:
-        config_entry.version = 3
         # For version 2 to 3, update unique_id to use email if available
-        updates = {}
+        updates = {"version": 3}
         if "token" in config_entry.data and "access_token" in config_entry.data["token"]:
             try:
                 import jwt
@@ -241,8 +242,7 @@ async def async_migrate_entry(hass, config_entry: ConfigEntry):
             except Exception:
                 LOG.warning("Could not extract email from token during migration")
         
-        if updates:
-            hass.config_entries.async_update_entry(config_entry, **updates)
+        hass.config_entries.async_update_entry(config_entry, **updates)
 
     LOG.debug("Migration to version %s successful", config_entry.version)
 
