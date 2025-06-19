@@ -256,8 +256,8 @@ class Hilo:
         """Initialize."""
         self._api = api
         self._hass = hass
-        self.find_meter(self._hass)
         self.entry = entry
+        self.find_meter(self._hass)
         self.devices: Devices = Devices(api)
         self.graphql_helper: GraphQlHelper = GraphQlHelper(api, self.devices)
         self.challenge_id = 0
