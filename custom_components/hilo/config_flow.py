@@ -85,17 +85,12 @@ class HiloFlowHandler(AbstractOAuth2FlowHandler, domain=DOMAIN):
     """Handle a Hilo config flow."""
 
     DOMAIN = DOMAIN
-    VERSION = 2
+    VERSION = 3
 
     _reauth_entry: ConfigEntry | None = None
 
     async def async_step_user(self, user_input=None) -> FlowResult:
         """Handle a flow initialized by the user."""
-        await self.async_set_unique_id(DOMAIN)
-
-        if self._async_current_entries():
-            return self.async_abort(reason="single_instance_allowed")
-
         self.async_register_implementation(
             self.hass,
             AuthCodeWithPKCEImplementation(self.hass),
@@ -146,6 +141,10 @@ class HiloFlowHandler(AbstractOAuth2FlowHandler, domain=DOMAIN):
         token = data["token"]["access_token"]
         decoded_token = jwt.decode(token, options={"verify_signature": False})
         email = decoded_token["email"]
+
+        # Set unique ID based on email to allow multiple accounts
+        await self.async_set_unique_id(email)
+        self._abort_if_unique_id_configured()
 
         return self.async_create_entry(title=email, data=data)
 

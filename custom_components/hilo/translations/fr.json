@@ -15,10 +15,9 @@
       "unknown": "[%key:common::config_flow::error::unknown%]"
     },
     "abort": {
-      "already_configured": "Ce compte Hilo est déjà utilisé.",
+      "already_configured": "Ce compte Hilo est déjà configuré.",
       "reauth_successful": "Ré-authentification réussie",
-      "user_rejected_authorize" : "Association du compte refusée",
-      "single_instance_allowed" : "Déjà configurée. Une seule configuration possible."
+      "user_rejected_authorize" : "Association du compte refusée"
     }
   },
   "options": {

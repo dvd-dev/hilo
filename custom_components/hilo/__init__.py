@@ -89,7 +89,17 @@ def _async_standardize_config_entry(hass: HomeAssistant, entry: ConfigEntry) -> 
     config_keys = STEP_OPTION_SCHEMA.schema.keys()
     if not entry.unique_id:
         # If the config entry doesn't already have a unique ID, set one:
-        entry_updates["unique_id"] = entry.data[CONF_USERNAME]
+        # For legacy entries, try to extract email from token or use username
+        if "token" in entry.data and "access_token" in entry.data["token"]:
+            try:
+                import jwt
+                token = entry.data["token"]["access_token"]
+                decoded_token = jwt.decode(token, options={"verify_signature": False})
+                entry_updates["unique_id"] = decoded_token.get("email", entry.data.get(CONF_USERNAME, "legacy"))
+            except Exception:
+                entry_updates["unique_id"] = entry.data.get(CONF_USERNAME, "legacy")
+        else:
+            entry_updates["unique_id"] = entry.data.get(CONF_USERNAME, "legacy")
     if any(x in entry.data for x in config_keys):
         # If an option was provided as part of configuration.yaml, pop it out of
         # the config entry's data and move it to options and the same with other
@@ -205,15 +215,34 @@ async def async_migrate_entry(hass, config_entry: ConfigEntry):
     """Migrate old entry."""
     LOG.debug("Migrating from version %s", config_entry.version)
 
-    if config_entry.version > 1:
+    if config_entry.version > 2:
         # This means the user has downgraded from a future version
         return False
 
     if config_entry.version == 1:
         config_entry.version = 2
+        # For version 1 to 2, keep the old unique_id format for backward compatibility
         hass.config_entries.async_update_entry(
             config_entry, unique_id="hilo", data={"auth_implementation": "hilo"}
         )
+
+    if config_entry.version == 2:
+        config_entry.version = 3
+        # For version 2 to 3, update unique_id to use email if available
+        updates = {}
+        if "token" in config_entry.data and "access_token" in config_entry.data["token"]:
+            try:
+                import jwt
+                token = config_entry.data["token"]["access_token"]
+                decoded_token = jwt.decode(token, options={"verify_signature": False})
+                email = decoded_token.get("email")
+                if email:
+                    updates["unique_id"] = email
+            except Exception:
+                LOG.warning("Could not extract email from token during migration")
+        
+        if updates:
+            hass.config_entries.async_update_entry(config_entry, **updates)
 
     LOG.debug("Migration to version %s successful", config_entry.version)
 
@@ -685,14 +714,16 @@ class Hilo:
         if registry is None:
             return entity_registry_dict
 
-        # ic-dev21: Get names of all entities
+        # ic-dev21: Get names of entities only from this config entry
         for entity_id, entity_entry in registry.entities.items():
-            entity_registry_dict[entity_id] = {
-                "name": entity_entry.entity_id,
-            }
+            # Only include entities from this specific config entry
+            if entity_entry.config_entry_id == self.entry.entry_id:
+                entity_registry_dict[entity_id] = {
+                    "name": entity_entry.entity_id,
+                }
 
         sorted_entity_registry_dict = OrderedDict(sorted(entity_registry_dict.items()))
-        LOG.debug(f"Entities Ordered dict is {sorted_entity_registry_dict}")
+        LOG.debug(f"Entities Ordered dict for entry {self.entry.entry_id} is {sorted_entity_registry_dict}")
 
         # Initialize empty list to put meter name into
         filtered_names = []
@@ -704,7 +735,7 @@ class Hilo:
             ):
                 filtered_names.append(entity_data["name"])
 
-        LOG.debug(f"Hilo Smart meter name is: {filtered_names}")
+        LOG.debug(f"Hilo Smart meter name for entry {self.entry.entry_id} is: {filtered_names}")
 
         # Format output to use in check_tarif
         return ", ".join(filtered_names) if filtered_names else ""
@@ -768,9 +799,13 @@ class Hilo:
             )
 
             # ic-dev21 : make sure the select for all meters still work by moving this here
-            for state in self._hass.states.async_all():
-                entity = state.entity_id
-                self.set_tarif(entity, state.state, tarif)
+            # Only update entities from this specific config entry
+            entity_registry = er.async_get(self._hass)
+            for entity_id, entity_entry in entity_registry.entities.items():
+                if entity_entry.config_entry_id == self.entry.entry_id:
+                    state = self._hass.states.get(entity_id)
+                    if state:
+                        self.set_tarif(entity_id, state.state, tarif)
 
     def handle_unknown_power(self):
         # ic-dev21 : new function that takes care of the unknown source meter
@@ -778,22 +813,29 @@ class Hilo:
         smart_meter = self.find_meter(self._hass)  # comes from find_meter function
         LOG.debug(f"Smart meter used currently is: {smart_meter}")
         unknown_source_tracker = "sensor.unknown_source_tracker_power"
-        for state in self._hass.states.async_all():
-            entity = state.entity_id
-            if entity.endswith("hilo_rate_current"):
-                continue
+        # Only process entities from this specific config entry
+        entity_registry = er.async_get(self._hass)
+        for entity_id, entity_entry in entity_registry.entities.items():
+            if entity_entry.config_entry_id == self.entry.entry_id:
+                state = self._hass.states.get(entity_id)
+                if not state:
+                    continue
+                    
+                entity = state.entity_id
+                if entity.endswith("hilo_rate_current"):
+                    continue
 
-            if entity.endswith("_power") and entity not in [
-                unknown_source_tracker,
-                smart_meter,
-            ]:
-                try:
-                    known_power += int(float(state.state))
-                except ValueError:
-                    pass
-            if not entity.endswith("_hilo_energy") or entity.endswith("_cost"):
-                continue
-            self.fix_utility_sensor(entity, state)
+                if entity.endswith("_power") and entity not in [
+                    unknown_source_tracker,
+                    smart_meter,
+                ]:
+                    try:
+                        known_power += int(float(state.state))
+                    except ValueError:
+                        pass
+                if not entity.endswith("_hilo_energy") or entity.endswith("_cost"):
+                    continue
+                self.fix_utility_sensor(entity, state)
         if self.track_unknown_sources:
             total_power = self._hass.states.get(smart_meter)
             try:
