@@ -93,9 +93,12 @@ def _async_standardize_config_entry(hass: HomeAssistant, entry: ConfigEntry) -> 
         if "token" in entry.data and "access_token" in entry.data["token"]:
             try:
                 import jwt
+
                 token = entry.data["token"]["access_token"]
                 decoded_token = jwt.decode(token, options={"verify_signature": False})
-                entry_updates["unique_id"] = decoded_token.get("email", entry.data.get(CONF_USERNAME, "legacy"))
+                entry_updates["unique_id"] = decoded_token.get(
+                    "email", entry.data.get(CONF_USERNAME, "legacy")
+                )
             except Exception:
                 entry_updates["unique_id"] = entry.data.get(CONF_USERNAME, "legacy")
         else:
@@ -225,15 +228,19 @@ async def async_migrate_entry(hass, config_entry: ConfigEntry):
             config_entry,
             version=2,
             unique_id="hilo",
-            data={"auth_implementation": "hilo"}
+            data={"auth_implementation": "hilo"},
         )
 
     if config_entry.version == 2:
         # For version 2 to 3, update unique_id to use email if available
         updates = {"version": 3}
-        if "token" in config_entry.data and "access_token" in config_entry.data["token"]:
+        if (
+            "token" in config_entry.data
+            and "access_token" in config_entry.data["token"]
+        ):
             try:
                 import jwt
+
                 token = config_entry.data["token"]["access_token"]
                 decoded_token = jwt.decode(token, options={"verify_signature": False})
                 email = decoded_token.get("email")
@@ -241,7 +248,7 @@ async def async_migrate_entry(hass, config_entry: ConfigEntry):
                     updates["unique_id"] = email
             except Exception:
                 LOG.warning("Could not extract email from token during migration")
-        
+
         hass.config_entries.async_update_entry(config_entry, **updates)
 
     LOG.debug("Migration to version %s successful", config_entry.version)
@@ -723,7 +730,9 @@ class Hilo:
                 }
 
         sorted_entity_registry_dict = OrderedDict(sorted(entity_registry_dict.items()))
-        LOG.debug(f"Entities Ordered dict for entry {self.entry.entry_id} is {sorted_entity_registry_dict}")
+        LOG.debug(
+            f"Entities Ordered dict for entry {self.entry.entry_id} is {sorted_entity_registry_dict}"
+        )
 
         # Initialize empty list to put meter name into
         filtered_names = []
@@ -735,7 +744,9 @@ class Hilo:
             ):
                 filtered_names.append(entity_data["name"])
 
-        LOG.debug(f"Hilo Smart meter name for entry {self.entry.entry_id} is: {filtered_names}")
+        LOG.debug(
+            f"Hilo Smart meter name for entry {self.entry.entry_id} is: {filtered_names}"
+        )
 
         # Format output to use in check_tarif
         return ", ".join(filtered_names) if filtered_names else ""
@@ -820,7 +831,7 @@ class Hilo:
                 state = self._hass.states.get(entity_id)
                 if not state:
                     continue
-                    
+
                 entity = state.entity_id
                 if entity.endswith("hilo_rate_current"):
                     continue
