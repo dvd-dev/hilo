@@ -2,7 +2,7 @@
 
 from typing import Any, cast
 
-from aiohttp import CookieJar, ClientSession
+from aiohttp import ClientSession, CookieJar
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from homeassistant.helpers.config_entry_oauth2_flow import LocalOAuth2Implementation
