@@ -162,7 +162,7 @@ async def async_setup_entry(
         utility_manager = UtilityManager(hass, energy_meter_period, default_tariff_list)
 
     def create_energy_entity(hilo, device):
-        device._energy_entity = EnergySensor(hilo, device)
+        device._energy_entity = EnergySensor(hilo, device, hass)
         new_entities.append(device._energy_entity)
         energy_entity = f"{slugify(device.name)}_hilo_energy"
         if energy_entity == HILO_ENERGY_TOTAL:
@@ -279,7 +279,7 @@ class EnergySensor(IntegrationSensor):
     _attr_suggested_display_precision = 2
     _attr_icon = "mdi:lightning-bolt"
 
-    def __init__(self, hilo, device):
+    def __init__(self, hilo, device, hass):
         self._device = device
         self._attr_name = f"{device.name} Hilo Energy"
         old_unique_id = f"hilo_energy_{slugify(device.name)}"
@@ -301,7 +301,19 @@ class EnergySensor(IntegrationSensor):
             identifiers={(DOMAIN, self._device.identifier)},
         )
 
-        if Version(current_version) >= Version("2024.7"):
+        if Version(current_version) >= Version("2025.8"):
+            super().__init__(
+                hass,
+                integration_method=METHOD_LEFT,
+                max_sub_interval=timedelta(seconds=MAX_SUB_INTERVAL),
+                name=self._attr_name,
+                round_digits=2,
+                source_entity=self._source,
+                unique_id=self._attr_unique_id,
+                unit_prefix="k",
+                unit_time="h",
+            )
+        elif Version(current_version) >= Version("2024.7"):
             super().__init__(
                 integration_method=METHOD_LEFT,
                 max_sub_interval=timedelta(seconds=MAX_SUB_INTERVAL),
