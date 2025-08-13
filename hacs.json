@@ -1,6 +1,5 @@
 {
   "name": "Hilo",
   "render_readme": true,
-  "homeassistant": "2024.7.0",
-  "iot_class": "cloud_push"
+  "homeassistant": "2024.7.0"
 }
