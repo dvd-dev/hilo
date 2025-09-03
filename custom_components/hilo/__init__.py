@@ -731,9 +731,10 @@ class Hilo:
 
     @property
     def high_times(self):
-        for period, data in CONF_HIGH_PERIODS.items():
-            if data["from"] <= datetime.now().time() <= data["to"]:
-                return True
+        challenge_sensor = self._hass.states.get("sensor.defi_hilo")
+        LOG.debug(f"ic-dev21 check tarif challenge sensor is {challenge_sensor.state}")
+        if challenge_sensor.state == "reduction":
+            return True
         return False
 
     def check_tarif(self):
