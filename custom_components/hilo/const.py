@@ -1,4 +1,3 @@
-from datetime import time
 import logging
 
 from homeassistant.components.utility_meter.const import DAILY
@@ -65,10 +64,6 @@ CONF_TARIFF = {
     },
 }
 
-CONF_HIGH_PERIODS = {
-    "am": {"from": time(6, 00, 00), "to": time(9, 0, 0)},
-    "pm": {"from": time(16, 0, 0), "to": time(20, 0, 0)},
-}
 
 TARIFF_LIST = ["high", "medium", "low"]
 
