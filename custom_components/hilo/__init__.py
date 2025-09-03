@@ -738,6 +738,7 @@ class Hilo:
         return False
 
     def check_tarif(self):
+        """ Logic to determine which tarif to select depending on season and user-select tarifß"""
         if self.generate_energy_meters:
             tarif = "low"
             base_sensor = f"sensor.{HILO_ENERGY_TOTAL}_low"
