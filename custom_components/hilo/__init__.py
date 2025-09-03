@@ -737,16 +737,36 @@ class Hilo:
             return True
         return False
 
+    def check_season(self):
+        """This logic determines if we are using a winter or summer rate"""
+        current_month = datetime.now().month
+        LOG.debug(f"ic_dev21: current month is  {current_month}")
+        if current_month in [12, 1, 2, 3]:
+            return True
+        else:
+            return False
+
     def check_tarif(self):
-        """ Logic to determine which tarif to select depending on season and user-select tarifß"""
+        """Logic to determine which tarif to select depending on season and user-selected rate"""
         if self.generate_energy_meters:
+            season = self.check_season()
+            LOG.debug(f"ic-dev21 current season state is {season}")
             tarif = "low"
             base_sensor = f"sensor.{HILO_ENERGY_TOTAL}_low"
             energy_used = self._hass.states.get(base_sensor)
             if not energy_used:
                 LOG.warning(f"check_tarif: Unable to find state for {base_sensor}")
                 return tarif
-            plan_name = self.hq_plan_name
+            user_selected_plan_name = self.hq_plan_name
+
+            if user_selected_plan_name == "flex d":
+                if season:
+                    plan_name = "flex d"
+                else:
+                    plan_name = "rate d"
+            else:
+                plan_name = user_selected_plan_name
+
             tarif_config = CONF_TARIFF.get(plan_name)
             current_cost = self._hass.states.get("sensor.hilo_rate_current")
             try:
