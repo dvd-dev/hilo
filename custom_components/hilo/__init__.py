@@ -740,7 +740,7 @@ class Hilo:
         """This logic determines if we are using a winter or summer rate"""
         current_month = datetime.now().month
         LOG.debug(f"ic_dev21: current month is  {current_month}")
-        if current_month in [12, 1, 2, 3, 9]:
+        if current_month in [12, 1, 2, 3]:
             return True
         else:
             return False
