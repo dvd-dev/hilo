@@ -732,18 +732,13 @@ class Hilo:
     def high_times(self):
         challenge_sensor = self._hass.states.get("sensor.defi_hilo")
         LOG.debug(f"ic-dev21 check tarif challenge sensor is {challenge_sensor.state}")
-        if challenge_sensor.state == "reduction":
-            return True
-        return False
+        return challenge_sensor.state == "reduction"
 
     def check_season(self):
         """This logic determines if we are using a winter or summer rate"""
         current_month = datetime.now().month
         LOG.debug(f"ic_dev21: current month is  {current_month}")
-        if current_month in [12, 1, 2, 3]:
-            return True
-        else:
-            return False
+        return current_month in [12, 1, 2, 3]
 
     def check_tarif(self):
         """Logic to determine which tarif to select depending on season and user-selected rate"""
