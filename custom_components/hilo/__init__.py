@@ -49,7 +49,6 @@ from .const import (
     CONF_APPRECIATION_PHASE,
     CONF_CHALLENGE_LOCK,
     CONF_GENERATE_ENERGY_METERS,
-    CONF_HIGH_PERIODS,
     CONF_HQ_PLAN_NAME,
     CONF_LOG_TRACES,
     CONF_PRE_COLD_PHASE,
@@ -731,46 +730,72 @@ class Hilo:
 
     @property
     def high_times(self):
-        for period, data in CONF_HIGH_PERIODS.items():
-            if data["from"] <= datetime.now().time() <= data["to"]:
-                return True
-        return False
+        challenge_sensor = self._hass.states.get("sensor.defi_hilo")
+        LOG.debug(f"ic-dev21 check tarif challenge sensor is {challenge_sensor.state}")
+        return challenge_sensor.state == "reduction"
+
+    def check_season(self):
+        """This logic determines if we are using a winter or summer rate"""
+        current_month = datetime.now().month
+        LOG.debug(f"ic_dev21: current month is  {current_month}")
+        return current_month in [12, 1, 2, 3]
 
     def check_tarif(self):
+        """Logic to determine which tarif to select depending on season and user-selected rate"""
         if self.generate_energy_meters:
+            season = self.check_season()
+            LOG.debug(f"ic-dev21 current season state is {season}")
             tarif = "low"
             base_sensor = f"sensor.{HILO_ENERGY_TOTAL}_low"
             energy_used = self._hass.states.get(base_sensor)
             if not energy_used:
                 LOG.warning(f"check_tarif: Unable to find state for {base_sensor}")
                 return tarif
-            plan_name = self.hq_plan_name
-            tarif_config = CONF_TARIFF.get(plan_name)
-            current_cost = self._hass.states.get("sensor.hilo_rate_current")
-            try:
-                if float(energy_used.state) >= tarif_config.get("low_threshold"):
-                    tarif = "medium"
-            except ValueError:
-                LOG.warning(
-                    f"Unable to restore a valid state of {base_sensor}: {energy_used.state}"
-                )
+            user_selected_plan_name = self.hq_plan_name
 
-            if tarif_config.get("high", 0) > 0 and self.high_times:
-                tarif = "high"
-            target_cost = self._hass.states.get(f"sensor.hilo_rate_{tarif}")
-            if target_cost.state != current_cost.state:
-                LOG.debug(
-                    f"check_tarif: Updating current cost, was {current_cost.state} now {target_cost.state}"
-                )
-                self.set_state("sensor.hilo_rate_current", target_cost.state)
-            LOG.debug(
-                f"check_tarif: Current plan: {plan_name} Target Tarif: {tarif} Energy used: {energy_used.state} Peak: {self.high_times}"
+            if user_selected_plan_name == "flex d":
+                if season:
+                    plan_name = "flex d"
+                else:
+                    plan_name = "rate d"
+            else:
+                plan_name = user_selected_plan_name
+
+            tarif_config = CONF_TARIFF.get(plan_name)
+
+        for tarif_name, rate in tarif_config.items():
+            if rate > 0 and tarif_name in ["low", "medium", "high"]:
+                if hasattr(self, "cost_sensors") and tarif_name in self.cost_sensors:
+                    sensor = self.cost_sensors[tarif_name]
+                    sensor._cost = rate
+                    sensor.async_write_ha_state()
+                    LOG.debug("ic-dev21 Updated %s sensor to %s", tarif_name, rate)
+
+        current_cost = self._hass.states.get("sensor.hilo_rate_current")
+        try:
+            if float(energy_used.state) >= tarif_config.get("low_threshold"):
+                tarif = "medium"
+        except ValueError:
+            LOG.warning(
+                f"Unable to restore a valid state of {base_sensor}: {energy_used.state}"
             )
 
-            # ic-dev21 : make sure the select for all meters still work by moving this here
-            for state in self._hass.states.async_all():
-                entity = state.entity_id
-                self.set_tarif(entity, state.state, tarif)
+        if tarif_config.get("high", 0) > 0 and self.high_times:
+            tarif = "high"
+        target_cost = self._hass.states.get(f"sensor.hilo_rate_{tarif}")
+        if target_cost.state != current_cost.state:
+            LOG.debug(
+                f"check_tarif: Updating current cost, was {current_cost.state} now {target_cost.state}"
+            )
+            self.set_state("sensor.hilo_rate_current", target_cost.state)
+        LOG.debug(
+            f"check_tarif: Current plan: {plan_name} Target Tarif: {tarif} Energy used: {energy_used.state} Peak: {self.high_times}"
+        )
+
+        # ic-dev21 : make sure the select for all meters still work by moving this here
+        for state in self._hass.states.async_all():
+            entity = state.entity_id
+            self.set_tarif(entity, state.state, tarif)
 
     def handle_unknown_power(self):
         # ic-dev21 : new function that takes care of the unknown source meter

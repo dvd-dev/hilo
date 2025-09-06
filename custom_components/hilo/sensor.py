@@ -192,12 +192,14 @@ async def async_setup_entry(
     # Creating cost sensors based on plan
     # This will generate hilo_cost_(low|medium|high) sensors which can be
     # referred later in the energy dashboard based on the tarif selected
+    hilo.cost_sensors = {}
     for tarif, amount in tariff_config.items():
         if amount > 0:
             sensor_name = f"Hilo rate {tarif}"
-            cost_entities.append(
-                HiloCostSensor(hilo, sensor_name, hq_plan_name, amount)
-            )
+            sensor = HiloCostSensor(hilo, sensor_name, hq_plan_name, amount)
+            cost_entities.append(sensor)
+            hilo.cost_sensors[tarif] = sensor  # Stores reference for check_tarif
+
     hilo_rate_current = HiloCostSensor(hilo, "Hilo rate current", hq_plan_name)
     cost_entities.append(hilo_rate_current)
     async_add_entities(cost_entities)
