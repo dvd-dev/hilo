@@ -32,7 +32,7 @@ class HiloSwitch(HiloEntity, SwitchEntity):
         hilo.async_migrate_unique_id(
             old_unique_id, self._attr_unique_id, Platform.SWITCH
         )
-        LOG.debug("Setting up Switch entity: %s",self._attr_name)
+        LOG.debug("Setting up Switch entity: %s", self._attr_name)
 
     @property
     def state(self):
