@@ -70,7 +70,7 @@ class HiloClimate(HiloEntity, ClimateEntity):
         self.operations = [HVACMode.HEAT]
         self._has_operation = False
         self._temperature_entity = None
-        LOG.debug(f"Setting up Climate entity: {self._attr_name}")
+        LOG.debug("Setting up Climate entity: %s", self._attr_name)
 
     @property
     def current_temperature(self):
