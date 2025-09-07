@@ -818,7 +818,7 @@ class Hilo:
             self.set_tarif(entity, state.state, tarif)
 
     def handle_unknown_power(self):
-        # ic-dev21 : new function that takes care of the unknown source meter
+        """Function that takes care of the unknown source meter"""
         known_power = 0
         smart_meter = self.find_meter(self._hass)
         LOG.debug("Smart meter used currently is: %s", smart_meter)
