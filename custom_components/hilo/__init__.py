@@ -268,21 +268,21 @@ class Hilo:
     def validate_heartbeat(self, event: WebsocketEvent) -> None:
         heartbeat_time = from_utc_timestamp(event.arguments[0])  # type: ignore
         if self._api.log_traces:
-            LOG.debug(f"Heartbeat: {time_diff(heartbeat_time, event.timestamp)}")
+            LOG.debug("Heartbeat: %s", time_diff(heartbeat_time, event.timestamp))
 
     def register_websocket_listener(self, listener):
         """Register a listener for websocket events."""
-        LOG.debug(f"Registering websocket listener: {listener.__class__.__name__}")
+        LOG.debug("Registering websocket listener: %s", listener.__class__.__name__)
         self._websocket_listeners.append(listener)
 
     async def _handle_websocket_message(self, event):
         """Process websocket messages and notify listeners."""
 
-        LOG.debug(f"Received websocket message type: {event}")
+        LOG.debug("Received websocket message type: %s", event)
         target = event.target
-        LOG.debug(f"handle_websocket_message_target {target}")
+        LOG.debug("handle_websocket_message_target: %s", target)
         msg_data = event
-        LOG.debug(f"handle_websocket_message_ msg_data {msg_data}")
+        LOG.debug("handle_websocket_message_ msg_data: %s", msg_data)
 
         if target == "ChallengeListInitialValuesReceived":
             msg_type = "challenge_list_initial"
@@ -400,7 +400,7 @@ class Hilo:
             gateway = self.devices.find_device(1)
             if gateway:
                 gateway.id = event.arguments[0][0]["deviceId"]
-                LOG.debug(f"Updated Gateway's deviceId from default 1 to {gateway.id}")
+                LOG.debug("Updated Gateway's deviceId from default 1 to %s", gateway.id)
 
             updated_devices = self.devices.parse_values_received(event.arguments[0])
             for device in updated_devices:
@@ -434,7 +434,7 @@ class Hilo:
     @callback
     async def subscribe_to_location(self, inv_id: int) -> None:
         """Sends the json payload to receive updates from the location."""
-        LOG.debug(f"Subscribing to location {self.devices.location_id}")
+        LOG.debug("Subscribing to location %s", self.devices.location_id)
         await self._api.websocket_devices.async_invoke(
             [self.devices.location_id], "SubscribeToLocation", inv_id
         )
@@ -442,12 +442,15 @@ class Hilo:
     @callback
     async def subscribe_to_challenge(self, inv_id: int, event_id: int = 0) -> None:
         """Sends the json payload to receive updates from the challenge."""
-        LOG.debug(f"Subscribing to challenge :{event_id} or {self.challenge_id}")
+        LOG.debug("Subscribing to challenge : %s or %s", event_id, self.challenge_id)
         event_id = event_id or self.challenge_id
 
         LOG.debug(
-            f"Subscribing to challenge {event_id} at location {self.devices.location_id}"
+            "Subscribing to challenge %s at location %s",
+            event_id,
+            self.devices.location_id,
         )
+
         await self._api.websocket_challenges.async_invoke(
             [{"locationId": self.devices.location_id, "eventId": event_id}],
             "SubscribeToChallenge",
@@ -458,7 +461,7 @@ class Hilo:
     async def subscribe_to_challengelist(self, inv_id: int) -> None:
         """Sends the json payload to receive updates from the challenge list."""
         LOG.debug(
-            f"Subscribing to challenge list at location {self.devices.location_id}"
+            "Subscribing to challenge list at location %s", self.devices.location_id
         )
         await self._api.websocket_challenges.async_invoke(
             [{"locationId": self.devices.location_id}],
@@ -473,7 +476,9 @@ class Hilo:
         """Sends the json payload to receive energy consumption updates from the challenge."""
         event_id = event_id or self.challenge_id
         LOG.debug(
-            f"Requesting challenge {event_id} consumption update at location {self.devices.location_id}"
+            "Requesting challenge %s consumption update at location %s",
+            event_id,
+            self.devices.location_id,
         )
         await self._api.websocket_challenges.async_invoke(
             [{"locationId": self.devices.location_id, "eventId": event_id}],
@@ -521,7 +526,11 @@ class Hilo:
             event = Event(**event_data)
             if event.invalid:
                 LOG.debug(
-                    f"Invalidating cache for event {event_id} during {event.state} phase ({event.current_phase_times=} {event.last_update=})"
+                    "Invalidating cache for event %s during %s phase (event.current_phase_times=%s event.last_update=%s)",
+                    event_id,
+                    event.state,
+                    event.current_phase_times,
+                    event.last_update,
                 )
                 del self._events[event_id]
             """
@@ -533,7 +542,9 @@ class Hilo:
 
             if event.state in ["appreciation", "pre_heat", "reduction"]:
                 LOG.debug(
-                    f"Invalidating cache for event {event_id} during appreciation, pre_heat or reduction phase ({event.last_update=})"
+                    "Invalidating cache for event %s during appreciation, pre_heat or reduction phase (event.last_update=%s)",
+                    event_id,
+                    event.last_update,
                 )
                 del self._events[event_id]
 
@@ -642,13 +653,13 @@ class Hilo:
             )
 
     async def cancel_task(self, task) -> None:
-        LOG.debug(f"Cancelling task {task}")
+        LOG.debug("Cancelling task %s", task)
         if task:
             task.cancel()
             try:
                 await task
             except asyncio.CancelledError:
-                LOG.debug(f"Task {task} successfully canceled")
+                LOG.debug("Task %s successfully canceled", task)
                 task = None
         return task
 
@@ -692,7 +703,7 @@ class Hilo:
             }
 
         sorted_entity_registry_dict = OrderedDict(sorted(entity_registry_dict.items()))
-        LOG.debug(f"Entities Ordered dict is {sorted_entity_registry_dict}")
+        LOG.debug("Entities Ordered dict is %s", sorted_entity_registry_dict)
 
         # Initialize empty list to put meter name into
         filtered_names = []
@@ -704,7 +715,7 @@ class Hilo:
             ):
                 filtered_names.append(entity_data["name"])
 
-        LOG.debug(f"Hilo Smart meter name is: {filtered_names}")
+        LOG.debug("Hilo Smart meter name is: %s", filtered_names)
 
         # Format output to use in check_tarif
         return ", ".join(filtered_names) if filtered_names else ""
@@ -726,7 +737,7 @@ class Hilo:
             state = current.state
         if "Cost" in attrs:
             attrs["Cost"] = state
-        LOG.debug(f"Setting state {params} {current=} {attrs=}")
+        LOG.debug("Setting state %s current=%s attrs=%s", params, current, attrs)
         self._hass.states.async_set(entity, state, attrs, force_update=force)
 
     @property
@@ -760,11 +771,17 @@ class Hilo:
             target_cost = self._hass.states.get(f"sensor.hilo_rate_{tarif}")
             if target_cost.state != current_cost.state:
                 LOG.debug(
-                    f"check_tarif: Updating current cost, was {current_cost.state} now {target_cost.state}"
+                    "check_tarif: Updating current cost, was %s now %s",
+                    current_cost.state,
+                    target_cost.state,
                 )
                 self.set_state("sensor.hilo_rate_current", target_cost.state)
             LOG.debug(
-                f"check_tarif: Current plan: {plan_name} Target Tarif: {tarif} Energy used: {energy_used.state} Peak: {self.high_times}"
+                "check_tarif: Current plan: %s Target Tarif: %s Energy used: %s Peak: %s",
+                plan_name,
+                tarif,
+                energy_used.state,
+                self.high_times,
             )
 
             # ic-dev21 : make sure the select for all meters still work by moving this here
@@ -773,10 +790,10 @@ class Hilo:
                 self.set_tarif(entity, state.state, tarif)
 
     def handle_unknown_power(self):
-        # ic-dev21 : new function that takes care of the unknown source meter
+        """Function that takes care of the unknown source meter."""
         known_power = 0
-        smart_meter = self.find_meter(self._hass)  # comes from find_meter function
-        LOG.debug(f"Smart meter used currently is: {smart_meter}")
+        smart_meter = self.find_meter(self._hass)
+        LOG.debug("Smart meter used currently is: %s", smart_meter)
         unknown_source_tracker = "sensor.unknown_source_tracker_power"
         for state in self._hass.states.async_all():
             entity = state.entity_id
@@ -820,18 +837,21 @@ class Hilo:
                 ]
             )
             LOG.debug(
-                f"Currently in use: Total: {total_power.state} Known sources: {known_power} Unknown sources: {unknown_power}"
+                "Currently in use: Total: %s Known sources: %s Unknown sources: %s",
+                total_power.state,
+                known_power,
+                unknown_power,
             )
 
     @callback
     def fix_utility_sensor(self, entity, state):
-        """not sure why this doesn't get created with a proper device_class"""
+        """Not sure why this doesn't get created with a proper device_class"""
         current_state = state.as_dict()
         attrs = current_state.get("attributes", {})
         if entity.startswith("select.") or entity.find("hilo_rate") > 0:
             return
         if not attrs.get("source"):
-            LOG.debug(f"No source entity defined on {entity}: {current_state}")
+            LOG.debug("No source entity defined on %s: %s", entity, current_state)
             return
 
         parent_unit_state = self._hass.states.get(attrs.get("source"))
@@ -860,7 +880,7 @@ class Hilo:
             return
         if entity.startswith("select.hilo_energy") and current != new:
             LOG.debug(
-                f"check_tarif: Changing tarif of {entity} from {current} to {new}"
+                "check_tarif: Changing tarif of %s from %s to %s", entity, current, new
             )
             context = Context()
             data = {ATTR_OPTION: new, "entity_id": entity}
@@ -875,7 +895,7 @@ class Hilo:
             and current != new
         ):
             LOG.debug(
-                f"check_tarif: Changing tarif of {entity} from {current} to {new}"
+                "check_tarif: Changing tarif of %s from %s to %s", entity, current, new
             )
             context = Context()
             data = {ATTR_OPTION: new, "entity_id": entity}
