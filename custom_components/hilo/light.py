@@ -40,7 +40,7 @@ class HiloLight(HiloEntity, LightEntity):
             immediate=True,
             function=self._async_debounced_turn_on,
         )
-        LOG.debug(f"Setting up Light entity: {self._attr_name}")
+        LOG.debug("Setting up Light entity: %s", self._attr_name)
 
     @property
     def brightness(self):

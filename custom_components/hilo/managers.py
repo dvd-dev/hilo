@@ -31,13 +31,13 @@ class UtilityManager:
 
     def add_meter_entity(self, entity, tariff_list):
         if entity in self.hass.data.get("utility_meter_data", {}):
-            LOG.debug(f"Entity {entity} is already in the utility meters")
+            LOG.debug("Entity %s is already in the utility meters", entity)
             return
         self.new_entities += 1
         for tarif in tariff_list:
             name = f"{entity}_{self.period}"
             meter_name = f"{name} {tarif}"
-            LOG.debug(f"Creating UtilityMeter entity for {entity}: {meter_name}")
+            LOG.debug("Creating UtilityMeter entity for %s : %s", entity, meter_name)
             self.meter_entities[meter_name] = {
                 "meter": entity,
                 "name": meter_name,
@@ -47,7 +47,10 @@ class UtilityManager:
     def add_meter_config(self, entity, tariff_list, net_consumption):
         name = f"{entity}_{self.period}"
         LOG.debug(
-            f"Creating UtilityMeter config: {name} {tariff_list} (Net Consumption: {net_consumption})"
+            "Creating UtilityMeter config: %s %s (Net Consumption: %s)",
+            name,
+            tariff_list,
+            net_consumption,
         )
         self.meter_configs[entity] = OrderedDict(
             {
@@ -65,7 +68,7 @@ class UtilityManager:
         )
 
     async def update(self, async_add_entities):
-        LOG.debug(f"Setting up UtilityMeter entities {UTILITY_DOMAIN}")
+        LOG.debug("Setting up UtilityMeter entities %s", UTILITY_DOMAIN)
         if self.new_entities == 0:
             LOG.debug("No new entities, not setting up again")
             return
@@ -124,14 +127,14 @@ class EnergyManager:
             "entity_energy_price": f"sensor.{rate}",
             "number_energy_price": None,
         }
-        LOG.debug(f"Adding {sensor} / {rate} to grid source")
+        LOG.debug("Adding %s / %s to grid source", sensor, rate)
         self.src[0]["flow_from"].append(flow)
 
     def add_device(self, sensor):
         sensor = f"sensor.{sensor}"
         if any(d["stat_consumption"] == sensor for d in self.dev):
             return
-        LOG.debug(f"Adding {sensor} to individual device consumption")
+        LOG.debug("Adding %s to individual device consumption", sensor)
         self.updated = True
         self.dev.append({"stat_consumption": sensor})
 
