@@ -25,6 +25,8 @@ Cette intégration non-officielle HACS permet d'utiliser [Hilo](https://www.hilo
 
 **⚠️ Ne contactez pas Hilo ou Hydro-Québec pour les problèmes liés à cette intégration.**
 
+**⚠️ Merci de faire vos automatisations et call d'API intelligemment, Hilo sait qu'on est là et nous laisse accès parce que l'on n'abuse pas, gardons ça comme ça.**
+
 🔗 [Configuration minimale recommandée](https://github.com/dvd-dev/hilo/wiki/FAQ-%E2%80%90-Français#avez-vous-une-configuration-recommandée)
 🔗 Blueprints : [NumerID](https://github.com/NumerID/blueprint_hilo) | [Arim215](https://github.com/arim215/ha-hilo-blueprints)
 🔗 Exemples d'automatisations YAML : [Automatisations](https://github.com/dvd-dev/hilo/tree/main/doc/automations)
@@ -216,3 +218,4 @@ logger:
 [English]: https://github.com/dvd-dev/hilo/blob/main/README.en.md
 [Françaisshield]: https://img.shields.io/badge/fr-Français-blue?style=for-the-badge
 [Français]: https://github.com/dvd-dev/hilo/blob/main/README.md
+

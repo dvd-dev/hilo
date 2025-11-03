@@ -25,6 +25,8 @@ This unofficial HACS integration allows you to use [Hilo](https://www.hiloenergi
 
 **⚠️ Do not contact Hilo or Hydro-Québec for issues related to this integration.**
 
+**⚠️ Please make your automations and API calls smartly — Hilo knows we’re here and lets us have access because we don’t abuse it, let’s keep it that way.**
+
 🔗 [Recommended minimum configuration](https://github.com/dvd-dev/hilo/wiki/FAQ-%E2%80%90-Français#avez-vous-une-configuration-recommandée)
 🔗 Blueprints: [NumerID](https://github.com/NumerID/blueprint_hilo) | [Arim215](https://github.com/arim215/ha-hilo-blueprints)
 🔗 YAML automation examples: [Automations](https://github.com/dvd-dev/hilo/tree/main/doc/automations)
