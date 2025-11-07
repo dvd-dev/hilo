@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 import asyncio
-from aiohttp import client_exceptions
 from collections import OrderedDict
 from datetime import datetime, timedelta
 import traceback
 from typing import TYPE_CHECKING, List, Optional
 
-from aiohttp import CookieJar
+from aiohttp import CookieJar, client_exceptions
 from homeassistant.components.select import (
     ATTR_OPTION,
     DOMAIN as SELECT_DOMAIN,
@@ -150,7 +149,7 @@ async def async_setup_entry(  # noqa: C901
             log_traces=current_options.get(CONF_LOG_TRACES, DEFAULT_LOG_TRACES),
         )
 
-    except (TimeoutError,client_exceptions.ClientConnectorError):
+    except (TimeoutError, client_exceptions.ClientConnectorError):
         LOG.debug("Timeout")
         raise ConfigEntryNotReady
 
