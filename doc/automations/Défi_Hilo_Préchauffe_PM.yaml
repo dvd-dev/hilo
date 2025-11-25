@@ -6,12 +6,13 @@ triggers:
       - sensor.defi_hilo
     to: pre_heat
     trigger: state
-  - at: "15:00:00"
+    from: appreciation
+  - at: "14:00:00"
     trigger: time
 conditions:
   - condition: time
-    before: "15:05:00"
-    after: "14:55:00"
+    before: "14:05:00"
+    after: "13:55:00"
   - condition: or
     conditions:
       - condition: state
