@@ -1,5 +1,7 @@
 alias: Défi Hilo Recovery AM
-description: "Permet de gérer la période de reprise AM/Manages the AM recovery phase of a Hilo Challenge"
+description: >-
+  Permet de gérer la période de reprise AM/Manages the AM recovery phase of a
+  Hilo Challenge
 mode: single
 triggers:
   - entity_id:
@@ -13,6 +15,16 @@ conditions:
   - condition: time
     before: "10:05:00"
     after: "09:55:00"
+  - condition: or
+    conditions:
+      - condition: state
+        entity_id: sensor.defi_hilo
+        state:
+          - reduction
+      - condition: state
+        entity_id: sensor.defi_hilo
+        state:
+          - recovery
 actions:
   - data:
       temperature: 18
