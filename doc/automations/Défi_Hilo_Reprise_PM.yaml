@@ -13,6 +13,16 @@ conditions:
   - condition: time
     before: "20:05:00"
     after: "19:55:00"
+  - condition: or
+    conditions:
+      - condition: state
+        entity_id: sensor.defi_hilo
+        state:
+          - reduction
+      - condition: state
+        entity_id: sensor.defi_hilo
+        state:
+          - recovery
 actions:
   - data:
       temperature: 18
