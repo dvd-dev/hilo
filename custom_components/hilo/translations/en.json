@@ -42,7 +42,7 @@
           "log_traces": "Requires debug log level on both the integration and pyhilo",
           "challenge_lock": "Prevents any changes when a challenge is in progress",
           "track_unknown_sources": "This is a round approximation calculated when we get a reading from the Smart Energy Meter",
-          "appreciation_phase": "Add an appreciation phase of X hours before the preheat phase. Hilo uses 3 hours for AM events, 2 for PM events, adjust your automations accordingly",
+          "appreciation_phase": "Add an appreciation phase of X hours before the preheat phase. Hilo uses 3 hours for AM events, 2 for PM events, chose a value you would like to automatically add and adjust your automations accordingly.",
           "pre_cold_phase": "Add a cooldown phase of X hours to reduce temperatures before the appreciation phase"
         }
       }
