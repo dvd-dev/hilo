@@ -33,7 +33,7 @@
           "log_traces": "Enregistrer aussi les requêtes et messages websocket (requiert le niveau de journalisation debug sur L'intégration et pyhilo)",
           "challenge_lock": "Vérouiller les entités climate lors de défis Hilo, empêchant tout changement lorsqu'un défi est en cours.",
           "track_unknown_sources": "Suivre des sources de consommation inconnues dans un compteur séparé. Ceci est une approximation calculée à partir de la lecture du compteur intelligent.",
-          "appreciation_phase": "Ajouter une période d'ancrage de X heures avant la phase de préchauffage.",
+          "appreciation_phase": "Ajouter une période d'ancrage de X heures avant la phase de préchauffage. Hilo utilises 3 heures pour les événements AM, 2 pour les événements PM, ajustez vos automatisations en conséquence.",
           "pre_cold_phase": "Ajouter une période de refroidissement de X heures avant la phase d'ancrage."
         }
       }
