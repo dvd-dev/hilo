@@ -926,7 +926,7 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
         LOG.debug("handle_challenge_details_update progress is %s", progress)
         LOG.debug("handle_challenge_details_update baselineWh is %s", baselinewH)
         LOG.debug("handle_challenge_details_update used_kwh is %s", used_kWh)
-        LOG.debug("handle_challenge_details_update progress is %s", progress)
+
         if event_id in self._events:
             if challenge.get("progress") == "completed":
                 # ajout d'un asyncio sleep ici pour avoir l'état completed avant le retrait du challenge
