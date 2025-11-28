@@ -52,7 +52,7 @@ CONF_TARIFF = {
         "medium": 0.10652,
         "high": 0,
         "access": 0.46154,
-        "reward_rate": 0.56785,
+        "reward_rate": 0.56786,
     },
     "flex d": {
         "low_threshold": 40,
