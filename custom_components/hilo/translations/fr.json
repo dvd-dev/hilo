@@ -43,7 +43,7 @@
           "log_traces": "Requiert le niveau de journalisation debug sur l'intégration et pyhilo",
           "challenge_lock": "Empêche tout changement lorsqu'un défi est en cours",
           "track_unknown_sources": "Ceci est une approximation calculée à partir de la lecture du compteur intelligent",
-          "appreciation_phase": "Ajouter une période d'ancrage de X heures avant la phase de préchauffage. Hilo utilise 3 heures pour les événements AM, 2 heures pour les événements PM, ajustez vos automatisations en conséquence.",
+          "appreciation_phase": "Ajouter une période d'ancrage de X heures avant la phase de préchauffage. Hilo utilise 3 heures pour les événements AM, 2 heures pour les événements PM, choisissez une valeur qui vous convient et ajustez vos automatisations en conséquence.",
           "pre_cold_phase": "Ajouter une période de refroidissement de X heures avant la phase d'ancrage"
         }
       }
