@@ -17,8 +17,8 @@
     "abort": {
       "already_configured": "This Hilo account is already in use.",
       "reauth_successful": "Re-authentication successful",
-      "user_rejected_authorize" : "Account linking rejected",
-      "single_instance_allowed" : "Already configured. Only a single configuration is possible."
+      "user_rejected_authorize": "Account linking rejected",
+      "single_instance_allowed": "Already configured. Only a single configuration is possible."
     }
   },
   "options": {
@@ -28,13 +28,22 @@
         "data": {
           "generate_energy_meters": "Generate energy meters",
           "untarificated_devices": "Generate only total meters for each devices",
-          "hq_plan_name": "Hydro Quebec rate plan name ('rate d' or 'flex d')",
-          "scan_interval": "Scan interval (min: 60s)",
-          "log_traces": "Also log request data and websocket messages (requires debug log level on both the integration and pyhilo)",
-          "challenge_lock": "Lock climate entities during Hilo challenges, preventing any changes when a challenge is in progress.",
-          "track_unknown_sources": "Track unknown power sources in a separate energy sensor. This is a round approximation calculated when we get a reading from the Smart Energy Meter.",
-          "appreciation_phase": "Add an appreciation phase of X hours before the preheat phase.",
-          "pre_cold_phase": "Add a cooldown phase of X hours to reduce temperatures before the appreciation phase."
+          "hq_plan_name": "Hydro Quebec rate plan name",
+          "scan_interval": "Scan interval (seconds)",
+          "log_traces": "Log request data and websocket messages",
+          "challenge_lock": "Lock climate entities during challenges",
+          "track_unknown_sources": "Track unknown power sources",
+          "appreciation_phase": "Appreciation phase (hours)",
+          "pre_cold_phase": "Cooldown phase (hours)"
+        },
+        "data_description": {
+          "hq_plan_name": "Select 'rate d' or 'flex d'",
+          "scan_interval": "Minimum: 60 seconds",
+          "log_traces": "Requires debug log level on both the integration and pyhilo",
+          "challenge_lock": "Prevents any changes when a challenge is in progress",
+          "track_unknown_sources": "This is a round approximation calculated when we get a reading from the Smart Energy Meter",
+          "appreciation_phase": "Add an appreciation phase of X hours before the preheat phase. Hilo uses 3 hours for AM events, 2 for PM events, adjust your automations accordingly",
+          "pre_cold_phase": "Add a cooldown phase of X hours to reduce temperatures before the appreciation phase"
         }
       }
     }
