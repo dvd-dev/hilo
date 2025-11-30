@@ -917,15 +917,24 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
             event_id = self._next_events[0]["event_id"]
 
         progress = challenge.get("progress", "unknown")
-        baselinewH = challenge.get("baselineWh", 0)
+
+        baseline_points = challenge.get("cumulativeBaselinePoints", [])
+        if baseline_points:
+            baselinewH = baseline_points[-1].["wh"]
+            allowed_kwh = baselinewH / 1000 if baselinewH > 0 else 0
+        else:
+            baselinewH = challenge.get("baselineWh", 0)
+
         used_wH = challenge.get("currentWh", 0)
         if used_wH is not None and used_wH > 0:
             used_kWh = used_wH / 1000
         else:
             used_kWh = 0
+
         LOG.debug("handle_challenge_details_update progress is %s", progress)
         LOG.debug("handle_challenge_details_update baselineWh is %s", baselinewH)
         LOG.debug("handle_challenge_details_update used_kwh is %s", used_kWh)
+        LOG.debug("handle_challenge_details_update allowed_kwh is %s", allowed_kwh)
 
         if event_id in self._events:
             if challenge.get("progress") == "completed":
