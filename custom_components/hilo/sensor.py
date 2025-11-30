@@ -919,11 +919,15 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
         progress = challenge.get("progress", "unknown")
 
         baseline_points = challenge.get("cumulativeBaselinePoints", [])
+
+        if not baseline_points:
+            consumption = challenge.get("consumption", {})
+            baseline_points = consumption.get("cumulativeBaselinePoints", [])
         if baseline_points:
             baselinewH = baseline_points[-1]["wh"]
-            allowed_kwh = baselinewH / 1000 if baselinewH > 0 else 0
         else:
             baselinewH = challenge.get("baselineWh", 0)
+        allowed_kwh = baselinewH / 1000 if baselinewH > 0 else 0
 
         used_wH = challenge.get("currentWh", 0)
         if used_wH is not None and used_wH > 0:
