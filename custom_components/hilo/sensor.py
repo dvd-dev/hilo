@@ -958,6 +958,8 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
                     updated_event.appreciation(self._hilo.appreciation)
                 if self._hilo.pre_cold > 0:
                     updated_event.pre_cold(self._hilo.pre_cold)
+                if baselinewH > 0:
+                    updated_event.update_allowed_wh(baselinewH)
                 self._events[event_id] = updated_event
             self._update_next_events()
 
