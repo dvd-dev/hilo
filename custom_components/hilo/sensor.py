@@ -920,7 +920,7 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
 
         baseline_points = challenge.get("cumulativeBaselinePoints", [])
         if baseline_points:
-            baselinewH = baseline_points[-1].["wh"]
+            baselinewH = baseline_points[-1]["wh"]
             allowed_kwh = baselinewH / 1000 if baselinewH > 0 else 0
         else:
             baselinewH = challenge.get("baselineWh", 0)
