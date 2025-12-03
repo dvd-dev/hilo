@@ -302,6 +302,10 @@ class Hilo:
             msg_type = "challenge_details_update"
         elif target == "ChallengeListUpdatedValuesReceived":
             msg_type = "challenge_details_update"
+        elif target == "EventCHDetailsUpdatedValuesReceived":
+            LOG.debug("EventCHDetailsUpdatedValuesReceived message received")
+        elif target == "EventFlexDetailsUpdatedValuesReceived":
+            LOG.debug("EventFlexDetailsUpdatedValuesReceived message received")
 
         # ic-dev21 Notify listeners
         for listener in self._websocket_listeners:
