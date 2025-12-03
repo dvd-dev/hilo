@@ -200,9 +200,22 @@ async def async_setup_entry(
 
     hilo_rate_current = HiloCostSensor(hilo, "Hilo rate current", hq_plan_name)
     cost_entities.append(hilo_rate_current)
+
+    # Create hilo_rate_current_total sensor that includes access rate per hour
+    access_rate = tariff_config.get("access", 0)
+    hilo_rate_current_total = HiloCostSensorTotal(
+        hilo, "Hilo rate current total", hq_plan_name, access_rate
+    )
+    cost_entities.append(hilo_rate_current_total)
+
     async_add_entities(cost_entities)
     async_track_state_change_event(
         hilo._hass, ["sensor.hilo_rate_current"], hilo_rate_current._handle_state_change
+    )
+    async_track_state_change_event(
+        hilo._hass,
+        ["sensor.hilo_rate_current"],
+        hilo_rate_current_total._handle_state_change,
     )
     # This setups the utility_meter platform
     await utility_manager.update(async_add_entities)
@@ -1229,6 +1242,101 @@ class HiloCostSensor(HiloEntity, SensorEntity):
     async def async_update(self):
         """Update the state."""
         self._last_update = dt_util.utcnow()
+
+
+class HiloCostSensorTotal(HiloEntity, SensorEntity):
+    """This sensor generates the total cost entity including access rate per hour"""
+
+    _attr_device_class = SensorDeviceClass.MONETARY
+    _attr_native_unit_of_measurement = (
+        f"{CURRENCY_DOLLAR}/{UnitOfEnergy.KILO_WATT_HOUR}"
+    )
+    _attr_state_class = SensorStateClass.TOTAL
+    _attr_icon = "mdi:cash"
+
+    def __init__(self, hilo, name, plan_name, access_rate=0):
+        for d in hilo.devices.all:
+            if d.type == "Gateway":
+                device = d
+        self.data = None
+        self._attr_name = name
+        self.plan_name = plan_name
+        self._last_update = dt_util.utcnow()
+        self._current_rate = 0
+        self._access_rate_per_hour = (
+            access_rate / 24
+        )  # Convert daily access rate to hourly
+        self._total_cost = 0
+        old_unique_id = slugify(self._attr_name)
+        self._attr_unique_id = (
+            f"{slugify(device.identifier)}-{slugify(self._attr_name)}"
+        )
+        hilo.async_migrate_unique_id(
+            old_unique_id, self._attr_unique_id, Platform.SENSOR
+        )
+        self._last_update = dt_util.utcnow()
+        super().__init__(hilo, name=self._attr_name, device=device)
+        LOG.info(
+            f"Initializing total energy cost sensor {name} {plan_name} "
+            f"Access rate per hour: {self._access_rate_per_hour}"
+        )
+
+    def _handle_state_change(self, event):
+        LOG.debug("_handle_state_change() %s | %s ", self, self._last_update)
+        if (state := event.data.get("new_state")) is None:
+            return
+
+        now = dt_util.utcnow()
+        try:
+            if (
+                state.attributes.get("hilo_update")
+                and self._last_update + timedelta(seconds=30) < now
+            ):
+                LOG.debug(
+                    "Setting new state %s state=%s state.attributes=%s",
+                    state.state,
+                    state,
+                    state.attributes,
+                )
+                # Get the current rate from hilo_rate_current
+                try:
+                    self._current_rate = float(state.state)
+                except (ValueError, TypeError):
+                    self._current_rate = 0
+
+                # Calculate total cost: current rate + access rate per hour
+                self._total_cost = self._current_rate + self._access_rate_per_hour
+                self._last_update = now
+                self.async_write_ha_state()
+        except ValueError:
+            LOG.error(f"Invalid state received for {self._attr_unique_id}: {state}")
+
+    @property
+    def state(self):
+        return self._total_cost
+
+    @property
+    def should_poll(self) -> bool:
+        return False
+
+    @property
+    def extra_state_attributes(self):
+        return {
+            "Current Rate": self._current_rate,
+            "Access Rate Per Hour": self._access_rate_per_hour,
+            "Total Cost": self._total_cost,
+            "Plan": self.plan_name,
+            "last_update": self._last_update,
+        }
+
+    async def async_added_to_hass(self):
+        """Handle entity about to be added to hass event."""
+        await super().async_added_to_hass()
+
+    async def async_update(self):
+        self._last_update = dt_util.utcnow()
+        return super().async_update()
+
         return super().async_update()
 
 
