@@ -1162,6 +1162,9 @@ class HiloCostSensor(HiloEntity, SensorEntity):
         if "low_threshold" in name:
             self._attr_device_class = SensorDeviceClass.ENERGY
             self._attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+        elif "access" in name.lower():
+            # Access fee is a fixed daily cost, not per kWh
+            self._attr_native_unit_of_measurement = f"{CURRENCY_DOLLAR}/day"
         self.data = None
         self._attr_name = name
         self.plan_name = plan_name
