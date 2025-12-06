@@ -39,7 +39,12 @@ from pyhilo import API
 from pyhilo.device import HiloDevice
 from pyhilo.devices import Devices
 from pyhilo.event import Event
-from pyhilo.exceptions import HiloError, InvalidCredentialsError, WebsocketError
+from pyhilo.exceptions import (
+    CannotConnectError,
+    HiloError,
+    InvalidCredentialsError,
+    WebsocketError,
+)
 from pyhilo.graphql import GraphQlHelper
 from pyhilo.util import from_utc_timestamp, time_diff
 from pyhilo.websocket import WebsocketEvent
@@ -196,10 +201,39 @@ async def async_setup_entry(  # noqa: C901
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a Hilo config entry."""
-    LOG.debug("Unloading entry")
+    LOG.debug("Unloading Hilo Integration")
+
+    hilo = hass.data[DOMAIN][entry.entry_id]
+
+    hilo.should_websocket_reconnect = False
+
+    for task in list(hilo._websocket_reconnect_tasks):
+        if not task.done():
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
+
+    try:
+        if hasattr(hilo, "_devicehub_ws") and hilo._devicehub_ws:
+            await hilo._devicehub_ws.async_disconnect()
+        if hasattr(hilo, "_challengehub_ws") and hilo._challengehub_ws:
+            await hilo._challengehub_ws.async_disconnect()
+    except Exception as err:
+        LOG.error(f"Error disconnecting websockets: {err}")
+
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
-        LOG.debug("Entry unloaded")
+        try:
+            if hasattr(hilo, "_api") and hilo._api and hasattr(hilo._api, "session"):
+                if hilo._api.session and not hilo._api.session.closed:
+                    await hilo._api.session.close()
+                    LOG.debug("Session closed")
+        except Exception as err:
+            LOG.error(f"Error closing session: {err}")
+
+        LOG.debug("Hilo Integration unloaded")
         hass.data[DOMAIN].pop(entry.entry_id)
 
     return unload_ok
@@ -236,6 +270,7 @@ class Hilo:
         self.devices: Devices = Devices(api)
         self.graphql_helper: GraphQlHelper = GraphQlHelper(api, self.devices)
         self.challenge_id = 0
+        self._should_websocket_reconnect = True
         self._websocket_reconnect_tasks: list[asyncio.Task | None] = [None, None]
         self._update_task: list[asyncio.Task | None] = [None, None]
         self.subscriptions: List[Optional[asyncio.Task]] = [None]
@@ -659,6 +694,13 @@ class Hilo:
         except asyncio.CancelledError:
             LOG.debug("Request to cancel websocket loop received")
             raise
+        except CannotConnectError as err:
+            if "Session is closed" in str(err):
+                LOG.warning(
+                    "Session is closed, Home Assistant is probably shutting down"
+                )
+                self.should_websocket_reconnect = False
+                return
         except WebsocketError as err:
             LOG.error(f"Failed to connect to websocket: {err}", exc_info=err)
             await self.cancel_websocket_loop(websocket, id)
@@ -708,7 +750,12 @@ class Hilo:
         """Determine if a websocket should reconnect when the connection is lost.
 
         Currently only used to disable websockets in the unit tests."""
-        return True
+        return self._should_websocket_reconnect
+
+    @should_websocket_reconnect.setter
+    def should_websocket_reconnect(self, value: bool) -> None:
+        """Set if websocket should reconnect on disconnection."""
+        self._should_websocket_reconnect = value
 
     async def async_update(self) -> None:
         """Updates tarif periodically."""
