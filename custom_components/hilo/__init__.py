@@ -302,12 +302,22 @@ class Hilo:
             msg_type = "challenge_details_update"
         elif target == "ChallengeListUpdatedValuesReceived":
             msg_type = "challenge_details_update"
+        elif target == "EventCHConsumptionUpdatedValuesReceived":
+            LOG.debug("%s message received", target)
+            LOG.debug("%s data: %s", target, msg_data)
+            return
         elif target == "EventCHDetailsUpdatedValuesReceived":
-            LOG.debug("EventCHDetailsUpdatedValuesReceived message received")
+            LOG.debug("%s message received", target)
+            LOG.debug("%s data: %s", target, msg_data)
+            return
         elif target == "EventFlexDetailsUpdatedValuesReceived":
-            LOG.debug("EventFlexDetailsUpdatedValuesReceived message received")
+            LOG.debug("%s message received", target)
+            LOG.debug("%s data: %s", target, msg_data)
+            return
         elif target == "EventListUpdatedValuesReceived":
-            LOG.debug("EventListUpdatedValuesReceived message received")
+            LOG.debug("%s message received", target)
+            LOG.debug("%s data: %s", target, msg_data)
+            return
 
         # ic-dev21 Notify listeners
         for listener in self._websocket_listeners:
@@ -441,6 +451,9 @@ class Hilo:
 
         elif "Challenge" in event.target:
             await self._handle_challenge_events(event)
+            await self._handle_websocket_message(event)
+
+        elif "Event" in event.target:
             await self._handle_websocket_message(event)
 
         elif "Device" in event.target or event.target == "GatewayValuesReceived":

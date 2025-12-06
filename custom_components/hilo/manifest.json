@@ -12,5 +12,5 @@
   "iot_class": "cloud_push",
   "issue_tracker": "https://github.com/dvd-dev/hilo/issues",
   "requirements": ["python-hilo>=2025.12.1"],
-  "version": "2025.12.1"
+  "version": "2025.12.2"
 }
