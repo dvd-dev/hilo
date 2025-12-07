@@ -44,6 +44,9 @@ conditions:
       - condition: state
         entity_id: sensor.defi_hilo
         state: scheduled
+      - condition: state
+        entity_id: sensor.defi_hilo
+        state: pre_cold        
   - condition: time
     after: "11:55:00"
     before: "12:05:00"
