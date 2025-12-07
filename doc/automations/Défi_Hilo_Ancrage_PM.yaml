@@ -26,6 +26,18 @@ triggers:
       hours: 1
       minutes: 0
       seconds: 0
+  - entity_id:
+      - sensor.defi_hilo
+    to: 
+      - appreciation
+    trigger: state
+    id: Sensor
+    from:
+      - pre_cold
+    for:
+      hours: 1
+      minutes: 0
+      seconds: 0
 conditions:
   - condition: and
     conditions:
