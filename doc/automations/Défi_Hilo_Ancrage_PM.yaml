@@ -26,6 +26,18 @@ triggers:
       hours: 1
       minutes: 0
       seconds: 0
+  - entity_id:
+      - sensor.defi_hilo
+    to:
+      - appreciation
+    trigger: state
+    id: Sensor
+    from:
+      - pre_cold
+    for:
+      hours: 1
+      minutes: 0
+      seconds: 0
 conditions:
   - condition: and
     conditions:
@@ -44,6 +56,9 @@ conditions:
       - condition: state
         entity_id: sensor.defi_hilo
         state: scheduled
+      - condition: state
+        entity_id: sensor.defi_hilo
+        state: pre_cold
   - condition: time
     after: "11:55:00"
     before: "12:05:00"
