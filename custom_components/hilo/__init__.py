@@ -342,9 +342,7 @@ class Hilo:
             LOG.debug("%s data: %s", target, msg_data)
             return
         elif target == "EventCHDetailsUpdatedValuesReceived":
-            LOG.debug("%s message received", target)
-            LOG.debug("%s data: %s", target, msg_data)
-            return
+            msg_type = "challenge_details_update"
         elif target == "EventFlexDetailsUpdatedValuesReceived":
             LOG.debug("%s message received", target)
             LOG.debug("%s data: %s", target, msg_data)
