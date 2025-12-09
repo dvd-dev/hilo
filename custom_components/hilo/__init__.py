@@ -549,16 +549,40 @@ class Hilo:
     ) -> None:
         """Sends the json payload to receive energy consumption updates from the challenge."""
         event_id = event_id or self.challenge_id
-        LOG.debug(
-            "Requesting challenge %s consumption update at location %s",
-            event_id,
-            self.devices.location_id,
-        )
-        await self._api.websocket_challenges.async_invoke(
-            [{"locationId": self.devices.location_id, "eventId": event_id}],
-            "RequestChallengeConsumptionUpdate",
-            inv_id,
-        )
+
+        # Get plan name to request the correct consumtion update
+        tarif_config = self.hq_plan_name
+        if tarif_config == "rate d":
+            LOG.debug(
+                "Requesting event CH consumption update at location %s",
+                self.devices.location_id,
+            )
+            await self._api.websocket_challenges.async_invoke(
+                [{"locationId": self.devices.location_id, "eventId": event_id}],
+                "RequestEventCHConsumptionUpdate",
+                inv_id,
+            )
+        elif tarif_config == "flex d":
+            LOG.debug(
+                "Requesting event Flex consumption update at location %s",
+                self.devices.location_id,
+            )
+            await self._api.websocket_challenges.async_invoke(
+                [{"locationId": self.devices.location_id, "eventId": event_id}],
+                "RequestEventFlexConsumptionUpdate",
+                inv_id,
+            )
+        else:
+            LOG.debug(
+                "Requesting challenge %s consumption update at location %s",
+                event_id,
+                self.devices.location_id,
+            )
+            await self._api.websocket_challenges.async_invoke(
+                [{"locationId": self.devices.location_id, "eventId": event_id}],
+                "RequestChallengeConsumptionUpdate",
+                inv_id,
+            )
 
     @callback
     async def request_status_update(self) -> None:
