@@ -478,11 +478,8 @@ class Hilo:
         elif event.target == "Heartbeat":
             self.validate_heartbeat(event)
 
-        elif "Challenge" in event.target:
+        elif "Challenge" in event.target or "Event" in event.target:
             await self._handle_challenge_events(event)
-            await self._handle_websocket_message(event)
-
-        elif "Event" in event.target:
             await self._handle_websocket_message(event)
 
         elif "Device" in event.target or event.target == "GatewayValuesReceived":
