@@ -542,12 +542,13 @@ class Hilo:
     @callback
     async def subscribe_to_challengelist(self, inv_id: int) -> None:
         """Sends the json payload to receive updates from the challenge list."""
+        # TODO : Rename challegenge functions to Event
         LOG.debug(
-            "Subscribing to challenge list at location %s", self.devices.location_id
+            "Subscribing to event list at location %s", self.devices.location_id
         )
         await self._api.websocket_challenges.async_invoke(
             [{"locationId": self.devices.location_id}],
-            "SubscribeToChallengeList",
+            "SubscribeToEventList",
             inv_id,
         )
 
