@@ -323,30 +323,34 @@ class Hilo:
         msg_data = event
         LOG.debug("handle_websocket_message_ msg_data %s", msg_data)
 
-        if target == "ChallengeListInitialValuesReceived":
+        if target in [
+            "ChallengeListInitialValuesReceived",
+            "EventListInitialValuesReceived",
+        ]:
             msg_type = "challenge_list_initial"
-        elif target == "ChallengeAdded":
+        elif target in ["ChallengeAdded", "EventAdded"]:
             msg_type = "challenge_added"
         elif target == "ChallengeDetailsUpdated":
             msg_type = "challenge_details_update"
         elif target == "ChallengeConsumptionUpdatedValuesReceived":
             msg_type = "challenge_details_update"
-        elif target == "ChallengeDetailsUpdatedValuesReceived":
+        elif target in [
+            "ChallengeDetailsUpdatedValuesReceived",
+            "EventCHDetailsUpdatedValuesReceived",
+            "EventFlexDetailsUpdatedValuesReceived",
+        ]:
             msg_type = "challenge_details_update"
         elif target == "ChallengeDetailsInitialValuesReceived":
             msg_type = "challenge_details_update"
-        elif target == "ChallengeListUpdatedValuesReceived":
+        elif target in [
+            "ChallengeListUpdatedValuesReceived",
+            "EventListUpdatedValuesReceived",
+        ]:
             msg_type = "challenge_details_update"
         elif target == "EventCHConsumptionUpdatedValuesReceived":
             LOG.debug("%s message received", target)
             LOG.debug("%s data: %s", target, msg_data)
             return
-        elif target == "EventCHDetailsUpdatedValuesReceived":
-            msg_type = "challenge_details_update"
-        elif target == "EventFlexDetailsUpdatedValuesReceived":
-            msg_type = "challenge_details_update"
-        elif target == "EventListUpdatedValuesReceived":
-            msg_type = "challenge_details_update"
 
         # ic-dev21 Notify listeners
         for listener in self._websocket_listeners:
