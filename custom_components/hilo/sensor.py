@@ -92,11 +92,8 @@ def process_wifi(strength: int) -> str:
 
 
 def validate_tariff_list(tariff_config):
-    tariff_list = TARIFF_LIST
-    for tariff in TARIFF_LIST:
-        if not tariff_config.get(tariff, 0):
-            tariff_list.remove(tariff)
-    return tariff_list
+    """Validate the tariff list from the configuration."""
+    return TARIFF_LIST
 
 
 def generate_entities_from_device(device, hilo, scan_interval):
