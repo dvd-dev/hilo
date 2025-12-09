@@ -1019,7 +1019,7 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
             if event.should_check_for_allowed_wh():
                 LOG.debug("ASYNC UPDATE SUB: EVENT: %s", event_id)
                 await self._hilo.subscribe_to_challenge(1, event_id)
-                await self._hilo.request_challenge_details_update(1, event_id)
+                await self._hilo.request_challenge_consumption_update(1, event_id)
             elif self.state == "reduction":
                 LOG.debug("ASYNC UPDATE: EVENT: %s", event_id)
                 await self._hilo.request_challenge_consumption_update(1, event_id)
