@@ -505,16 +505,31 @@ class Hilo:
         LOG.debug("Subscribing to challenge : %s or %s", event_id, self.challenge_id)
         event_id = event_id or self.challenge_id
 
-        LOG.debug(
-            "Subscribing to challenge %s at location %s",
-            event_id,
-            self.devices.location_id,
-        )
-        await self._api.websocket_challenges.async_invoke(
-            [{"locationId": self.devices.location_id, "eventId": event_id}],
-            "SubscribeToChallenge",
-            inv_id,
-        )
+        # Get plan name to connect to the correct challenge hub list
+        tarif_config = self.hq_plan_name
+        LOG.debug("Event list needed is %s", tarif_config)
+
+        # Subscribe to the correct challenge hub
+        if tarif_config == "rate d":
+            await self._api.websocket_challenges.async_invoke(
+                [{"locationId": self.devices.location_id, "eventId": event_id}],
+                "SubscribeToEventCH",
+                inv_id,
+            )
+
+        elif tarif_config == "flex d":
+            await self._api.websocket_challenges.async_invoke(
+                [{"locationId": self.devices.location_id, "eventId": event_id}],
+                "SubscribeToEventFlex",
+                inv_id,
+            )
+        else:
+            LOG.warning("Unknown plan name %s, falling back to default", tarif_config)
+            await self._api.websocket_challenges.async_invoke(
+                [{"locationId": self.devices.location_id, "eventId": event_id}],
+                "SubscribeToChallenge",
+                inv_id,
+            )
 
     @callback
     async def subscribe_to_challengelist(self, inv_id: int) -> None:
