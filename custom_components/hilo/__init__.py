@@ -317,6 +317,7 @@ class Hilo:
     async def _handle_websocket_message(self, event):
         """Process websocket messages and notify listeners."""
 
+        # TODO: ic-dev21: This needs to be cleaned up and optimized
         LOG.debug("Received websocket message type: %s", event)
         target = event.target
         LOG.debug("handle_websocket_message_target %s", target)
