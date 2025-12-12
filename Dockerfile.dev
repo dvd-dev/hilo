@@ -36,6 +36,7 @@ RUN \
         libxml2 \
         git \
         cmake \
+        tmux \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

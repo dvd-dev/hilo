@@ -24,7 +24,7 @@
         "charliermarsh.ruff",
         "ms-python.pylint",
         "ms-python.vscode-pylance",
-        "visualstudioexptteam.vscodeintellicode",
+        "github.copilot-chat",
         "redhat.vscode-yaml",
         "esbenp.prettier-vscode",
         "github.vscode-pull-request-github",
