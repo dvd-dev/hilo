@@ -518,6 +518,15 @@ class Hilo:
         tarif_config = self.hq_plan_name
         LOG.debug("Event list needed is %s", tarif_config)
 
+        # TODO: This is a fallback but will eventually need to be removed, I expect it to create
+        # websocket disconnects once the split is complete.
+        LOG.warning("Not using plan name %s, falling back to default", tarif_config)
+        await self._api.websocket_challenges.async_invoke(
+            [{"locationId": self.devices.location_id, "eventId": event_id}],
+            "SubscribeToChallenge",
+            inv_id,
+        )
+
         # Subscribe to the correct challenge hub
         if tarif_config == "rate d":
             await self._api.websocket_challenges.async_invoke(
@@ -543,10 +552,17 @@ class Hilo:
     @callback
     async def subscribe_to_challengelist(self, inv_id: int) -> None:
         """Sends the json payload to receive updates from the challenge list."""
-        # TODO : Rename challegenge functions to Event
+        # TODO : Rename challegenge functions to Event, fallback on challenge for now
         LOG.debug(
-            "Subscribing to event list at location %s", self.devices.location_id
+            "Subscribing to challenge list at location %s", self.devices.location_id
         )
+        await self._api.websocket_challenges.async_invoke(
+            [{"locationId": self.devices.location_id}],
+            "SubscribeToChallengeList",
+            inv_id,
+        )
+
+        LOG.debug("Subscribing to event list at location %s", self.devices.location_id)
         await self._api.websocket_challenges.async_invoke(
             [{"locationId": self.devices.location_id}],
             "SubscribeToEventList",
