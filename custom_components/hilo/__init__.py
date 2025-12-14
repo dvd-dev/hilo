@@ -513,7 +513,8 @@ class Hilo:
         """Sends the json payload to receive updates from the challenge."""
         LOG.debug("Subscribing to challenge : %s or %s", event_id, self.challenge_id)
         event_id = event_id or self.challenge_id
-
+        urn = self._api.urn
+        LOG.debug("API URN is %s", urn)
         # Get plan name to connect to the correct challenge hub list
         tarif_config = self.hq_plan_name
         LOG.debug("Event list needed is %s", tarif_config)
@@ -530,14 +531,14 @@ class Hilo:
         # Subscribe to the correct challenge hub
         if tarif_config == "rate d":
             await self._api.websocket_challenges.async_invoke(
-                [{"locationId": self.devices.location_id, "eventId": event_id}],
+                [{"locationHiloId": urn, "eventId": event_id}],
                 "SubscribeToEventCH",
                 inv_id,
             )
 
         elif tarif_config == "flex d":
             await self._api.websocket_challenges.async_invoke(
-                [{"locationId": self.devices.location_id, "eventId": event_id}],
+                [{"locationHiloId": urn, "eventId": event_id}],
                 "SubscribeToEventFlex",
                 inv_id,
             )
@@ -556,6 +557,9 @@ class Hilo:
         LOG.debug(
             "Subscribing to challenge list at location %s", self.devices.location_id
         )
+        urn = self._api.urn
+        LOG.debug("API URN is %s", urn)
+
         await self._api.websocket_challenges.async_invoke(
             [{"locationId": self.devices.location_id}],
             "SubscribeToChallengeList",
@@ -564,7 +568,7 @@ class Hilo:
 
         LOG.debug("Subscribing to event list at location %s", self.devices.location_id)
         await self._api.websocket_challenges.async_invoke(
-            [{"locationId": self.devices.location_id}],
+            [{"locationHiloId": urn}],
             "SubscribeToEventList",
             inv_id,
         )
@@ -590,13 +594,15 @@ class Hilo:
 
         # Get plan name to request the correct consumption update
         tarif_config = self.hq_plan_name
+        urn = self._api.urn
+        LOG.debug("API URN is %s", urn)
         if tarif_config == "rate d":
             LOG.debug(
                 "Requesting event CH consumption update at location %s",
                 self.devices.location_id,
             )
             await self._api.websocket_challenges.async_invoke(
-                [{"locationId": self.devices.location_id, "eventId": event_id}],
+                [{"locationHiloId": urn, "eventId": event_id}],
                 "RequestEventCHConsumptionUpdate",
                 inv_id,
             )
@@ -606,7 +612,7 @@ class Hilo:
                 self.devices.location_id,
             )
             await self._api.websocket_challenges.async_invoke(
-                [{"locationId": self.devices.location_id, "eventId": event_id}],
+                [{"locationHiloId": urn, "eventId": event_id}],
                 "RequestEventFlexConsumptionUpdate",
                 inv_id,
             )
