@@ -588,7 +588,7 @@ class Hilo:
             inv_id,
         )
 
-        # Get plan name to request the correct consumtion update
+        # Get plan name to request the correct consumption update
         tarif_config = self.hq_plan_name
         if tarif_config == "rate d":
             LOG.debug(
