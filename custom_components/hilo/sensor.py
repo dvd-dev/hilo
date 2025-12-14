@@ -947,6 +947,8 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
             elif used_wH is not None and used_wH > 0:
                 current_event = self._events[event_id]
                 current_event.update_wh(used_wH)
+                if baselinewH > 0:
+                    current_event.update_allowed_wh(baselinewH)
             # For non consumption updates, we need an event id
             elif event_has_id:
                 current_event = self._events[event_id]
