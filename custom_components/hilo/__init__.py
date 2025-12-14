@@ -576,6 +576,18 @@ class Hilo:
         """Sends the json payload to receive energy consumption updates from the challenge."""
         event_id = event_id or self.challenge_id
 
+        # TODO: Remove fallback once split is complete
+        LOG.debug(
+            "Requesting challenge %s consumption update at location %s",
+            event_id,
+            self.devices.location_id,
+        )
+        await self._api.websocket_challenges.async_invoke(
+            [{"locationId": self.devices.location_id, "eventId": event_id}],
+            "RequestChallengeConsumptionUpdate",
+            inv_id,
+        )
+
         # Get plan name to request the correct consumtion update
         tarif_config = self.hq_plan_name
         if tarif_config == "rate d":
