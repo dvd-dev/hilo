@@ -1004,7 +1004,7 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
     @property
     def should_poll(self):
         """No need to poll with websockets. Polling to update allowed_wh in pre_heat phrase and consumption in reduction phase"""
-        return self.state in ["reduction", "pre_heat"]
+        return self.state in ["recovery", "reduction", "pre_heat"]
 
     @property
     def extra_state_attributes(self):
