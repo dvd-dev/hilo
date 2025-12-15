@@ -1,9 +1,3 @@
-## Some template ideas
-
-
-@FrancoLoco shared his templates:
-
-```
 template:
   - sensor:
       - name: "Défi Hilo en cours?"
@@ -171,4 +165,3 @@ template:
           {% else%}
             {{'0'}}
           {% endif %}
-```
