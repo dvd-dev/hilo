@@ -90,7 +90,7 @@ class HiloClimate(HiloEntity, ClimateEntity):
 
     @property
     def humidity(self):
-        return self._device.target_temperature
+        return self._device.humidity
 
     def set_hvac_mode(self, hvac_mode):
         return
