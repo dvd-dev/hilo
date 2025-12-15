@@ -7,7 +7,7 @@ triggers:
     to:
       - appreciation
     trigger: state
-    id: Sensor
+    id: ScheduledAppreciation
     from:
       - scheduled
     for:
@@ -19,9 +19,21 @@ triggers:
     to:
       - appreciation
     trigger: state
-    id: Sensor
+    id: CompletedAppreciation
     from:
       - completed
+    for:
+      hours: 0
+      minutes: 55
+      seconds: 0
+  - entity_id:
+      - sensor.defi_hilo
+    to:
+      - appreciation
+    trigger: state
+    id: PreColdAppreciation
+    from:
+      - pre_cold
     for:
       hours: 1
       minutes: 0
@@ -31,12 +43,24 @@ triggers:
     to:
       - appreciation
     trigger: state
-    id: Sensor
+    id: OffToAppreciation
     from:
-      - pre_cold
+      - "off"
     for:
-      hours: 1
-      minutes: 0
+      hours: 0
+      minutes: 55
+      seconds: 0
+  - entity_id:
+      - sensor.defi_hilo
+    to:
+      - appreciation
+    trigger: state
+    id: CompletedToAppreciation
+    from:
+      - completed
+    for:
+      hours: 0
+      minutes: 55
       seconds: 0
 conditions:
   - condition: and
