@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 from collections import OrderedDict
 from datetime import datetime, timedelta
+import ast
 import traceback
 from typing import TYPE_CHECKING, List, Optional
 
@@ -47,7 +48,7 @@ from pyhilo.exceptions import (
 )
 from pyhilo.graphql import GraphQlHelper
 from pyhilo.util import from_utc_timestamp, time_diff
-from pyhilo.websocket import WebsocketEvent
+from pyhilo.websocket import WebsocketEvent, websocket_event_from_payload
 
 from .config_flow import STEP_OPTION_SCHEMA, HiloFlowHandler
 from .const import (
@@ -179,6 +180,17 @@ async def async_setup_entry(  # noqa: C901
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     )
+
+    async def handle_debug_event(event: Event):
+        """Handle an event."""
+        LOG.debug("HILO_DEBUG: Event received: %s", event)
+        websocket_event = websocket_event_from_payload(
+            ast.literal_eval(event.data["data"])
+        )
+        LOG.debug("HILO_DEBUG: Websocket event parsed: %s", websocket_event)
+        await hilo.on_websocket_event(websocket_event)
+
+    hass.bus.async_listen("hilo_debug", handle_debug_event)
 
     async def async_reload_entry(_: HomeAssistant, updated_entry: ConfigEntry) -> None:
         """Handle an options update.
@@ -491,6 +503,7 @@ class Hilo:
             self.validate_heartbeat(event)
 
         elif "Challenge" in event.target or "Event" in event.target:
+            LOG.debug("HILO_DEBUG: Handling challenge/event websocket event: %s", event)
             await self._handle_challenge_events(event)
             await self._handle_websocket_message(event)
 
