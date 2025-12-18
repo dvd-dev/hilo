@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import ast
 import asyncio
 from collections import OrderedDict
 from datetime import datetime, timedelta
