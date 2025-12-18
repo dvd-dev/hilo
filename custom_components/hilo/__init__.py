@@ -184,12 +184,10 @@ async def async_setup_entry(  # noqa: C901
     async def handle_debug_event(event: Event):
         """Handle an event."""
         LOG.debug("HILO_DEBUG: Event received: %s", event)
-        log_traces = current_options.get(CONF_LOG_TRACES, DEFAULT_LOG_TRACES)
+        log_traces = current_options.get(CONF_LOG_TRACES)
         LOG.debug("HILO_DEBUG: log_traces is %s", log_traces)
         if log_traces:
-            websocket_event = websocket_event_from_payload(
-                ast.literal_eval(event.data["data"])
-            )
+            websocket_event = websocket_event_from_payload(event.data)
             LOG.debug("HILO_DEBUG: Websocket event parsed: %s", websocket_event)
             await hilo.on_websocket_event(websocket_event)
 
