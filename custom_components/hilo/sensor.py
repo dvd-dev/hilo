@@ -714,6 +714,13 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
     async def _async_update(self):
         seasons = await self._hilo._api.get_seasons(self._hilo.devices.location_id)
         self._events_to_poll = dict()
+        seasons = sorted(seasons, key=lambda x: x["season"], reverse=True)
+
+        # Re-add the totalReward that was present in the legacy API
+        for season_data in seasons:
+            total = sum(event["reward"] for event in season_data["events"])
+            season_data["totalReward"] = total
+
         if seasons:
             current_history = await self._load_history()
             new_history = []
