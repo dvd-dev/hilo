@@ -11,6 +11,6 @@
   "documentation": "https://github.com/dvd-dev/hilo",
   "iot_class": "cloud_push",
   "issue_tracker": "https://github.com/dvd-dev/hilo/issues",
-  "requirements": ["python-hilo>=2025.12.4"],
+  "requirements": ["python-hilo>=2025.12.5"],
   "version": "2025.12.5"
 }
