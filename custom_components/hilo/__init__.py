@@ -185,12 +185,14 @@ async def async_setup_entry(  # noqa: C901
         LOG.debug("HILO_DEBUG: Event received: %s", event)
         log_traces = current_options.get(CONF_LOG_TRACES)
         LOG.debug("HILO_DEBUG: log_traces is %s", log_traces)
-        if log_traces:
-            websocket_event = websocket_event_from_payload(event.data)
-            LOG.debug("HILO_DEBUG: Websocket event parsed: %s", websocket_event)
-            await hilo.on_websocket_event(websocket_event)
+        websocket_event = websocket_event_from_payload(event.data)
+        LOG.debug("HILO_DEBUG: Websocket event parsed: %s", websocket_event)
+        await hilo.on_websocket_event(websocket_event)
 
-    hass.bus.async_listen("hilo_debug", handle_debug_event)
+    log_traces = current_options.get(CONF_LOG_TRACES)
+    if log_traces:
+        LOG.debug("HILO_DEBUG: log_traces is %s", log_traces)
+        hass.bus.async_listen("hilo_debug", handle_debug_event)
 
     async def async_reload_entry(_: HomeAssistant, updated_entry: ConfigEntry) -> None:
         """Handle an options update.
