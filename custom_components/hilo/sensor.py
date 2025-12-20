@@ -92,11 +92,8 @@ def process_wifi(strength: int) -> str:
 
 
 def validate_tariff_list(tariff_config):
-    tariff_list = TARIFF_LIST
-    for tariff in TARIFF_LIST:
-        if not tariff_config.get(tariff, 0):
-            tariff_list.remove(tariff)
-    return tariff_list
+    """Validate the tariff list from the configuration."""
+    return TARIFF_LIST
 
 
 def generate_entities_from_device(device, hilo, scan_interval):
@@ -717,6 +714,17 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
     async def _async_update(self):
         seasons = await self._hilo._api.get_seasons(self._hilo.devices.location_id)
         self._events_to_poll = dict()
+        seasons = sorted(seasons, key=lambda x: x["season"], reverse=True)
+
+        # Re-add the totalReward that was present in the legacy API
+        for season_data in seasons:
+            total = sum(
+                event["reward"]
+                for event in season_data["events"]
+                if not event.get("isPreseasonEvent")
+            )
+            season_data["totalReward"] = total
+
         if seasons:
             current_history = await self._load_history()
             new_history = []
@@ -950,6 +958,8 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
             elif used_wH is not None and used_wH > 0:
                 current_event = self._events[event_id]
                 current_event.update_wh(used_wH)
+                if baselinewH > 0:
+                    current_event.update_allowed_wh(baselinewH)
             # For non consumption updates, we need an event id
             elif event_has_id:
                 current_event = self._events[event_id]
@@ -1005,7 +1015,7 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
     @property
     def should_poll(self):
         """No need to poll with websockets. Polling to update allowed_wh in pre_heat phrase and consumption in reduction phase"""
-        return self.state in ["reduction", "pre_heat"]
+        return self.state in ["recovery", "reduction", "pre_heat"]
 
     @property
     def extra_state_attributes(self):
@@ -1022,7 +1032,7 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
             if event.should_check_for_allowed_wh():
                 LOG.debug("ASYNC UPDATE SUB: EVENT: %s", event_id)
                 await self._hilo.subscribe_to_challenge(1, event_id)
-                await self._hilo.request_challenge_details_update(1, event_id)
+                await self._hilo.request_challenge_consumption_update(1, event_id)
             elif self.state == "reduction":
                 LOG.debug("ASYNC UPDATE: EVENT: %s", event_id)
                 await self._hilo.request_challenge_consumption_update(1, event_id)

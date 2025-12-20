@@ -47,7 +47,7 @@ from pyhilo.exceptions import (
 )
 from pyhilo.graphql import GraphQlHelper
 from pyhilo.util import from_utc_timestamp, time_diff
-from pyhilo.websocket import WebsocketEvent
+from pyhilo.websocket import WebsocketEvent, websocket_event_from_payload
 
 from .config_flow import STEP_OPTION_SCHEMA, HiloFlowHandler
 from .const import (
@@ -179,6 +179,20 @@ async def async_setup_entry(  # noqa: C901
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     )
+
+    async def handle_debug_event(event: Event):
+        """Handle an event."""
+        LOG.debug("HILO_DEBUG: Event received: %s", event)
+        log_traces = current_options.get(CONF_LOG_TRACES)
+        LOG.debug("HILO_DEBUG: log_traces is %s", log_traces)
+        websocket_event = websocket_event_from_payload(event.data)
+        LOG.debug("HILO_DEBUG: Websocket event parsed: %s", websocket_event)
+        await hilo.on_websocket_event(websocket_event)
+
+    log_traces = current_options.get(CONF_LOG_TRACES)
+    if log_traces:
+        LOG.debug("HILO_DEBUG: log_traces is %s", log_traces)
+        hass.bus.async_listen("hilo_debug", handle_debug_event)
 
     async def async_reload_entry(_: HomeAssistant, updated_entry: ConfigEntry) -> None:
         """Handle an options update.
@@ -317,36 +331,48 @@ class Hilo:
     async def _handle_websocket_message(self, event):
         """Process websocket messages and notify listeners."""
 
+        # TODO: ic-dev21: This needs to be cleaned up and optimized
         LOG.debug("Received websocket message type: %s", event)
         target = event.target
         LOG.debug("handle_websocket_message_target %s", target)
         msg_data = event
         LOG.debug("handle_websocket_message_ msg_data %s", msg_data)
 
-        if target == "ChallengeListInitialValuesReceived":
+        if target in [
+            "ChallengeListInitialValuesReceived",
+            "EventListInitialValuesReceived",
+        ]:
             msg_type = "challenge_list_initial"
-        elif target == "ChallengeAdded":
+        elif target in ["ChallengeAdded", "EventAdded"]:
             msg_type = "challenge_added"
         elif target == "ChallengeDetailsUpdated":
             msg_type = "challenge_details_update"
         elif target == "ChallengeConsumptionUpdatedValuesReceived":
             msg_type = "challenge_details_update"
-        elif target == "ChallengeDetailsUpdatedValuesReceived":
+        elif target in [
+            "ChallengeDetailsUpdatedValuesReceived",
+            "EventCHDetailsUpdatedValuesReceived",
+            "EventFlexDetailsUpdatedValuesReceived",
+        ]:
             msg_type = "challenge_details_update"
-        elif target == "ChallengeDetailsInitialValuesReceived":
+        elif target in [
+            "ChallengeDetailsInitialValuesReceived",
+            "EventCHDetailsInitialValuesReceived",
+            "EventFlexDetailsInitialValuesReceived",
+        ]:
             msg_type = "challenge_details_update"
-        elif target == "ChallengeListUpdatedValuesReceived":
+        elif target in [
+            "ChallengeListUpdatedValuesReceived",
+            "EventListUpdatedValuesReceived",
+        ]:
             msg_type = "challenge_details_update"
-        elif target == "EventCHConsumptionUpdatedValuesReceived":
+        elif target in [
+            "EventCHConsumptionUpdatedValuesReceived",
+            "EventFlexConsumptionUpdatedValuesReceived",
+        ]:
             LOG.debug("%s message received", target)
             LOG.debug("%s data: %s", target, msg_data)
             return
-        elif target == "EventCHDetailsUpdatedValuesReceived":
-            msg_type = "challenge_details_update"
-        elif target == "EventFlexDetailsUpdatedValuesReceived":
-            msg_type = "challenge_details_update"
-        elif target == "EventListUpdatedValuesReceived":
-            msg_type = "challenge_details_update"
 
         # ic-dev21 Notify listeners
         for listener in self._websocket_listeners:
@@ -478,11 +504,9 @@ class Hilo:
         elif event.target == "Heartbeat":
             self.validate_heartbeat(event)
 
-        elif "Challenge" in event.target:
+        elif "Challenge" in event.target or "Event" in event.target:
+            LOG.debug("HILO_DEBUG: Handling challenge/event websocket event: %s", event)
             await self._handle_challenge_events(event)
-            await self._handle_websocket_message(event)
-
-        elif "Event" in event.target:
             await self._handle_websocket_message(event)
 
         elif "Device" in event.target or event.target == "GatewayValuesReceived":
@@ -504,27 +528,61 @@ class Hilo:
         """Sends the json payload to receive updates from the challenge."""
         LOG.debug("Subscribing to challenge : %s or %s", event_id, self.challenge_id)
         event_id = event_id or self.challenge_id
+        LOG.debug("API URN is %s", self._api.urn)
+        # Get plan name to connect to the correct challenge hub list
+        tarif_config = self.hq_plan_name
+        LOG.debug("Event list needed is %s", tarif_config)
 
-        LOG.debug(
-            "Subscribing to challenge %s at location %s",
-            event_id,
-            self.devices.location_id,
-        )
+        # TODO: This is a fallback but will eventually need to be removed, I expect it to create
+        # websocket disconnects once the split is complete.
+        LOG.warning("Not using plan name %s, falling back to default", tarif_config)
         await self._api.websocket_challenges.async_invoke(
             [{"locationId": self.devices.location_id, "eventId": event_id}],
             "SubscribeToChallenge",
             inv_id,
         )
 
+        # Subscribe to the correct challenge hub
+        if tarif_config == "rate d":
+            await self._api.websocket_challenges.async_invoke(
+                [{"locationHiloId": self._api.urn, "eventId": event_id}],
+                "SubscribeToEventCH",
+                inv_id,
+            )
+
+        elif tarif_config == "flex d":
+            await self._api.websocket_challenges.async_invoke(
+                [{"locationHiloId": self._api.urn, "eventId": event_id}],
+                "SubscribeToEventFlex",
+                inv_id,
+            )
+        else:
+            LOG.warning("Unknown plan name %s, falling back to default", tarif_config)
+            await self._api.websocket_challenges.async_invoke(
+                [{"locationId": self.devices.location_id, "eventId": event_id}],
+                "SubscribeToChallenge",
+                inv_id,
+            )
+
     @callback
     async def subscribe_to_challengelist(self, inv_id: int) -> None:
         """Sends the json payload to receive updates from the challenge list."""
+        # TODO : Rename challegenge functions to Event, fallback on challenge for now
         LOG.debug(
             "Subscribing to challenge list at location %s", self.devices.location_id
         )
+        LOG.debug("API URN is %s", self._api.urn)
+
         await self._api.websocket_challenges.async_invoke(
             [{"locationId": self.devices.location_id}],
             "SubscribeToChallengeList",
+            inv_id,
+        )
+
+        LOG.debug("Subscribing to event list at location %s", self.devices.location_id)
+        await self._api.websocket_challenges.async_invoke(
+            [{"locationHiloId": self._api.urn}],
+            "SubscribeToEventList",
             inv_id,
         )
 
@@ -534,6 +592,8 @@ class Hilo:
     ) -> None:
         """Sends the json payload to receive energy consumption updates from the challenge."""
         event_id = event_id or self.challenge_id
+
+        # TODO: Remove fallback once split is complete
         LOG.debug(
             "Requesting challenge %s consumption update at location %s",
             event_id,
@@ -544,6 +604,41 @@ class Hilo:
             "RequestChallengeConsumptionUpdate",
             inv_id,
         )
+
+        # Get plan name to request the correct consumption update
+        tarif_config = self.hq_plan_name
+        LOG.debug("API URN is %s", self._api.urn)
+        if tarif_config == "rate d":
+            LOG.debug(
+                "Requesting event CH consumption update at location %s",
+                self.devices.location_id,
+            )
+            await self._api.websocket_challenges.async_invoke(
+                [{"locationHiloId": self._api.urn, "eventId": event_id}],
+                "RequestEventCHConsumptionUpdate",
+                inv_id,
+            )
+        elif tarif_config == "flex d":
+            LOG.debug(
+                "Requesting event Flex consumption update at location %s",
+                self.devices.location_id,
+            )
+            await self._api.websocket_challenges.async_invoke(
+                [{"locationHiloId": self._api.urn, "eventId": event_id}],
+                "RequestEventFlexConsumptionUpdate",
+                inv_id,
+            )
+        else:
+            LOG.debug(
+                "Requesting challenge %s consumption update at location %s",
+                event_id,
+                self.devices.location_id,
+            )
+            await self._api.websocket_challenges.async_invoke(
+                [{"locationId": self.devices.location_id, "eventId": event_id}],
+                "RequestChallengeConsumptionUpdate",
+                inv_id,
+            )
 
     @callback
     async def request_status_update(self) -> None:
