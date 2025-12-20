@@ -718,7 +718,7 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
 
         # Re-add the totalReward that was present in the legacy API
         for season_data in seasons:
-            total = sum(event["reward"] for event in season_data["events"])
+            total = sum(event["reward"] for event in season_data["events"] if not event.get("isPreseasonEvent"))
             season_data["totalReward"] = total
 
         if seasons:
