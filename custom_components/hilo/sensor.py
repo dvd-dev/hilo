@@ -835,6 +835,18 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
 
     def __init__(self, hilo, device, scan_interval):
         self._attr_name = "Defi Hilo"
+        self._attr_device_class = SensorDeviceClass.ENUM
+        self._attr_options = [
+            "off",
+            "scheduled",
+            "pre_cold",
+            "appreciation",
+            "pre_heat",
+            "reduction",
+            "recovery",
+            "completed",
+            "unknown",
+        ]
         super().__init__(hilo, name=self._attr_name, device=device)
         old_unique_id = slugify(self._attr_name)
         self._attr_unique_id = (
