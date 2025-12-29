@@ -535,7 +535,7 @@ class Hilo:
 
         # TODO: This is a fallback but will eventually need to be removed, I expect it to create
         # websocket disconnects once the split is complete.
-        LOG.warning("Not using plan name %s, falling back to default", tarif_config)
+        LOG.warning("Using legacy connection instead of %s, this will be deprecated", tarif_config)
         await self._api.websocket_challenges.async_invoke(
             [{"locationId": self.devices.location_id, "eventId": event_id}],
             "SubscribeToChallenge",
