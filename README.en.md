@@ -16,12 +16,12 @@
 This is a Beta version. There will likely be bugs, issues, etc. Thank you for your patience and for opening "Issues".
 
 
-
+Please consult the [Wiki](https://github.com/dvd-dev/hilo/wiki) before opening issues, a lot of common questions are answered there.
 
 
 
 ## 📌 Introduction
-This unofficial HACS integration allows you to use [Hilo](https://www.hiloenergie.com/fr-ca/) with Home Assistant. **It is not affiliated with Hilo or Hydro-Québec.**
+This unofficial HACS integration allows you to use [Hilo](https://www.hiloenergie.com/en-ca/) with Home Assistant. **It is not affiliated with Hilo or Hydro-Québec.**
 
 **⚠️ Do not contact Hilo or Hydro-Québec for issues related to this integration.**
 
