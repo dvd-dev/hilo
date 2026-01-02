@@ -16,6 +16,8 @@
 
 Ceci est une version Bêta. Il y aura probablement des bogues, irritants, etc. Merci pour votre patience et d'ouvrir des "Issues".
 
+Merci de consulter le [Wiki](https://github.com/dvd-dev/hilo/wiki) avant de créer des "Issues", plusieurs questions communes s'y trouvent.
+
 # Hilo - Home Assistant
 Intégration pour Home Assistant d'[Hilo](https://www.hiloenergie.com/fr-ca/)
 
@@ -218,4 +220,5 @@ logger:
 [English]: https://github.com/dvd-dev/hilo/blob/main/README.en.md
 [Françaisshield]: https://img.shields.io/badge/fr-Français-blue?style=for-the-badge
 [Français]: https://github.com/dvd-dev/hilo/blob/main/README.md
+
 
