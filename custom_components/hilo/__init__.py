@@ -347,7 +347,10 @@ class Hilo:
             msg_type = "challenge_added"
         elif target == "ChallengeDetailsUpdated":
             msg_type = "challenge_details_update"
-        elif target == "ChallengeConsumptionUpdatedValuesReceived":
+        elif target in [
+            "ChallengeConsumptionUpdatedValuesReceived",
+            "EventCHConsumptionUpdatedValuesReceived",
+        ]:
             msg_type = "challenge_details_update"
         elif target in [
             "ChallengeDetailsUpdatedValuesReceived",
@@ -367,7 +370,6 @@ class Hilo:
         ]:
             msg_type = "challenge_details_update"
         elif target in [
-            "EventCHConsumptionUpdatedValuesReceived",
             "EventFlexConsumptionUpdatedValuesReceived",
         ]:
             LOG.debug("%s message received", target)

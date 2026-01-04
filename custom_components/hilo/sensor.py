@@ -993,6 +993,8 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
                     updated_event.pre_cold(self._hilo.pre_cold)
                 if baselinewH > 0:
                     updated_event.update_allowed_wh(baselinewH)
+                elif current_event.allowed_kWh > 0:
+                    updated_event.allowed_kWh = current_event.allowed_kWh
                 self._events[event_id] = updated_event
             self._update_next_events()
 
