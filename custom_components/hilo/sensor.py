@@ -680,6 +680,13 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
         if challenge.get("id") is None or challenge.get("phases") is None:
             return
 
+        # Skip messages about upcoming events since they don't contain useful info about rewards
+        if challenge.get("report")["status"] == "Upcoming":
+            LOG.debug(
+                "Skipping upcoming challenge event in reward: %s", challenge.get("id")
+            )
+            return
+
         event = Event(**challenge).as_dict()
         corresponding_season = self._events_to_poll[event["event_id"]]
         del self._events_to_poll[event["event_id"]]
@@ -691,6 +698,9 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
                         LOG.debug(
                             "ChallengeId matched, replacing: %s", event["event_id"]
                         )
+
+                        # Some events from the websocket don't contain reward info. Copying it from history (API) if it's there
+                        event["reward"] = season_event.get("reward", 0.0)
                         season["events"][i] = event  # On update
                         season["events"] = [
                             item
@@ -768,6 +778,7 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
                     else:
                         # Save the event to poll in a dict so that we can easily lookup the season when the websocket event comes in
                         self._events_to_poll[raw_event["id"]] = season.get("season")
+                        event = Event(**raw_event).as_dict()
 
                         # details = await self._hilo.get_event_details(raw_event["id"])
                         # event = Event(**details).as_dict()
