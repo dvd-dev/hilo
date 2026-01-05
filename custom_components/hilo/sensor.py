@@ -835,6 +835,18 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
 
     def __init__(self, hilo, device, scan_interval):
         self._attr_name = "Defi Hilo"
+        self._attr_device_class = SensorDeviceClass.ENUM
+        self._attr_options = [
+            "off",
+            "scheduled",
+            "pre_cold",
+            "appreciation",
+            "pre_heat",
+            "reduction",
+            "recovery",
+            "completed",
+            "unknown",
+        ]
         super().__init__(hilo, name=self._attr_name, device=device)
         old_unique_id = slugify(self._attr_name)
         self._attr_unique_id = (
@@ -981,6 +993,8 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
                     updated_event.pre_cold(self._hilo.pre_cold)
                 if baselinewH > 0:
                     updated_event.update_allowed_wh(baselinewH)
+                elif current_event.allowed_kWh > 0:
+                    updated_event.allowed_kWh = current_event.allowed_kWh
                 self._events[event_id] = updated_event
             self._update_next_events()
 
