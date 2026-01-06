@@ -154,7 +154,7 @@ class HiloOptionsFlowHandler(config_entries.OptionsFlow):
     """Handle a Hilo options flow."""
 
     def __init__(self, config_entry: ConfigEntry) -> None:
-        """Initialize"""
+        """Initialize."""
         if AwesomeVersion(HAVERSION) < "2024.11.99":
             self.config_entry = config_entry
         else:

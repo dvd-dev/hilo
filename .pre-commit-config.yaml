@@ -1,7 +1,7 @@
 ---
 repos:
   - repo: https://github.com/PyCQA/bandit
-    rev: '1.7.9'
+    rev: '1.9.2'
     hooks:
       - id: bandit
         args:
@@ -10,7 +10,7 @@ repos:
           - --configfile=.bandit.yaml
         files: ^custom_components/hilo/.+\.py$
   - repo: https://github.com/python/black
-    rev: 22.3.0
+    rev: 25.12.0
     hooks:
       - id: black
         args:
@@ -19,7 +19,7 @@ repos:
         language_version: python3
         files: ^custom_components/hilo/.+\.py$
   - repo: https://github.com/codespell-project/codespell
-    rev: v1.16.0
+    rev: v2.4.1
     hooks:
       - id: codespell
         args:
@@ -29,7 +29,7 @@ repos:
           - -L ba,hass,que,bord
         exclude_types: [json]
   - repo: https://github.com/PyCQA/flake8
-    rev: 4.0.1
+    rev: 7.3.0
     hooks:
       - id: flake8
         additional_dependencies:
@@ -37,7 +37,7 @@ repos:
           - pydocstyle==5.0.1
         files: ^custom_components/hilo/.+\.py$
   - repo: https://github.com/pre-commit/mirrors-isort
-    rev: v4.3.21
+    rev: v5.10.1
     hooks:
       - id: isort
         additional_dependencies:
@@ -52,7 +52,7 @@ repos:
 #          - types-python-dateutil==2.8.0
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.4.0
+    rev: v6.0.0
     hooks:
       - id: check-json
         # Exclude .devcontainer.json and .vscode since it uses JSONC
@@ -66,12 +66,12 @@ repos:
 #      - id: pydocstyle
 #        files: ^custom_components/hilo/.+\.py$
   - repo: https://github.com/gruntwork-io/pre-commit
-    rev: v0.1.12
+    rev: v0.1.30
     hooks:
       - id: shellcheck
         files: ^script/.+
   - repo: https://github.com/jorisroovers/gitlint
-    rev: v0.17.0
+    rev: v0.19.1
     hooks:
       - id: gitlint
         name: gitlint
@@ -80,7 +80,7 @@ repos:
         args: [--staged, --msg-filename]
         stages: [commit-msg]
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.1.0
+    rev: v6.0.0
     hooks:
       - id: check-yaml
       - id: trailing-whitespace
