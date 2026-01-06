@@ -1,3 +1,5 @@
+"""Hilo integration constants."""
+
 import logging
 
 from homeassistant.components.utility_meter.const import DAILY

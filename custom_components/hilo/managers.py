@@ -1,3 +1,5 @@
+"""Utility and Energy Manager classes for Hilo integration."""
+
 from collections import OrderedDict
 from datetime import timedelta
 
@@ -15,9 +17,10 @@ from .const import HILO_ENERGY_TOTAL, LOG
 
 
 class UtilityManager:
-    """Class that maps to the utility_meters"""
+    """Class that maps to the utility_meters."""
 
     def __init__(self, hass, period, tariffs):
+        """Initialize the utility manager."""
         self.tariffs = tariffs
         self.hass = hass
         self.period = period
@@ -26,10 +29,12 @@ class UtilityManager:
         self.new_entities = 0
 
     def add_meter(self, entity, tariff_list, net_consumption=False):
+        """Add meter."""
         self.add_meter_entity(entity, tariff_list)
         self.add_meter_config(entity, tariff_list, net_consumption)
 
     def add_meter_entity(self, entity, tariff_list):
+        """Add meter entity."""
         if entity in self.hass.data.get("utility_meter_data", {}):
             LOG.debug("Entity %s is already in the utility meters", entity)
             return
@@ -45,6 +50,7 @@ class UtilityManager:
             }
 
     def add_meter_config(self, entity, tariff_list, net_consumption):
+        """Add meter configuration."""
         name = f"{entity}_{self.period}"
         LOG.debug(
             "Creating UtilityMeter config: %s %s (Net Consumption: %s)",
@@ -68,6 +74,7 @@ class UtilityManager:
         )
 
     async def update(self, async_add_entities):
+        """Update the entities."""
         LOG.debug("Setting up UtilityMeter entities %s", UTILITY_DOMAIN)
         if self.new_entities == 0:
             LOG.debug("No new entities, not setting up again")
@@ -85,11 +92,15 @@ class UtilityManager:
 
 
 class EnergyManager:
+    """Class that manages the energy dashboard configuration."""
+
     def __init__(self):
+        """Initialize the energy manager."""
         self.updated = False
 
     @property
     def msg(self):
+        """Return the message payload for the energy manager."""
         return {
             "energy_sources": self.src,
             "device_consumption": self.dev,
@@ -97,6 +108,7 @@ class EnergyManager:
 
     @property
     def default_flows(self):
+        """Return the default grid flow configuration."""
         return {
             "type": "grid",
             "flow_from": [],
@@ -105,6 +117,7 @@ class EnergyManager:
         }
 
     async def init(self, hass, period):
+        """Initialize the energy manager."""
         self.period = period
         self._manager = await async_get_manager(hass)
         data = self._manager.data or self._manager.default_preferences()
@@ -116,6 +129,7 @@ class EnergyManager:
         return self
 
     def add_flow_from(self, sensor, rate):
+        """Add grid source flow_from sensor."""
         sensor = f"sensor.{sensor}"
         if any(d["stat_energy_from"] == sensor for d in self.src[0]["flow_from"]):
             return
@@ -131,6 +145,7 @@ class EnergyManager:
         self.src[0]["flow_from"].append(flow)
 
     def add_device(self, sensor):
+        """Add device consumption sensor."""
         sensor = f"sensor.{sensor}"
         if any(d["stat_consumption"] == sensor for d in self.dev):
             return
@@ -139,6 +154,7 @@ class EnergyManager:
         self.dev.append({"stat_consumption": sensor})
 
     def add_to_dashboard(self, entity, tariff_list):
+        """Add entity to the energy dashboard."""
         for tarif in tariff_list:
             name = f"{entity}_{self.period}"
             if entity == HILO_ENERGY_TOTAL:
@@ -147,6 +163,7 @@ class EnergyManager:
                 self.add_device(f"{name}_{tarif}")
 
     async def update(self):
+        """Push updates to the energy dashboard."""
         if not self.updated:
             return
         LOG.debug("Pushing config to the energy dashboard")
