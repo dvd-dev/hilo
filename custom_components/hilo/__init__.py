@@ -24,7 +24,7 @@ from homeassistant.const import (
     EVENT_HOMEASSISTANT_STOP,
     Platform,
 )
-from homeassistant.core import Context, Event, HomeAssistant, callback
+from homeassistant.core import Context, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import (
     config_entry_oauth2_flow,
@@ -114,8 +114,10 @@ def _async_standardize_config_entry(hass: HomeAssistant, entry: ConfigEntry) -> 
 def _async_register_custom_device(
     hass: HomeAssistant, entry: ConfigEntry, device: HiloDevice
 ) -> None:
-    """Register a custom device. This is used to register the
-    Hilo gateway and the unknown source tracker."""
+    """Register a custom device.
+
+    This is used to register the Hilo gateway and the unknown source tracker.
+    """
     LOG.debug("Generating custom device %s", device)
     device_registry = dr.async_get(hass)
     device_registry.async_get_or_create(
@@ -196,12 +198,12 @@ async def async_setup_entry(  # noqa: C901
 
     async def async_reload_entry(_: HomeAssistant, updated_entry: ConfigEntry) -> None:
         """Handle an options update.
+
         This method will get called in two scenarios:
           1. When HiloOptionsFlowHandler is initiated
           2. When a new refresh token is saved to the config entry data
         We only want #1 to trigger an actual reload.
         """
-        nonlocal current_options
         updated_options = {**updated_entry.options}
         if updated_options == current_options:
             return
@@ -319,6 +321,7 @@ class Hilo:
         self._websocket_listeners = []
 
     def validate_heartbeat(self, event: WebsocketEvent) -> None:
+        """Validate heartbeat messages from the websocket."""
         heartbeat_time = from_utc_timestamp(event.arguments[0])  # type: ignore
         if self._api.log_traces:
             LOG.debug("Heartbeat: %s", time_diff(heartbeat_time, event.timestamp))
@@ -519,7 +522,7 @@ class Hilo:
 
     @callback
     async def subscribe_to_location(self, inv_id: int) -> None:
-        """Sends the json payload to receive updates from the location."""
+        """Send the json payload to receive updates from the location."""
         LOG.debug("Subscribing to location %s", self.devices.location_id)
         await self._api.websocket_devices.async_invoke(
             [self.devices.location_id], "SubscribeToLocation", inv_id
@@ -527,7 +530,7 @@ class Hilo:
 
     @callback
     async def subscribe_to_challenge(self, inv_id: int, event_id: int = 0) -> None:
-        """Sends the json payload to receive updates from the challenge."""
+        """Send the json payload to receive updates from the challenge."""
         LOG.debug("Subscribing to challenge : %s or %s", event_id, self.challenge_id)
         event_id = event_id or self.challenge_id
         LOG.debug("API URN is %s", self._api.urn)
@@ -571,7 +574,7 @@ class Hilo:
 
     @callback
     async def subscribe_to_challengelist(self, inv_id: int) -> None:
-        """Sends the json payload to receive updates from the challenge list."""
+        """Send the json payload to receive updates from the challenge list."""
         # TODO : Rename challegenge functions to Event, fallback on challenge for now
         LOG.debug(
             "Subscribing to challenge list at location %s", self.devices.location_id
@@ -595,7 +598,7 @@ class Hilo:
     async def request_challenge_consumption_update(
         self, inv_id: int, event_id: int = 0
     ) -> None:
-        """Sends the json payload to receive energy consumption updates from the challenge."""
+        """Send the json payload to receive energy consumption updates from the challenge."""
         event_id = event_id or self.challenge_id
 
         # TODO: Remove fallback once split is complete
@@ -647,12 +650,14 @@ class Hilo:
 
     @callback
     async def request_status_update(self) -> None:
+        """Request a status update from the device websocket."""
         await self._api.websocket_devices.send_status()
         for inv_id, inv_cb in self.invocations.items():
             await inv_cb(inv_id)
 
     @callback
     async def request_status_update_challenge(self) -> None:
+        """Request a status update from the challenge websocket."""
         await self._api.websocket_challenges.send_status()
         for inv_id, inv_cb in self.invocations.items():
             await inv_cb(inv_id)
@@ -675,8 +680,8 @@ class Hilo:
         }
 
     async def get_event_details(self, event_id: int):
-        """Getting events from Hilo only when necessary.
-        Otherwise, we hit the cache.
+        """Get events from Hilo only when necessary, otherwise, we hit the cache.
+
         When preheat is started and our last update is before
         the preheat_start, we refresh. This should update the
         allowed_kWh, etc. values.
@@ -819,6 +824,7 @@ class Hilo:
             )
 
     async def cancel_task(self, task) -> None:
+        """Cancel a task."""
         LOG.debug("Cancelling task %s", task)
         if task:
             task.cancel()
@@ -843,7 +849,8 @@ class Hilo:
     def should_websocket_reconnect(self) -> bool:
         """Determine if a websocket should reconnect when the connection is lost.
 
-        Currently only used to disable websockets in the unit tests."""
+        Currently only used to disable websockets in the unit tests.
+        """
         return self._should_websocket_reconnect
 
     @should_websocket_reconnect.setter
@@ -852,7 +859,7 @@ class Hilo:
         self._should_websocket_reconnect = value
 
     async def async_update(self) -> None:
-        """Updates tarif periodically."""
+        """Update tarif periodically."""
         if self.generate_energy_meters or self.track_unknown_sources:
             self.check_tarif()
 
@@ -860,6 +867,7 @@ class Hilo:
             self.handle_unknown_power()
 
     def find_meter(self, hass):
+        """Find the smart meter entity in Home Assistant."""
         entity_registry_dict = {}
 
         registry = hass.data.get("entity_registry")
@@ -892,6 +900,7 @@ class Hilo:
         return ", ".join(filtered_names) if filtered_names else ""
 
     def set_state(self, entity, state, new_attrs={}, keep_state=False, force=False):
+        """Set the state of an entity."""
         params = f"{entity=} {state=} {new_attrs=} {keep_state=}"
         current = self._hass.states.get(entity)
         if not current:
@@ -913,6 +922,7 @@ class Hilo:
 
     @property
     def high_times(self):
+        """Check if the current time is within high tariff periods."""
         challenge_sensor = self._hass.states.get("sensor.defi_hilo")
         LOG.debug(
             "high_times check tarif challenge sensor is %s", challenge_sensor.state
@@ -920,13 +930,13 @@ class Hilo:
         return challenge_sensor.state == "reduction"
 
     def check_season(self):
-        """This logic determines if we are using a winter or summer rate"""
+        """Determine if we are using a winter or summer rate."""
         current_month = datetime.now().month
         LOG.debug("check_season current month is %s", current_month)
         return current_month in [12, 1, 2, 3]
 
     def check_tarif(self):
-        """Logic to determine which tarif to select depending on season and user-selected rate"""
+        """Determine which tarif to select depending on season and user-selected rate."""
         if self.generate_energy_meters:
             season = self.check_season()
             LOG.debug("check_tarif current season state is %s", season)
@@ -989,7 +999,7 @@ class Hilo:
             self.set_tarif(entity, state.state, tarif)
 
     def handle_unknown_power(self):
-        """Function that takes care of the unknown source meter"""
+        """Take care of the unknown source meter."""
         known_power = 0
         smart_meter = self.find_meter(self._hass)
         LOG.debug("Smart meter used currently is: %s", smart_meter)
@@ -1044,7 +1054,7 @@ class Hilo:
 
     @callback
     def fix_utility_sensor(self, entity, state):
-        """not sure why this doesn't get created with a proper device_class"""
+        """Not sure why this doesn't get created with a proper device_class."""
         current_state = state.as_dict()
         attrs = current_state.get("attributes", {})
         if entity.startswith("select.") or entity.find("hilo_rate") > 0:
@@ -1075,6 +1085,7 @@ class Hilo:
 
     @callback
     def set_tarif(self, entity, current, new):
+        """Set the tarif on the select entity if needed."""
         if self.untarificated_devices and entity != f"select.{HILO_ENERGY_TOTAL}":
             return
         if entity.startswith("select.hilo_energy") and current != new:
@@ -1149,4 +1160,5 @@ class Hilo:
 
     @callback
     def handle_subscription_result(self, hilo_id: str) -> None:
+        """Handle subscription result by notifying entities."""
         async_dispatcher_send(self._hass, SIGNAL_UPDATE_ENTITY.format(hilo_id))
