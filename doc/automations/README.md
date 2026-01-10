@@ -536,3 +536,64 @@ action:
 mode: single
 
 ```
+
+## Reset de la valeur energy lorsque les thermostats sont gérés via Z2M
+
+La valeur `energy` maximale pour les thermostats Hilo HT402 est de `500`, et elle ne peut pas être réinitialisée manuellement car il est impossible d'écrire cet attribut directement. Cette valeur est automatiquement réinitialisée par le thermostat lui même chaque jour à minuit. Afin que cela fonctionne, il faut que l'heure soit correctement paramétrée sur les thermostats. Lorsqu'ils sont appairés à la passerelle Hilo, ce paramétrage est fait par un message broadcast de la passerelle comme celui-ci:
+
+```
+Frame 593: Packet, 55 bytes on wire (440 bits), 55 bytes captured (440 bits)
+IEEE 802.15.4 Data, Src: 0x7eed, Dst: Broadcast
+ZigBee Network Layer Data, Dst: Broadcast, Src: 0x0000
+ZigBee Application Support Layer Data, Dst Endpt: 255, Src Endpt: 1
+    Frame Control Field: Data (0x08)
+    Destination Endpoint: 255
+    Cluster: Time (0x000a)
+    Profile: Home Automation (0x0104)
+    Source Endpoint: 1
+    Counter: 89
+ZigBee Cluster Library Frame, Command: Report Attributes, Seq: 46
+    Frame Control Field: Profile-wide (0x08)
+    Sequence Number: 46
+    Command: Report Attributes (0x0a)
+    Attribute Field, Uint32: 821194320
+        Attribute: Local Time (0x0007)
+        Data Type: 32-Bit Unsigned Integer (0x23)
+        Uint32: 821194320 (0x30f26e50)
+```
+
+Afin de répliquer ce comportement il est possible d'envoyer régulièrement (idéalement plusieurs fois un peu avant et après minuit) un message similaire à celui de la passerelle au topic `zigbee2mqtt/bridge/request/action`. Cela peut être fait avec un script comme celui-ci:
+```yaml
+action: mqtt.publish
+metadata: {}
+data:
+  qos: "1"
+  payload: >-
+    {% set zigbee_epoch = (as_timestamp(now()) - as_timestamp('2000-01-01 00:00:00')) | int %}
+        {
+            "action": "raw",
+            "params": {
+                "network_address": 65532,
+                "dst_endpoint": 255,
+                "src_endpoint": 1,
+                "profile_id": 260,
+                "cluster_key": 10,
+                "zcl": {
+                    "frame_type": 0,
+                    "direction": 1,
+                    "disable_default_response": true,
+                    "command_key": 10,
+                    "payload": [
+                        {
+                            "attrId": 7,
+                            "dataType": 35,
+                            "attrData": {{ zigbee_epoch }}
+                        }
+                    ]
+                }
+            }
+        }
+  topic: zigbee2mqtt/bridge/request/action
+  ```
+
+  Ou en utilisant l'automation MqttPublishTimeThermostatsForReset.yaml de ce repository.
