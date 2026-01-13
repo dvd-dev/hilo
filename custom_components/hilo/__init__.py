@@ -348,33 +348,21 @@ class Hilo:
             msg_type = "challenge_list_initial"
         elif target in ["ChallengeAdded", "EventAdded"]:
             msg_type = "challenge_added"
-        elif target == "ChallengeDetailsUpdated":
-            msg_type = "challenge_details_update"
         elif target in [
+            "ChallengeDetailsUpdated",
             "ChallengeConsumptionUpdatedValuesReceived",
             "EventCHConsumptionUpdatedValuesReceived",
-        ]:
-            msg_type = "challenge_details_update"
-        elif target in [
             "ChallengeDetailsUpdatedValuesReceived",
             "EventCHDetailsUpdatedValuesReceived",
             "EventFlexDetailsUpdatedValuesReceived",
-        ]:
-            msg_type = "challenge_details_update"
-        elif target in [
             "ChallengeDetailsInitialValuesReceived",
             "EventCHDetailsInitialValuesReceived",
             "EventFlexDetailsInitialValuesReceived",
-        ]:
-            msg_type = "challenge_details_update"
-        elif target in [
             "ChallengeListUpdatedValuesReceived",
             "EventListUpdatedValuesReceived",
         ]:
             msg_type = "challenge_details_update"
-        elif target in [
-            "EventFlexConsumptionUpdatedValuesReceived",
-        ]:
+        elif target == "EventFlexConsumptionUpdatedValuesReceived":
             LOG.debug("%s message received", target)
             LOG.debug("%s data: %s", target, msg_data)
             return
