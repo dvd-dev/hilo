@@ -1,0 +1,37 @@
+alias: MqttPublishTimeThermostatsForReset
+description: ""
+triggers:
+  - trigger: time_pattern
+    minutes: /5
+conditions: []
+actions:
+  - action: mqtt.publish
+    data:
+      payload: >-
+        {% set zigbee_epoch = (as_timestamp(now()) - as_timestamp('2000-01-01 00:00:00')) | int  %}
+            {
+                "action": "raw",
+                "params": {
+                    "network_address": 65532,
+                    "dst_endpoint": 255,
+                    "src_endpoint": 1,
+                    "profile_id": 260,
+                    "cluster_key": 10,
+                    "zcl": {
+                        "frame_type": 0,
+                        "direction": 1,
+                        "disable_default_response": true,
+                        "command_key": 10,
+                        "payload": [
+                            {
+                                "attrId": 7,
+                                "dataType": 35,
+                                "attrData": {{ zigbee_epoch }}
+                            }
+                        ]
+                    }
+                }
+            }
+      evaluate_payload: false
+      topic: zigbee2mqtt/bridge/request/action
+mode: single
