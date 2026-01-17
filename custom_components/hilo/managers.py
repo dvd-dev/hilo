@@ -9,9 +9,7 @@ from homeassistant.components.utility_meter.const import (
     CONF_TARIFFS,
     DOMAIN as UTILITY_DOMAIN,
 )
-from homeassistant.components.utility_meter.sensor import (
-    async_setup_platform as utility_setup_platform,
-)
+from homeassistant.helpers import entity_registry as er
 
 from .const import HILO_ENERGY_TOTAL, LOG
 
@@ -75,20 +73,61 @@ class UtilityManager:
 
     async def update(self, async_add_entities):
         """Update the entities."""
+        LOG.debug("=== UtilityManager.update() called ===")
         LOG.debug("Setting up UtilityMeter entities %s", UTILITY_DOMAIN)
+        LOG.debug("new_entities count: %d", self.new_entities)
+
         if self.new_entities == 0:
             LOG.debug("No new entities, not setting up again")
             return
+
+        # Get the entity registry
+        registry = er.async_get(self.hass)
+
+        # Filter out entities that already exist
+        filtered_configs = OrderedDict()
+
+        for source_entity, config in self.meter_configs.items():
+            # Check if any of the tariff entities for this source already exist
+            name = config["name"]
+            should_include = False
+
+            for tariff in config[CONF_TARIFFS]:
+                # Remove period from name to match actual entity ID, this is why the check was failing
+                name_without_period = name.replace(f"_{self.period}", "")
+                entity_id = f"sensor.{name_without_period.lower().replace(' ', '_')}_{tariff.lower()}"
+
+                if registry.async_get(entity_id) is None:
+                    should_include = True
+                    LOG.debug(
+                        "Entity %s does not exist, will create config for %s",
+                        entity_id,
+                        source_entity,
+                    )
+                    break
+                else:
+                    LOG.debug("Entity %s already exists", entity_id)
+
+            if should_include:
+                filtered_configs[source_entity] = config
+
+        if not filtered_configs:
+            LOG.debug("All entities already exist, skipping setup")
+            self.new_entities = 0
+            return
+
+        LOG.debug("Creating utility meter config for %d sources", len(filtered_configs))
         config = {
             UTILITY_DOMAIN: OrderedDict(
-                {**self.hass.data.get("utility_meter_data", {}), **self.meter_configs}
+                {**self.hass.data.get("utility_meter_data", {}), **filtered_configs}
             ),
             CONF_TARIFFS: self.tariffs,
         }
+
+        # Replaced utility_setup_platform call
         await utility_setup(self.hass, config)
-        await utility_setup_platform(
-            self.hass, config, async_add_entities, self.meter_entities
-        )
+        self.new_entities = 0
+        LOG.debug("=== UtilityManager.update() completed ===")
 
 
 class EnergyManager:
