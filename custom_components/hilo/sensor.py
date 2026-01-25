@@ -1337,8 +1337,6 @@ class HiloCostSensorTotal(HiloEntity, SensorEntity):
         self._last_update = dt_util.utcnow()
         return super().async_update()
 
-        return super().async_update()
-
 
 class HiloOutdoorTempSensor(HiloEntity, SensorEntity):
     """Hilo outdoor temperature sensor.
