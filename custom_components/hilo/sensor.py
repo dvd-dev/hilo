@@ -1316,6 +1316,10 @@ class HiloCostSensorTotal(HiloEntity, SensorEntity):
         return self._total_cost
 
     @property
+    def suggested_display_precision(self) -> int:
+        return 5
+
+    @property
     def should_poll(self) -> bool:
         return False
 
