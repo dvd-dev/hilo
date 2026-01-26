@@ -529,7 +529,7 @@ class Hilo:
         # TODO: This is a fallback but will eventually need to be removed, I expect it to create
         # websocket disconnects once the split is complete.
         LOG.warning(
-            "Using legacy connection instead of %s, this will be deprecated",
+            "Starting legacy connection to ChallengeHub. Your tarif is %s, and will also attempt connection. This can be safely ignored. This will be deprecated",
             tarif_config,
         )
         await self._api.websocket_challenges.async_invoke(
