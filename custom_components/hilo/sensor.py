@@ -1248,10 +1248,11 @@ class HiloOutdoorTempSensor(HiloEntity, SensorEntity):
             f"{slugify(device.identifier)}-{slugify(self._attr_name)}"
         )
         LOG.debug("Setting up OutdoorWeatherSensor entity: %s", self._attr_name)
-        self.scan_interval = timedelta(seconds=WEATHER_SCAN_INTERVAL)
+        # self.scan_interval = timedelta(seconds=WEATHER_SCAN_INTERVAL)
         self._state = STATE_UNKNOWN
         self._weather = {}
-        self.async_update = Throttle(self.scan_interval)(self._async_update)
+        self._last_weather_update = None
+        # self.async_update = Throttle(self.scan_interval)(self._async_update)
 
     @property
     def state(self):
@@ -1289,9 +1290,34 @@ class HiloOutdoorTempSensor(HiloEntity, SensorEntity):
         """Handle entity about to be added to hass event."""
         await super().async_added_to_hass()
 
-    async def _async_update(self):
-        self._weather = {}
-        self._weather = await self._hilo._api.get_weather(
-            self._hilo.devices.location_id
+    async def async_update(self):
+        """Update the weather data with proper throttling.
+
+        Weather data from Hilo API changes every hour, using 1800s (30min) to
+        make sure we get the latest data without overloading the API.
+        """
+
+        now = dt_util.utcnow()
+        if self._last_weather_update is not None:
+            elapsed = (now - self._last_weather_update).total_seconds()
+            if elapsed < WEATHER_SCAN_INTERVAL:
+                LOG.debug(
+                    "Skipping weather update, only %s seconds since last update",
+                    elapsed,
+                )
+                return
+
+        LOG.debug(
+            "Calling Hilo API to get weather data with location id %s",
+            self._hilo.devices.location_id,
         )
-        self._state = self._weather.get("temperature")
+        self._last_weather_update = now
+
+        try:
+            self._weather = await self._hilo._api.get_weather(
+                self._hilo.devices.location_id
+            )
+            LOG.debug("Weather data received: %s", self._weather)
+            self._state = self._weather.get("temperature")
+        except Exception as err:
+            LOG.error("Error fetching weather data: %s", err)
