@@ -1248,11 +1248,9 @@ class HiloOutdoorTempSensor(HiloEntity, SensorEntity):
             f"{slugify(device.identifier)}-{slugify(self._attr_name)}"
         )
         LOG.debug("Setting up OutdoorWeatherSensor entity: %s", self._attr_name)
-        # self.scan_interval = timedelta(seconds=WEATHER_SCAN_INTERVAL)
         self._state = STATE_UNKNOWN
         self._weather = {}
         self._last_weather_update = None
-        # self.async_update = Throttle(self.scan_interval)(self._async_update)
 
     @property
     def state(self):
