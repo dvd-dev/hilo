@@ -67,6 +67,7 @@ from .const import (
     REWARD_SCAN_INTERVAL,
     TARIFF_LIST,
     WEATHER_CONDITIONS,
+    WEATHER_SCAN_INTERVAL,
 )
 from .entity import HiloEntity
 from .managers import EnergyManager, UtilityManager
@@ -1247,7 +1248,7 @@ class HiloOutdoorTempSensor(HiloEntity, SensorEntity):
             f"{slugify(device.identifier)}-{slugify(self._attr_name)}"
         )
         LOG.debug("Setting up OutdoorWeatherSensor entity: %s", self._attr_name)
-        self.scan_interval = timedelta(seconds=EVENT_SCAN_INTERVAL_REDUCTION)
+        self.scan_interval = timedelta(seconds=WEATHER_SCAN_INTERVAL)
         self._state = STATE_UNKNOWN
         self._weather = {}
         self.async_update = Throttle(self.scan_interval)(self._async_update)
