@@ -425,9 +425,11 @@ class Hilo:
 
         elif event.target == "EventCHDetailsUpdatedValuesReceived":
             LOG.debug("EventCHDetailsUpdatedValuesReceived")
-            report = event.arguments[0]["report"]
-            event_id = event.arguments[0]["id"]
-            LOG.debug("Report for event %s: %s", event_id, report)
+            data = event.arguments[0]
+            if "report" in data:
+                report = data["report"]
+                event_id = data.get("id")
+                LOG.debug("Report for event %s: %s", event_id, report)
 
     async def _handle_device_events(self, event: WebsocketEvent) -> None:
         """Handle all device-related websocket events."""
