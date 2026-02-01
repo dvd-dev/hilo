@@ -709,6 +709,7 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
 
     async def handle_challenge_details_update(self, challenge):
         """Handle challenge details update from websocket."""
+        challenge = challenge[0] if isinstance(challenge, list) else challenge
         LOG.debug("UPDATING challenge in reward: %s", challenge)
 
         # We're getting events but didn't request any, do not process them
