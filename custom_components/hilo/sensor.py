@@ -7,6 +7,8 @@ from datetime import datetime, timedelta, timezone
 from os.path import isfile
 
 import aiofiles
+import homeassistant.util.dt as dt_util
+import yaml
 from homeassistant.components.integration.sensor import METHOD_LEFT, IntegrationSensor
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -26,6 +28,8 @@ from homeassistant.const import (
     UnitOfPower,
     UnitOfSoundPressure,
     UnitOfTemperature,
+)
+from homeassistant.const import (
     __short_version__ as current_version,
 )
 from homeassistant.core import HomeAssistant
@@ -35,13 +39,11 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import Throttle, slugify
-import homeassistant.util.dt as dt_util
 from packaging.version import Version
 from pyhilo.const import UNMONITORED_DEVICES
 from pyhilo.device import HiloDevice
 from pyhilo.event import Event
 from pyhilo.util import from_utc_timestamp
-import yaml
 from yaml.scanner import ScannerError
 
 from . import Hilo
@@ -129,6 +131,8 @@ def generate_entities_from_device(device, hilo, scan_interval):
         entities.append(TargetTemperatureSensor(hilo, device))
     if device.has_attribute("wifi_status"):
         entities.append(WifiStrengthSensor(hilo, device))
+    if device.has_attribute("humidity"):
+        entities.append(HumiditySensor(hilo, device))
     return entities
 
 
@@ -510,6 +514,42 @@ class TargetTemperatureSensor(HiloEntity, SensorEntity):
         else:
             thermometer = "alert"
         return f"mdi:thermometer-{thermometer}"
+
+
+class HumiditySensor(HiloEntity, SensorEntity):
+    """Define a Hilo humidity sensor entity."""
+
+    _attr_device_class = SensorDeviceClass.HUMIDITY
+    _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    def __init__(self, hilo, device):
+        self._attr_name = f"{device.name} Humidity"
+        super().__init__(hilo, name=self._attr_name, device=device)
+        old_unique_id = f"{slugify(device.name)}-humidity"
+        self._attr_unique_id = f"{slugify(device.identifier)}-humidity"
+        hilo.async_migrate_unique_id(
+            old_unique_id, self._attr_unique_id, Platform.SENSOR
+        )
+        LOG.debug("Setting up HumiditySensor entity: %s", self._attr_name)
+
+    @property
+    def state(self):
+        return str(float(self._device.get_value("humidity", 0)))
+
+    @property
+    def icon(self):
+        humidity = int(self._device.get_value("humidity", 0))
+        if not self._device.available:
+            return "mdi:water-percent-alert"
+        elif humidity >= 70:
+            return "mdi:water-percent"
+        elif humidity >= 40:
+            return "mdi:water-percent"
+        elif humidity >= 20:
+            return "mdi:water-percent-alert"
+        else:
+            return "mdi:water-alert"
 
 
 class WifiStrengthSensor(HiloEntity, SensorEntity):
