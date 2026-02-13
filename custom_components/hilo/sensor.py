@@ -721,7 +721,8 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
             return
 
         # Skip messages about upcoming events since they don't contain useful info about rewards
-        if challenge.get("report")["status"] == "Upcoming":
+        report = challenge.get("report")
+        if report and report.get("status") == "Upcoming":
             LOG.debug(
                 "Skipping upcoming challenge event in reward: %s", challenge.get("id")
             )
