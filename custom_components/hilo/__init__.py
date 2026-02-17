@@ -952,9 +952,15 @@ class Hilo:
             if rate > 0 and tarif_name in ["low", "medium", "high"]:
                 if hasattr(self, "cost_sensors") and tarif_name in self.cost_sensors:
                     sensor = self.cost_sensors[tarif_name]
-                    sensor._cost = rate
-                    sensor.async_write_ha_state()
-                    LOG.debug("check_tarif Updated %s sensor to %s", tarif_name, rate)
+                    if sensor._cost != rate:
+                        sensor._cost = rate
+                        sensor.async_write_ha_state()
+                        LOG.debug(
+                            "check_tarif Updated %s sensor from %s to %s",
+                            tarif_name,
+                            sensor._cost,
+                            rate,
+                        )
 
         current_cost = self._hass.states.get("sensor.hilo_rate_current")
         try:
