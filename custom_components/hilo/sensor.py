@@ -854,11 +854,10 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
     async def _save_history(self):
         async with aiofiles.open(self._history_state_yaml, mode="w") as yaml_file:
             LOG.debug("Saving history state to yaml file")
-            # TODO: Use asyncio.get_running_loop() and run_in_executor to write
-            # to the file in a non blocking manner. Currently, the file writes
-            # are properly async but the yaml dump is done synchroniously on the
-            # main event loop
-            await yaml_file.write(yaml.dump(self._history))
+            content = await asyncio.get_running_loop().run_in_executor(
+                None, yaml.dump, self._history
+            )
+            await yaml_file.write(content)
 
 
 class HiloChallengeSensor(HiloEntity, SensorEntity):
