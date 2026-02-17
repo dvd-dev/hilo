@@ -15,28 +15,17 @@
 
 This is a Beta version. There will likely be bugs, issues, etc. Thank you for your patience and for opening "Issues".
 
-# ⚠️ Major Change in Progress ⚠️
 
-Please read carefully below and update to **2025.4.1 or later**:
-
-The API used for the initial retrieval of the list of devices and telemetry on your Hilo account will **soon be CLOSED**.
-Once it is closed, it will **no longer be possible** to use the component without the update.
-
-For further information, see [issue #564](https://github.com/dvd-dev/hilo/issues/564).
-
-
-# ⚠️ Hilo Challenge Sensor ⚠️
-
-### Current State:
-- The `allowed_kWh` and `used_kWh` attributes are **partially functional**: the information arrives in fragments, and not all cases are handled yet.
-- Some information, such as `total_devices`, `opt_out_devices`, and `pre_heat_devices`, do not **persist in memory**.
+Please consult the [Wiki](https://github.com/dvd-dev/hilo/wiki) before opening issues, a lot of common questions are answered there.
 
 
 
 ## 📌 Introduction
-This unofficial HACS integration allows you to use [Hilo](https://www.hiloenergie.com/fr-ca/) with Home Assistant. **It is not affiliated with Hilo or Hydro-Québec.**
+This unofficial HACS integration allows you to use [Hilo](https://www.hiloenergie.com/en-ca/) with Home Assistant. **It is not affiliated with Hilo or Hydro-Québec.**
 
 **⚠️ Do not contact Hilo or Hydro-Québec for issues related to this integration.**
+
+**⚠️ Please make your automations and API calls smartly — Hilo knows we’re here and lets us have access because we don’t abuse it, let’s keep it that way.**
 
 🔗 [Recommended minimum configuration](https://github.com/dvd-dev/hilo/wiki/FAQ-%E2%80%90-Français#avez-vous-une-configuration-recommandée)
 🔗 Blueprints: [NumerID](https://github.com/NumerID/blueprint_hilo) | [Arim215](https://github.com/arim215/ha-hilo-blueprints)
@@ -63,6 +52,12 @@ This unofficial HACS integration allows you to use [Hilo](https://www.hiloenergi
 
 📌 **To do**: Support for other devices, improvement of consumption meters, API documentation
 
+# ⚠️ Hilo Challenge Sensor ⚠️
+
+### Current State:
+- The `allowed_kWh` and `used_kWh` attributes are **partially functional**: the information arrives in fragments, and not all cases are handled yet.
+- Some information, such as `total_devices`, `opt_out_devices`, and `pre_heat_devices`, do not **persist in memory**.
+
 ---
 
 ## 📥 Installation
@@ -75,7 +70,7 @@ This unofficial HACS integration allows you to use [Hilo](https://www.hiloenergi
 #### 🔹 Option 1: Via HACS
 [![Install via HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=dvd-dev&repository=hilo&category=integration)
 
-1. Make sure you have [HACS](https://hacs.xyz/docs/setup/download/) installed.
+1. Make sure you have [HACS](https://hacs.xyz/docs/use/download/download/) installed.
 2. In HACS, click `+ EXPLORE & DOWNLOAD REPOSITORIES`, search for "Hilo" and download it.
 3. Restart Home Assistant
 

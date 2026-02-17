@@ -16,29 +16,18 @@
 
 Ceci est une version Bêta. Il y aura probablement des bogues, irritants, etc. Merci pour votre patience et d'ouvrir des "Issues".
 
+Merci de consulter le [Wiki](https://github.com/dvd-dev/hilo/wiki) avant de créer des "Issues", plusieurs questions communes s'y trouvent.
+
 # Hilo - Home Assistant
 Intégration pour Home Assistant d'[Hilo](https://www.hiloenergie.com/fr-ca/)
-
-# ⚠️ Changement majeur en cours, bien lire ci-dessous et mettre à jour vers 2025.4.1 ou plus ⚠️
-
-L'API servant à la lecture initiale de la liste d'appareils et la télémétrie sur votre compte Hilo sera très prochainement FERMÉ
-Lorsque celui-ci sera fermé, il ne sera plus possible d'utiliser le component sans la mise à jour.
-
-Plus de détails disponibles dans [issue #564](https://github.com/dvd-dev/hilo/issues/564).
-
-# ⚠️ Sensor défi Hilo ⚠️
-
-### Ce qui reste à faire de ce côté:
-- Les attributs `allowed_kWh` et `used_kWh` sont **partiellement fonctionnels** actuellement, les informations arrivent morcelées et tous
-les cas ne sont pas traités encore.
-- Certaines informations comme `total_devices`, `opt_out_devices` et `pre_heat_devices` ne persistent pas en mémoire.
-
 
 
 ## 📌 Introduction
 Cette intégration non-officielle HACS permet d'utiliser [Hilo](https://www.hiloenergie.com/fr-ca/) avec Home Assistant. **Elle n'est pas affiliée à Hilo ou Hydro-Québec.**
 
 **⚠️ Ne contactez pas Hilo ou Hydro-Québec pour les problèmes liés à cette intégration.**
+
+**⚠️ Merci de faire vos automatisations et call d'API intelligemment, Hilo sait qu'on est là et nous laisse accès parce que l'on n'abuse pas, gardons ça comme ça.**
 
 🔗 [Configuration minimale recommandée](https://github.com/dvd-dev/hilo/wiki/FAQ-%E2%80%90-Français#avez-vous-une-configuration-recommandée)
 🔗 Blueprints : [NumerID](https://github.com/NumerID/blueprint_hilo) | [Arim215](https://github.com/arim215/ha-hilo-blueprints)
@@ -64,6 +53,13 @@ Cette intégration non-officielle HACS permet d'utiliser [Hilo](https://www.hilo
 
 📌 **À faire** : Support d'autres appareils, amélioration des compteurs de consommation, documentation API
 
+# ⚠️ Sensor défi Hilo ⚠️
+
+### Ce qui reste à faire de ce côté:
+- Les attributs `allowed_kWh` et `used_kWh` sont **partiellement fonctionnels** actuellement, les informations arrivent morcelées et tous
+les cas ne sont pas traités encore.
+- Certaines informations comme `total_devices`, `opt_out_devices` et `pre_heat_devices` ne persistent pas en mémoire.
+
 ---
 
 ## 📥 Installation
@@ -76,7 +72,7 @@ Cette intégration non-officielle HACS permet d'utiliser [Hilo](https://www.hilo
 #### 🔹 Option 1 : Via HACS
 [![Installer via HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=dvd-dev&repository=hilo&category=integration)
 
-1. Assurez-vous d'avoir [HACS](https://hacs.xyz/docs/setup/download/) installé.
+1. Assurez-vous d'avoir [HACS](https://hacs.xyz/docs/use/download/download/) installé.
 2. Dans HACS, cliquez sur `+ EXPLORE & DOWNLOAD REPOSITORIES`, recherchez "Hilo" et téléchargez-le.
 3. Redémarrer Home Assistant
 
@@ -224,3 +220,5 @@ logger:
 [English]: https://github.com/dvd-dev/hilo/blob/main/README.en.md
 [Françaisshield]: https://img.shields.io/badge/fr-Français-blue?style=for-the-badge
 [Français]: https://github.com/dvd-dev/hilo/blob/main/README.md
+
+

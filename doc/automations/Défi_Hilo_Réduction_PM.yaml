@@ -5,15 +5,15 @@ triggers:
   - entity_id:
       - sensor.defi_hilo
     to: reduction
-    enabled: true
-    from: pre_heat
+    id: Sensor
     trigger: state
-  - at: "17:00:00"
+    from: pre_heat
+  - at: "16:00:00"
     trigger: time
 conditions:
   - condition: time
-    before: "17:05:00"
-    after: "16:55:00"
+    before: "16:05:00"
+    after: "15:55:00"
   - condition: or
     conditions:
       - condition: state

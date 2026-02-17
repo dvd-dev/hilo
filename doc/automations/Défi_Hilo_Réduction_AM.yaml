@@ -6,6 +6,7 @@ triggers:
       - sensor.defi_hilo
     to: reduction
     trigger: state
+    from: pre_heat
   - at: "06:00:00"
     trigger: time
 conditions:

@@ -17,8 +17,8 @@
     "abort": {
       "already_configured": "Ce compte Hilo est déjà utilisé.",
       "reauth_successful": "Ré-authentification réussie",
-      "user_rejected_authorize" : "Association du compte refusée",
-      "single_instance_allowed" : "Déjà configurée. Une seule configuration possible."
+      "user_rejected_authorize": "Association du compte refusée",
+      "single_instance_allowed": "Déjà configurée. Une seule configuration possible."
     }
   },
   "options": {
@@ -27,14 +27,24 @@
         "title": "Configurer Hilo",
         "data": {
           "generate_energy_meters": "Générer compteurs de consommation électrique",
+          "untarificated_devices": "Générer seulement les compteurs totaux",
+          "hq_plan_name": "Nom du tarif Hydro Québec",
+          "scan_interval": "Intervalle de mise à jour (secondes)",
+          "log_traces": "Enregistrer requêtes et messages websocket",
+          "challenge_lock": "Vérouiller les entités climate lors de défis",
+          "track_unknown_sources": "Suivre les sources de consommation inconnues",
+          "appreciation_phase": "Période d'ancrage (heures)",
+          "pre_cold_phase": "Période de refroidissement (heures)"
+        },
+        "data_description": {
           "untarificated_devices": "Générer seulement les compteurs totaux pour chaque appareil",
-          "hq_plan_name": "Nom du tarif Hydro Québec ('rate d' ou 'flex d')",
-          "scan_interval": "Intervalle de mise à jour (min: 60s)",
-          "log_traces": "Enregistrer aussi les requêtes et messages websocket (requiert le niveau de journalisation debug sur L'intégration et pyhilo)",
-          "challenge_lock": "Vérouiller les entités climate lors de défis Hilo, empêchant tout changement lorsqu'un défi est en cours.",
-          "track_unknown_sources": "Suivre des sources de consommation inconnues dans un compteur séparé. Ceci est une approximation calculée à partir de la lecture du compteur intelligent.",
-          "appreciation_phase": "Ajouter une période d'ancrage de X heures avant la phase de préchauffage.",
-          "pre_cold_phase": "Ajouter une période de refroidissement de X heures avant la phase d'ancrage."
+          "hq_plan_name": "Sélectionnez 'rate d' ou 'flex d'",
+          "scan_interval": "Minimum: 60 secondes",
+          "log_traces": "Requiert le niveau de journalisation debug sur l'intégration et pyhilo",
+          "challenge_lock": "Empêche tout changement lorsqu'un défi est en cours",
+          "track_unknown_sources": "Ceci est une approximation calculée à partir de la lecture du compteur intelligent",
+          "appreciation_phase": "Ajouter une période d'ancrage de X heures avant la phase de préchauffage. Hilo utilise 3 heures pour les événements AM, 2 heures pour les événements PM, choisissez une valeur qui vous convient et ajustez vos automatisations en conséquence.",
+          "pre_cold_phase": "Ajouter une période de refroidissement de X heures avant la phase d'ancrage"
         }
       }
     }

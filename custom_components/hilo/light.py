@@ -1,3 +1,5 @@
+"""Hilo Light platform integration."""
+
 from homeassistant.components.light import ATTR_BRIGHTNESS, ATTR_HS_COLOR, LightEntity
 from homeassistant.components.light.const import ColorMode
 from homeassistant.config_entries import ConfigEntry
@@ -15,6 +17,7 @@ from .entity import HiloEntity
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
+    """Set up Hilo light entities from a config entry."""
     hilo = hass.data[DOMAIN][entry.entry_id]
     entities = []
 
@@ -26,7 +29,10 @@ async def async_setup_entry(
 
 
 class HiloLight(HiloEntity, LightEntity):
+    """Define a Hilo Light entity."""
+
     def __init__(self, hass: HomeAssistant, hilo: Hilo, device):
+        """Initialize the Hilo light entity."""
         super().__init__(hilo, device=device, name=device.name)
         old_unique_id = f"{slugify(device.name)}-light"
         self._attr_unique_id = f"{slugify(device.identifier)}-light"
@@ -40,22 +46,26 @@ class HiloLight(HiloEntity, LightEntity):
             immediate=True,
             function=self._async_debounced_turn_on,
         )
-        LOG.debug(f"Setting up Light entity: {self._attr_name}")
+        LOG.debug("Setting up Light entity: %s", self._attr_name)
 
     @property
     def brightness(self):
+        """Return the brightness of the light."""
         return self._device.brightness
 
     @property
     def state(self):
+        """Return the state of the light."""
         return self._device.state
 
     @property
     def is_on(self):
+        """Return whether the light is on."""
         return self._device.get_value("is_on")
 
     @property
     def hs_color(self):
+        """Return the HS color."""
         return (self._device.hue, self._device.saturation)
 
     @property
@@ -80,11 +90,13 @@ class HiloLight(HiloEntity, LightEntity):
         return color_modes
 
     async def async_turn_off(self, **kwargs):
+        """Turn off the light."""
         LOG.info(f"{self._device._tag} Turning off")
         await self._device.set_attribute("is_on", False)
         self.async_schedule_update_ha_state(True)
 
     async def async_turn_on(self, **kwargs):
+        """Turn on the light."""
         self._last_kwargs = kwargs
         await self._debounced_turn_on.async_call()
 

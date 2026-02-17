@@ -6,12 +6,23 @@ triggers:
       - sensor.defi_hilo
     to: recovery
     trigger: state
-  - at: "21:00:00"
+    from: reduction
+  - at: "20:00:00"
     trigger: time
 conditions:
   - condition: time
-    before: "21:05:00"
-    after: "20:55:00"
+    before: "20:05:00"
+    after: "19:55:00"
+  - condition: or
+    conditions:
+      - condition: state
+        entity_id: sensor.defi_hilo
+        state:
+          - reduction
+      - condition: state
+        entity_id: sensor.defi_hilo
+        state:
+          - recovery
 actions:
   - data:
       temperature: 18

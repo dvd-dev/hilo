@@ -1,4 +1,5 @@
-from datetime import time
+"""Hilo integration constants."""
+
 import logging
 
 from homeassistant.components.utility_meter.const import DAILY
@@ -45,6 +46,7 @@ NOTIFICATION_SCAN_INTERVAL = 1800
 MAX_SUB_INTERVAL = 120
 MIN_SCAN_INTERVAL = 60
 REWARD_SCAN_INTERVAL = 7200
+WEATHER_SCAN_INTERVAL = 1800
 
 CONF_TARIFF = {
     "rate d": {
@@ -53,7 +55,7 @@ CONF_TARIFF = {
         "medium": 0.10652,
         "high": 0,
         "access": 0.46154,
-        "reward_rate": 0.55,
+        "reward_rate": 0.56786,
     },
     "flex d": {
         "low_threshold": 40,
@@ -65,10 +67,6 @@ CONF_TARIFF = {
     },
 }
 
-CONF_HIGH_PERIODS = {
-    "am": {"from": time(6, 00, 00), "to": time(9, 0, 0)},
-    "pm": {"from": time(16, 0, 0), "to": time(20, 0, 0)},
-}
 
 TARIFF_LIST = ["high", "medium", "low"]
 

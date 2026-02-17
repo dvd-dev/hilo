@@ -62,6 +62,7 @@ class HiloEntity(CoordinatorEntity):
 
     @property
     def should_poll(self) -> bool:
+        """Return whether the entity should be polled."""
         return False
 
     @property

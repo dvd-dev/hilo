@@ -1,13 +1,57 @@
 alias: Défi Hilo Ancrage PM
-description: "Permet de gérer la période d'ancrage PM d'un défi Hilo/Manages the PM anchor phase of a Hilo Challenge"
+description: >-
+  Permet de gérer la période d'ancrage PM d'un défi Hilo/Manages the PM anchor
+  phase of a Hilo Challenge
 mode: single
 triggers:
-  - at: "12:00:00"
-    trigger: time
   - entity_id:
       - sensor.defi_hilo
-    to: appreciation
+    to:
+      - appreciation
     trigger: state
+    id: ScheduledAppreciation
+    from:
+      - scheduled
+    for:
+      hours: 1
+      minutes: 0
+      seconds: 0
+  - entity_id:
+      - sensor.defi_hilo
+    to:
+      - appreciation
+    trigger: state
+    id: CompletedAppreciation
+    from:
+      - completed
+    for:
+      hours: 0
+      minutes: 55
+      seconds: 0
+  - entity_id:
+      - sensor.defi_hilo
+    to:
+      - appreciation
+    trigger: state
+    id: PreColdAppreciation
+    from:
+      - pre_cold
+    for:
+      hours: 1
+      minutes: 0
+      seconds: 0
+  - entity_id:
+      - sensor.defi_hilo
+    to:
+      - appreciation
+    trigger: state
+    id: OffToAppreciation
+    from:
+      - "off"
+    for:
+      hours: 0
+      minutes: 55
+      seconds: 0
 conditions:
   - condition: and
     conditions:
@@ -26,6 +70,9 @@ conditions:
       - condition: state
         entity_id: sensor.defi_hilo
         state: scheduled
+      - condition: state
+        entity_id: sensor.defi_hilo
+        state: pre_cold
   - condition: time
     after: "11:55:00"
     before: "12:05:00"
