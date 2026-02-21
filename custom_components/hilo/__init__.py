@@ -895,7 +895,9 @@ class Hilo:
         current = self._hass.states.get(entity)
         if not current:
             if not force:
-                LOG.warning("Unable to set state because there's no current: %s", params)
+                LOG.warning(
+                    "Unable to set state because there's no current: %s", params
+                )
                 return
             attrs = {}
         else:
