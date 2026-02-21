@@ -968,7 +968,9 @@ class Hilo:
                 tarif = "medium"
         except ValueError:
             LOG.warning(
-                f"Unable to restore a valid state of {base_sensor}: {energy_used.state}"
+                "Unable to restore a valid state of %s: %s",
+                base_sensor,
+                energy_used.state,
             )
 
         if tarif_config.get("high", 0) > 0 and self.high_times:
