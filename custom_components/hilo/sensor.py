@@ -67,6 +67,7 @@ from .const import (
     REWARD_SCAN_INTERVAL,
     TARIFF_LIST,
     WEATHER_CONDITIONS,
+    WEATHER_SCAN_INTERVAL,
 )
 from .entity import HiloEntity
 from .managers import EnergyManager, UtilityManager
@@ -721,6 +722,7 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
 
     async def handle_challenge_details_update(self, challenge):
         """Handle challenge details update from websocket."""
+        challenge = challenge[0] if isinstance(challenge, list) else challenge
         LOG.debug("UPDATING challenge in reward: %s", challenge)
 
         # We're getting events but didn't request any, do not process them
@@ -732,7 +734,8 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
             return
 
         # Skip messages about upcoming events since they don't contain useful info about rewards
-        if challenge.get("report")["status"] == "Upcoming":
+        report = challenge.get("report")
+        if report and report.get("status") == "Upcoming":
             LOG.debug(
                 "Skipping upcoming challenge event in reward: %s", challenge.get("id")
             )
@@ -864,11 +867,10 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
     async def _save_history(self):
         async with aiofiles.open(self._history_state_yaml, mode="w") as yaml_file:
             LOG.debug("Saving history state to yaml file")
-            # TODO: Use asyncio.get_running_loop() and run_in_executor to write
-            # to the file in a non blocking manner. Currently, the file writes
-            # are properly async but the yaml dump is done synchroniously on the
-            # main event loop
-            await yaml_file.write(yaml.dump(self._history))
+            content = await asyncio.get_running_loop().run_in_executor(
+                None, yaml.dump, self._history
+            )
+            await yaml_file.write(content)
 
 
 class HiloChallengeSensor(HiloEntity, SensorEntity):
@@ -1360,7 +1362,7 @@ class HiloOutdoorTempSensor(HiloEntity, SensorEntity):
             f"{slugify(device.identifier)}-{slugify(self._attr_name)}"
         )
         LOG.debug("Setting up OutdoorWeatherSensor entity: %s", self._attr_name)
-        self.scan_interval = timedelta(seconds=EVENT_SCAN_INTERVAL_REDUCTION)
+        self.scan_interval = timedelta(seconds=WEATHER_SCAN_INTERVAL)
         self._state = STATE_UNKNOWN
         self._weather = {}
         self.async_update = Throttle(self.scan_interval)(self._async_update)

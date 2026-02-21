@@ -348,33 +348,21 @@ class Hilo:
             msg_type = "challenge_list_initial"
         elif target in ["ChallengeAdded", "EventAdded"]:
             msg_type = "challenge_added"
-        elif target == "ChallengeDetailsUpdated":
-            msg_type = "challenge_details_update"
         elif target in [
+            "ChallengeDetailsUpdated",
             "ChallengeConsumptionUpdatedValuesReceived",
             "EventCHConsumptionUpdatedValuesReceived",
-        ]:
-            msg_type = "challenge_details_update"
-        elif target in [
             "ChallengeDetailsUpdatedValuesReceived",
             "EventCHDetailsUpdatedValuesReceived",
             "EventFlexDetailsUpdatedValuesReceived",
-        ]:
-            msg_type = "challenge_details_update"
-        elif target in [
             "ChallengeDetailsInitialValuesReceived",
             "EventCHDetailsInitialValuesReceived",
             "EventFlexDetailsInitialValuesReceived",
-        ]:
-            msg_type = "challenge_details_update"
-        elif target in [
             "ChallengeListUpdatedValuesReceived",
             "EventListUpdatedValuesReceived",
         ]:
             msg_type = "challenge_details_update"
-        elif target in [
-            "EventFlexConsumptionUpdatedValuesReceived",
-        ]:
+        elif target == "EventFlexConsumptionUpdatedValuesReceived":
             LOG.debug("%s message received", target)
             LOG.debug("%s data: %s", target, msg_data)
             return
@@ -437,9 +425,11 @@ class Hilo:
 
         elif event.target == "EventCHDetailsUpdatedValuesReceived":
             LOG.debug("EventCHDetailsUpdatedValuesReceived")
-            report = event.arguments[0]["report"]
-            event_id = event.arguments[0]["id"]
-            LOG.debug("Report for event %s: %s", event_id, report)
+            data = event.arguments[0]
+            if "report" in data:
+                report = data["report"]
+                event_id = data.get("id")
+                LOG.debug("Report for event %s: %s", event_id, report)
 
     async def _handle_device_events(self, event: WebsocketEvent) -> None:
         """Handle all device-related websocket events."""
@@ -541,7 +531,7 @@ class Hilo:
         # TODO: This is a fallback but will eventually need to be removed, I expect it to create
         # websocket disconnects once the split is complete.
         LOG.warning(
-            "Using legacy connection instead of %s, this will be deprecated",
+            "Starting legacy connection to ChallengeHub. Your tarif is %s, and will also attempt connection. This can be safely ignored. This will be deprecated",
             tarif_config,
         )
         await self._api.websocket_challenges.async_invoke(
@@ -962,9 +952,15 @@ class Hilo:
             if rate > 0 and tarif_name in ["low", "medium", "high"]:
                 if hasattr(self, "cost_sensors") and tarif_name in self.cost_sensors:
                     sensor = self.cost_sensors[tarif_name]
-                    sensor._cost = rate
-                    sensor.async_write_ha_state()
-                    LOG.debug("check_tarif Updated %s sensor to %s", tarif_name, rate)
+                    if sensor._cost != rate:
+                        sensor._cost = rate
+                        sensor.async_write_ha_state()
+                        LOG.debug(
+                            "check_tarif Updated %s sensor from %s to %s",
+                            tarif_name,
+                            sensor._cost,
+                            rate,
+                        )
 
         current_cost = self._hass.states.get("sensor.hilo_rate_current")
         try:
