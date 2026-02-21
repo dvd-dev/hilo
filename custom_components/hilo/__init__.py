@@ -237,7 +237,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if hasattr(hilo, "_challengehub_ws") and hilo._challengehub_ws:
             await hilo._challengehub_ws.async_disconnect()
     except Exception as err:
-        LOG.error(f"Error disconnecting websockets: {err}")
+        LOG.error("Error disconnecting websockets: %s", err)
 
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
@@ -247,7 +247,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     await hilo._api.session.close()
                     LOG.debug("Session closed")
         except Exception as err:
-            LOG.error(f"Error closing session: {err}")
+            LOG.error("Error closing session: %s", err)
 
         LOG.debug("Hilo Integration unloaded")
         hass.data[DOMAIN].pop(entry.entry_id)
@@ -388,7 +388,7 @@ class Hilo:
                         )
                         await handler(msg_data)
                 except Exception as e:
-                    LOG.error(f"Error in websocket handler {handler_name}: {e}")
+                    LOG.error("Error in websocket handler %s: %s", handler_name, e)
                     LOG.error(traceback.format_exc())
 
     async def _handle_challenge_events(self, event: WebsocketEvent) -> None:
@@ -508,7 +508,7 @@ class Hilo:
             await self._handle_device_events(event)
 
         else:
-            LOG.warning(f"Unhandled websocket event: {event}")
+            LOG.warning("Unhandled websocket event: %s", event)
 
     @callback
     async def subscribe_to_location(self, inv_id: int) -> None:
@@ -791,7 +791,7 @@ class Hilo:
                 self.should_websocket_reconnect = False
                 return
         except WebsocketError as err:
-            LOG.error(f"Failed to connect to websocket: {err}", exc_info=err)
+            LOG.error("Failed to connect to websocket: %s", err, exc_info=err)
             await self.cancel_websocket_loop(websocket, id)
         except InvalidCredentialsError:
             LOG.warning("Invalid credentials? Refreshing websocket infos")
@@ -799,7 +799,7 @@ class Hilo:
             try:
                 await self._api.refresh_ws_token()
             except Exception as err:
-                LOG.error(f"Exception while refreshing the token: {err}", exc_info=err)
+                LOG.error("Exception while refreshing the token: %s", err, exc_info=err)
         except Exception as err:  # pylint: disable=broad-except
             LOG.error(
                 f"Unknown exception while connecting to websocket: {err}", exc_info=err
@@ -895,7 +895,7 @@ class Hilo:
         current = self._hass.states.get(entity)
         if not current:
             if not force:
-                LOG.warning(f"Unable to set state because there's no current: {params}")
+                LOG.warning("Unable to set state because there's no current: %s", params)
                 return
             attrs = {}
         else:
@@ -934,7 +934,7 @@ class Hilo:
             base_sensor = f"sensor.{HILO_ENERGY_TOTAL}_low"
             energy_used = self._hass.states.get(base_sensor)
             if not energy_used:
-                LOG.warning(f"check_tarif: Unable to find state for {base_sensor}")
+                LOG.warning("check_tarif: Unable to find state for %s", base_sensor)
                 return tarif
             user_selected_plan_name = self.hq_plan_name
 
@@ -1066,7 +1066,7 @@ class Hilo:
             else parent_unit_state.attributes.get("unit_of_measurement")
         )
         if not parent_unit:
-            LOG.warning(f"Unable to find state for parent unit: {current_state}")
+            LOG.warning("Unable to find state for parent unit: %s", current_state)
             return
 
         new_attrs = {

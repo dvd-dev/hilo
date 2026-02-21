@@ -91,7 +91,7 @@ class HiloLight(HiloEntity, LightEntity):
 
     async def async_turn_off(self, **kwargs):
         """Turn off the light."""
-        LOG.info(f"{self._device._tag} Turning off")
+        LOG.info("%s Turning off", self._device._tag)
         await self._device.set_attribute("is_on", False)
         self.async_schedule_update_ha_state(True)
 
@@ -101,7 +101,7 @@ class HiloLight(HiloEntity, LightEntity):
         await self._debounced_turn_on.async_call()
 
     async def _async_debounced_turn_on(self):
-        LOG.info(f"{self._device._tag} Turning on")
+        LOG.info("%s Turning on", self._device._tag)
         await self._device.set_attribute("is_on", True)
         if ATTR_BRIGHTNESS in self._last_kwargs:
             LOG.info(

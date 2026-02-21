@@ -1178,7 +1178,7 @@ class HiloCostSensor(HiloEntity, SensorEntity):
         )
         self._last_update = dt_util.utcnow()
         super().__init__(hilo, name=self._attr_name, device=device)
-        LOG.info(f"Initializing energy cost sensor {name} {plan_name} Amount: {amount}")
+        LOG.info("Initializing energy cost sensor %s %s Amount: %s", name, plan_name, amount)
 
     def _handle_state_change(self, event):
         LOG.debug("_handle_state_change() %s | %s ", self, self._last_update)
@@ -1200,7 +1200,7 @@ class HiloCostSensor(HiloEntity, SensorEntity):
                 self._cost = state.state
                 self._last_update = now
         except ValueError:
-            LOG.error(f"Invalidate state received for {self._attr_unique_id}: {state}")
+            LOG.error("Invalidate state received for %s: %s", self._attr_unique_id, state)
 
     @property
     def state(self):
