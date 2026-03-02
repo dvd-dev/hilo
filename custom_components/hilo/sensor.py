@@ -734,7 +734,8 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
             return
 
         # Skip messages about upcoming events since they don't contain useful info about rewards
-        if challenge.get("report")["status"] == "Upcoming":
+        report = challenge.get("report")
+        if report and report.get("status") == "Upcoming":
             LOG.debug(
                 "Skipping upcoming challenge event in reward: %s", challenge.get("id")
             )
@@ -866,11 +867,10 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
     async def _save_history(self):
         async with aiofiles.open(self._history_state_yaml, mode="w") as yaml_file:
             LOG.debug("Saving history state to yaml file")
-            # TODO: Use asyncio.get_running_loop() and run_in_executor to write
-            # to the file in a non blocking manner. Currently, the file writes
-            # are properly async but the yaml dump is done synchroniously on the
-            # main event loop
-            await yaml_file.write(yaml.dump(self._history))
+            content = await asyncio.get_running_loop().run_in_executor(
+                None, yaml.dump, self._history
+            )
+            await yaml_file.write(content)
 
 
 class HiloChallengeSensor(HiloEntity, SensorEntity):
@@ -1247,7 +1247,7 @@ class HiloCostSensor(HiloEntity, SensorEntity):
 
 
 class HiloCostSensorTotal(HiloEntity, SensorEntity):
-    """This sensor generates the total cost entity including access rate per hour"""
+    """This sensor generates the total cost entity including access rate per hour."""
 
     _attr_device_class = SensorDeviceClass.MONETARY
     _attr_native_unit_of_measurement = (
@@ -1257,6 +1257,7 @@ class HiloCostSensorTotal(HiloEntity, SensorEntity):
     _attr_icon = "mdi:cash"
 
     def __init__(self, hilo, name, plan_name, access_rate=0):
+        """Initialize."""
         for d in hilo.devices.all:
             if d.type == "Gateway":
                 device = d
@@ -1309,24 +1310,28 @@ class HiloCostSensorTotal(HiloEntity, SensorEntity):
                 # Calculate total cost: current rate + access rate per hour
                 self._total_cost = self._current_rate + self._access_rate_per_hour
                 self._last_update = now
-                self.async_write_ha_state()
+                self.hass.add_job(self.async_write_ha_state)
         except ValueError:
-            LOG.error(f"Invalid state received for {self._attr_unique_id}: {state}")
+            LOG.error("Invalid state received for, %s: %s", self._attr_unique_id, state)
 
     @property
     def state(self):
+        """Return the total cost."""
         return self._total_cost
 
     @property
     def suggested_display_precision(self) -> int:
+        """Return the suggested display precision."""
         return 5
 
     @property
     def should_poll(self) -> bool:
+        """Disable polling."""
         return False
 
     @property
     def extra_state_attributes(self):
+        """Return the total cost sensor attributes."""
         return {
             "Current Rate": self._current_rate,
             "Access Rate Per Hour": self._access_rate_per_hour,
@@ -1340,6 +1345,7 @@ class HiloCostSensorTotal(HiloEntity, SensorEntity):
         await super().async_added_to_hass()
 
     async def async_update(self):
+        """Update the state."""
         self._last_update = dt_util.utcnow()
         return super().async_update()
 
