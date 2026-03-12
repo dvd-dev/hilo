@@ -713,6 +713,10 @@ class Hilo:
         if TYPE_CHECKING:
             assert self._api.refresh_token
             assert self._api.websocket
+        
+        # Wait for websocket device cache to be populated
+        # This ensures devices have correct names and IDs from the start
+        await self._api.wait_for_device_cache(timeout=10.0)
 
         await self.devices.async_init()
         await self.graphql_helper.async_init()
