@@ -720,7 +720,7 @@ class Hilo:
 
         # Wait for websocket device cache to be populated
         # This ensures devices have correct names and IDs from the start
-        await self._api.wait_for_device_cache(timeout=10.0)
+        # await self._api.wait_for_device_cache(timeout=10.0)
 
         await self.devices.async_init()
         await self.graphql_helper.async_init()
@@ -757,6 +757,7 @@ class Hilo:
             self.start_websocket_loop(self._api.websocket_challenges, 1)
         )
 
+        await self._api.wait_for_device_cache(timeout=10.0)
         # asyncio.create_task(self._api.websocket_devices.async_connect())
 
         async def websocket_disconnect_listener(_: Event) -> None:
