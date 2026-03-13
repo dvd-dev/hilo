@@ -11,6 +11,16 @@
 [![calver][calver-shield]][calver]
 [![discord][discord-shield]][discord]
 
+
+# ⚠️ BREAKING CHANGE ⚠️
+
+See issue #564. We should be releasing an update in the next few days. Any installation that hasn’t upgraded to the latest version will no longer work for device readings.
+
+
+Any issue opened by someone who hasn’t updated Hilo will be closed.
+
+# ⚠️ BREAKING CHANGE ⚠️
+
 **BETA**
 
 This is a Beta version. There will likely be bugs, issues, etc. Thank you for your patience and for opening "Issues".
