@@ -444,9 +444,10 @@ class Hilo:
             )
             if new_devices:
                 LOG.warning(
-                    "Device list appears to be desynchronized, forcing a refresh thru the API..."
+                    "Device list appears to be desynchronized, "
+                    "waiting for next DeviceListInitialValuesReceived to refresh..."
                 )
-                await self.devices.update()
+                # Device list will refresh on next websocket reconnect/subscribe
 
             updated_devices = self.devices.parse_values_received(event.arguments[0])
             # NOTE(dvd): If we don't do this, we need to wait until the coordinator
@@ -473,7 +474,7 @@ class Hilo:
 
         elif event.target == "DeviceAdded":
             devices = [event.arguments[0]]
-            await self.devices.update_devicelist_from_signalr(devices)
+            await self.devices.add_device_from_signalr(devices)
 
         elif event.target == "DeviceDeleted":
             LOG.debug("Received 'DeviceDeleted' message, not implemented yet.")
@@ -496,7 +497,10 @@ class Hilo:
         async_dispatcher_send(self._hass, DISPATCHER_TOPIC_WEBSOCKET_EVENT, event)
 
         if event.event_type == "COMPLETE":
-            cb = self.invocations.get(event.invocation)
+            # Look up the callback in both device and challenge invocation groups
+            cb = self.invocations["device"].get(event.invocation) or self.invocations[
+                "challenge"
+            ].get(event.invocation)
             if cb:
                 async_call_later(self._hass, 3, cb(event.invocation))
 
@@ -652,7 +656,7 @@ class Hilo:
 
     @callback
     async def request_status_update_challenge(self) -> None:
-        """Request a status update from the challenge websockets."""
+        """Request a status update from the challenge websocket."""
         await self._api.websocket_challenges.send_status()
 
         for inv_id, inv_cb in self.invocations["challenge"].items():
@@ -715,33 +719,26 @@ class Hilo:
         return self._events[event_id]
 
     async def async_init(self, scan_interval: int) -> None:
-        """Initialize the Hilo "manager" class."""
+        """Initialize the Hilo "manager" class.
+
+        Flow:
+        1. Get location IDs (REST - kept)
+        2. Register websocket callbacks and connect
+        3. Websocket subscribes to location, triggering DeviceListInitialValuesReceived
+        4. Wait for device cache to be populated from websocket
+        5. Build device list (websocket devices + gateway from REST)
+        6. Initialize GraphQL, register custom devices, start coordinator
+        """
         if TYPE_CHECKING:
             assert self._api.refresh_token
             assert self._api.websocket
 
+        # Step 1: Get location IDs (still REST)
         await self.devices.async_init()
-        await self.graphql_helper.async_init()
-        self.subscriptions[0] = asyncio.create_task(
-            self.graphql_helper.subscribe_to_device_updated(
-                self.devices.location_hilo_id,
-                self.handle_subscription_result,
-            )
-        )
 
-        _async_register_custom_device(
-            self._hass, self.entry, self.devices.find_device(1)
-        )
-        if self.track_unknown_sources:
-            if not self.unknown_tracker_device:
-                self.unknown_tracker_device = self.devices.generate_device(
-                    self._get_unknown_source_tracker()
-                )
-                self.unknown_tracker_device.net_consumption = True
-            _async_register_custom_device(
-                self._hass, self.entry, self.unknown_tracker_device
-            )
-
+        # Step 2: Register websocket callbacks and start connections
+        # The connect callback triggers subscribe_to_location, which causes
+        # the server to send DeviceListInitialValuesReceived
         self._api.websocket_devices.add_connect_callback(self.request_status_update)
         self._api.websocket_devices.add_event_callback(self.on_websocket_event)
         self._api.websocket_challenges.add_connect_callback(
@@ -755,8 +752,34 @@ class Hilo:
             self.start_websocket_loop(self._api.websocket_challenges, 1)
         )
 
-        await self._api.wait_for_device_cache(timeout=10.0)
-        # asyncio.create_task(self._api.websocket_devices.async_connect())
+        # Step 3: Wait for DeviceListInitialValuesReceived from websocket
+        await self._api.wait_for_device_cache(timeout=30.0)
+
+        # Step 4: Build device list (websocket devices + gateway REST + callbacks)
+        await self.devices.update()
+
+        # Step 5: Initialize GraphQL
+        await self.graphql_helper.async_init()
+        self.subscriptions[0] = asyncio.create_task(
+            self.graphql_helper.subscribe_to_device_updated(
+                self.devices.location_hilo_id,
+                self.handle_subscription_result,
+            )
+        )
+
+        # Step 6: Register custom devices in HA
+        _async_register_custom_device(
+            self._hass, self.entry, self.devices.find_device(1)
+        )
+        if self.track_unknown_sources:
+            if not self.unknown_tracker_device:
+                self.unknown_tracker_device = self.devices.generate_device(
+                    self._get_unknown_source_tracker()
+                )
+                self.unknown_tracker_device.net_consumption = True
+            _async_register_custom_device(
+                self._hass, self.entry, self.unknown_tracker_device
+            )
 
         async def websocket_disconnect_listener(_: Event) -> None:
             """Define an event handler to disconnect from the websocket."""
