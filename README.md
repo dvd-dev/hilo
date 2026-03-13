@@ -11,6 +11,14 @@
 [![calver][calver-shield]][calver]
 [![discord][discord-shield]][discord]
 
+# ⚠️ BREAKING CHANGE ⚠️
+
+Voir issue #564. Nous devrions relâcher un update dans les prochains jours. Toutes les installations qui n'auront pas passé à la version
+la plue récente ne fonctionneront plus au niveau des lectures d'appareils.
+
+Tout issue ouvert par quelqu'un qui n'a pas mis à jour Hilo sera fermé.
+
+# ⚠️ BREAKING CHANGE ⚠️
 
 **BETA**
 
@@ -220,5 +228,6 @@ logger:
 [English]: https://github.com/dvd-dev/hilo/blob/main/README.en.md
 [Françaisshield]: https://img.shields.io/badge/fr-Français-blue?style=for-the-badge
 [Français]: https://github.com/dvd-dev/hilo/blob/main/README.md
+
 
 
