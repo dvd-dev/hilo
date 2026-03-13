@@ -291,9 +291,13 @@ class Hilo:
         self._update_task: list[asyncio.Task | None] = [None, None]
         self.subscriptions: List[Optional[asyncio.Task]] = [None]
         self.invocations = {
-            0: self.subscribe_to_location,
-            1: self.subscribe_to_challenge,
-            2: self.subscribe_to_challengelist,
+            "device": {
+                0: self.subscribe_to_location,
+            },
+            "challenge": {
+                1: self.subscribe_to_challenge,
+                2: self.subscribe_to_challengelist,
+            },
         }
         self.hq_plan_name = entry.options.get(CONF_HQ_PLAN_NAME, DEFAULT_HQ_PLAN_NAME)
         self.appreciation = entry.options.get(
@@ -640,16 +644,16 @@ class Hilo:
 
     @callback
     async def request_status_update(self) -> None:
-        """Request a status update from the device websocket."""
         await self._api.websocket_devices.send_status()
-        for inv_id, inv_cb in self.invocations.items():
+
+        for inv_id, inv_cb in self.invocations["device"].items():
             await inv_cb(inv_id)
 
     @callback
     async def request_status_update_challenge(self) -> None:
-        """Request a status update from the challenge websocket."""
         await self._api.websocket_challenges.send_status()
-        for inv_id, inv_cb in self.invocations.items():
+
+        for inv_id, inv_cb in self.invocations["challenge"].items():
             await inv_cb(inv_id)
 
     @callback
@@ -713,7 +717,7 @@ class Hilo:
         if TYPE_CHECKING:
             assert self._api.refresh_token
             assert self._api.websocket
-        
+
         # Wait for websocket device cache to be populated
         # This ensures devices have correct names and IDs from the start
         await self._api.wait_for_device_cache(timeout=10.0)
