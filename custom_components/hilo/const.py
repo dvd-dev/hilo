@@ -95,4 +95,4 @@ HILO_SENSOR_CLASSES = [
     "Gateway",
 ]
 CLIMATE_CLASSES = ["Thermostat", "FloorThermostat", "Thermostat24V"]
-SWITCH_CLASSES = ["Outlet", "Ccr", "Cee"]
+SWITCH_CLASSES = ["Outlet", "Ccr", "Cee", "SinopeWaterHeater"]
