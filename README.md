@@ -13,8 +13,9 @@
 
 # ⚠️ BREAKING CHANGE ⚠️
 
-Voir issue #564. Nous devrions relâcher un update dans les prochains jours. Toutes les installations qui n'auront pas passé à la version
-la plue récente ne fonctionneront plus au niveau des lectures d'appareils.
+Hilo ferme endpoint API /Devices. Voir issue #564.
+
+Nous avons relâchés v2026.3.2. Toutes les installations qui n'auront pas passé à cette version ne fonctionneront plus au niveau des lectures d'appareils.
 
 Tout issue ouvert par quelqu'un qui n'a pas mis à jour Hilo sera fermé.
 
