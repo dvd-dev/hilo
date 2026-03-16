@@ -14,7 +14,7 @@
 
 # ⚠️ BREAKING CHANGE ⚠️
 
-See issue #564. We should be releasing an update in the next few days. Any installation that hasn’t upgraded to the latest version will no longer work for device readings.
+Hilo is closing down REST API endpoint /Devices. See issue #564. We have released v2026.3.2. Any installation that hasn’t upgraded to this version will no longer work for device readings.
 
 
 Any issue opened by someone who hasn’t updated Hilo will be closed.
