@@ -102,6 +102,6 @@ CLIMATE_CLASSES = [
     "TCC24V",
     "SinopeThermostat",
     "SinopeFloorThermostat",
-    "Sinope24V"
+    "Sinope24V",
 ]
 SWITCH_CLASSES = ["Outlet", "Ccr", "Cee", "SinopeWaterHeater"]
