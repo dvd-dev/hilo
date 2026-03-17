@@ -955,10 +955,12 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
                     # Find the oldest event based on recovery_end datetime
                     oldest_event_id = min(
                         self._events.keys(),
-                        key=lambda key: self._events[key]
-                        .as_dict()
-                        .get("phases", {})
-                        .get("recovery_end", ""),
+                        key=lambda key: (
+                            self._events[key]
+                            .as_dict()
+                            .get("phases", {})
+                            .get("recovery_end", "")
+                        ),
                     )
                     await asyncio.sleep(300)
                     del self._events[oldest_event_id]
@@ -1093,6 +1095,8 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
     async def async_added_to_hass(self):
         """Handle entity about to be added to hass event."""
         await super().async_added_to_hass()
+
+        await self._hilo.subscribe_to_challengelist(2)
 
     async def _async_update(self):
         """Update fallback, but not needed with websockets."""
