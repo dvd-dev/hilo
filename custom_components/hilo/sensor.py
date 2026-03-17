@@ -7,6 +7,8 @@ from datetime import datetime, timedelta, timezone
 from os.path import isfile
 
 import aiofiles
+import homeassistant.util.dt as dt_util
+import yaml
 from homeassistant.components.integration.sensor import METHOD_LEFT, IntegrationSensor
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -26,6 +28,8 @@ from homeassistant.const import (
     UnitOfPower,
     UnitOfSoundPressure,
     UnitOfTemperature,
+)
+from homeassistant.const import (
     __short_version__ as current_version,
 )
 from homeassistant.core import HomeAssistant
@@ -35,13 +39,11 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import Throttle, slugify
-import homeassistant.util.dt as dt_util
 from packaging.version import Version
 from pyhilo.const import UNMONITORED_DEVICES
 from pyhilo.device import HiloDevice
 from pyhilo.event import Event
 from pyhilo.util import from_utc_timestamp
-import yaml
 from yaml.scanner import ScannerError
 
 from . import Hilo
@@ -955,10 +957,12 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
                     # Find the oldest event based on recovery_end datetime
                     oldest_event_id = min(
                         self._events.keys(),
-                        key=lambda key: self._events[key]
-                        .as_dict()
-                        .get("phases", {})
-                        .get("recovery_end", ""),
+                        key=lambda key: (
+                            self._events[key]
+                            .as_dict()
+                            .get("phases", {})
+                            .get("recovery_end", "")
+                        ),
                     )
                     await asyncio.sleep(300)
                     del self._events[oldest_event_id]
@@ -1093,6 +1097,8 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
     async def async_added_to_hass(self):
         """Handle entity about to be added to hass event."""
         await super().async_added_to_hass()
+
+        await self._hilo.subscribe_to_challengelist(2)
 
     async def _async_update(self):
         """Update fallback, but not needed with websockets."""
