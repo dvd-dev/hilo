@@ -1290,6 +1290,10 @@ class HiloOutdoorTempSensor(HiloEntity, SensorEntity):
             if key not in ["temperature", "icon"]
         }
 
+    def _update_callback(self):
+        """Gateway value updates don't need to trigger a weather refresh."""
+        return
+
     async def async_added_to_hass(self):
         """Handle entity about to be added to hass event."""
         await super().async_added_to_hass()
