@@ -832,8 +832,9 @@ class Hilo:
                 LOG.error("Exception while refreshing the token: %s", err, exc_info=err)
         except Exception as err:  # pylint: disable=broad-except
             LOG.error(
-                f"Unknown exception while connecting to websocket: {err}", exc_info=err
+                "Unknown exception while connecting to websocket: %s", err, exc_info=err
             )
+
             await self.cancel_websocket_loop(websocket, id)
 
         if self.should_websocket_reconnect:
@@ -946,6 +947,11 @@ class Hilo:
     def high_times(self):
         """Check if the current time is within high tariff periods."""
         challenge_sensor = self._hass.states.get("sensor.defi_hilo")
+
+        if challenge_sensor is None:
+            LOG.warning("high_times check tarif challenge sensor not found")
+            return False
+
         LOG.debug(
             "high_times check tarif challenge sensor is %s", challenge_sensor.state
         )
@@ -995,6 +1001,13 @@ class Hilo:
                         )
 
         current_cost = self._hass.states.get("sensor.hilo_rate_current")
+
+        if not current_cost:
+            LOG.warning(
+                "check_tarif: Unable to find state for sensor.hilo_rate_current"
+            )
+            return
+
         try:
             if float(energy_used.state) >= tarif_config.get("low_threshold"):
                 tarif = "medium"
@@ -1006,6 +1019,11 @@ class Hilo:
         if tarif_config.get("high", 0) > 0 and self.high_times:
             tarif = "high"
         target_cost = self._hass.states.get(f"sensor.hilo_rate_{tarif}")
+
+        if not target_cost:
+            LOG.warning("check_tarif: sensor.hilo_rate_%s not available yet", tarif)
+            return
+
         if target_cost.state != current_cost.state:
             LOG.debug(
                 "check_tarif: Updating current cost, was %s now %s",
