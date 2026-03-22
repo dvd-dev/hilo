@@ -1019,7 +1019,7 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
             if challenge.get("progress") == "completed":
                 # ajout d'un asyncio sleep ici pour avoir l'état completed avant le retrait du challenge
                 await asyncio.sleep(300)
-                del self._events[event_id]
+                self._events.pop(event_id, None)
 
             # Consumption update
             elif used_wH is not None and used_wH > 0:
