@@ -660,7 +660,7 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
         self._history = []
         self._events_to_poll = dict()
         self.async_update = Throttle(self.scan_interval)(self._async_update)
-        hilo.register_websocket_listener(self)
+        hilo.register_signalr_listener(self)
 
         # When we update the list of reward history, we can end up making
         # hundreds of calls to _save_history in a very short amount of time.
@@ -833,7 +833,7 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
             self._history = new_history
             await self._save_history_debouncer.async_call()
             for eventId in self._events_to_poll:
-                await self._hilo.subscribe_to_challenge(1, eventId)
+                await self._hilo.subscribe_to_challenge(eventId)
 
     async def _load_history(self) -> list:
         history: list = []
@@ -907,7 +907,7 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
         self.async_update = Throttle(timedelta(seconds=MIN_SCAN_INTERVAL))(
             self._async_update
         )
-        hilo.register_websocket_listener(self)
+        hilo.register_signalr_listener(self)
 
     async def handle_challenge_added(self, event_data):
         """Handle new challenge event."""
@@ -1003,7 +1003,7 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
         if baseline_points:
             baselinewH = baseline_points[-1]["wh"]
         else:
-            baselinewH = challenge.get("baselineWh", 0)
+            baselinewH = 0
         allowed_kwh = baselinewH / 1000 if baselinewH > 0 else 0
 
         used_wH = challenge.get("currentWh", 0)
@@ -1098,7 +1098,7 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
         """Handle entity about to be added to hass event."""
         await super().async_added_to_hass()
 
-        await self._hilo.subscribe_to_challengelist(2)
+        await self._hilo.subscribe_to_challengelist()
 
     async def _async_update(self):
         """Update fallback, but not needed with websockets."""
@@ -1106,11 +1106,11 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
             event = self._events.get(event_id)
             if event.should_check_for_allowed_wh():
                 LOG.debug("ASYNC UPDATE SUB: EVENT: %s", event_id)
-                await self._hilo.subscribe_to_challenge(1, event_id)
-                await self._hilo.request_challenge_consumption_update(1, event_id)
+                await self._hilo.subscribe_to_challenge(event_id)
+                await self._hilo.request_challenge_consumption_update(event_id)
             elif self.state == "reduction":
                 LOG.debug("ASYNC UPDATE: EVENT: %s", event_id)
-                await self._hilo.request_challenge_consumption_update(1, event_id)
+                await self._hilo.request_challenge_consumption_update(event_id)
 
 
 class DeviceSensor(HiloEntity, SensorEntity):
