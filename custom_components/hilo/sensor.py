@@ -842,7 +842,9 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
                 LOG.debug("Loading history state from yaml")
                 content = await yaml_file.read()
                 try:
-                    history = yaml.load(content, Loader=yaml.Loader)
+                    history = await asyncio.get_running_loop().run_in_executor(
+                        None, yaml.safe_load, content
+                    )
                 except ScannerError:
                     LOG.error("History state YAML is corrupted, resetting to default.")
                 if not history or not isinstance(history, list):
