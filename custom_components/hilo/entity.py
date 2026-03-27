@@ -11,7 +11,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from pyhilo.device import HiloDevice
-from pyhilo.websocket import WebsocketEvent
+from pyhilo.signalr import SignalREvent
 
 from . import SIGNAL_UPDATE_ENTITY, Hilo
 from .const import DOMAIN
@@ -75,8 +75,8 @@ class HiloEntity(CoordinatorEntity):
         self.async_write_ha_state()
 
     @callback
-    def async_update_from_websocket_event(self, event: WebsocketEvent) -> None:
-        """Update the entity when new data comes from the websocket."""
+    def async_update_from_signalr_event(self, event: SignalREvent) -> None:
+        """Update the entity when new data comes from SignalR."""
         raise NotImplementedError()
 
     async def async_added_to_hass(self):
