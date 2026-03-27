@@ -706,6 +706,11 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
         if last_state:
             self._last_update = dt_util.utcnow()
             self._state = last_state.state
+        cached = await self._load_history()
+        if cached:
+            self._history = cached
+        else:
+            await self._async_update()
 
     async def handle_challenge_details_update(self, challenge):
         """Handle challenge details update from websocket."""
