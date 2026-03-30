@@ -11,6 +11,18 @@
 [![calver][calver-shield]][calver]
 [![discord][discord-shield]][discord]
 
+
+# ⚠️ BREAKING CHANGE ⚠️
+
+Hilo is closing down REST API endpoint /Devices. See issue #564. We have released v2026.3.2. Any installation that hasn’t upgraded to this version will no longer work for device readings.
+
+A bug slipped into v2026.3.2 and v2026.3.3: during a reload or a disconnect, the challenge sensor does not come back.
+Fixed in v2026.3.4.
+
+Any issue opened by someone who hasn’t updated Hilo will be closed.
+
+# ⚠️ BREAKING CHANGE ⚠️
+
 **BETA**
 
 This is a Beta version. There will likely be bugs, issues, etc. Thank you for your patience and for opening "Issues".

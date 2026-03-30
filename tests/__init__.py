@@ -21,10 +21,10 @@ async def setup_with_selected_platforms(
         patch("custom_components.hilo.PLATFORMS", platforms),
         patch("custom_components.hilo.API.async_create", return_value=mock_api),
         patch(
-            "custom_components.hilo.Hilo.should_websocket_reconnect",
+            "custom_components.hilo.Hilo.should_signalr_reconnect",
             new_callable=PropertyMock,
-        ) as mock_should_websocket_reconnect,
+        ) as mock_should_signalr_reconnect,
     ):
-        mock_should_websocket_reconnect.return_value = False
+        mock_should_signalr_reconnect.return_value = False
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()

@@ -1,8 +1,13 @@
 """Fixtures for testing."""
 
+import json
+from collections.abc import Generator
+from typing import Any
+from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
+
 import pytest
 from homeassistant.core import HomeAssistant
-from pyhilo.websocket import WebsocketClient
+from pyhilo.signalr import SignalRHub
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
     load_fixture,
@@ -61,13 +66,15 @@ def mock_onboarding() -> Generator[MagicMock]:
 def mock_api() -> Generator[MagicMock]:
     """Return a mocked Hilo API"""
     with patch("pyhilo.API", autospec=True) as api_mock:
-        # Mock websocket methods to prevent indefinite blocking
-        api_mock.websocket_devices = AsyncMock(spec=WebsocketClient)
-        api_mock.websocket_devices.async_connect = AsyncMock(return_value=None)
-        api_mock.websocket_devices.async_listen = AsyncMock(return_value=None)
-        api_mock.websocket_challenges = AsyncMock(spec=WebsocketClient)
-        api_mock.websocket_challenges.async_connect = AsyncMock(return_value=None)
-        api_mock.websocket_challenges.async_listen = AsyncMock(return_value=None)
+        # Mock SignalR hubs to prevent indefinite blocking
+        api_mock.signalr_devices = AsyncMock(spec=SignalRHub)
+        api_mock.signalr_devices.run = AsyncMock(return_value=None)
+        api_mock.signalr_devices.connected = False
+        api_mock.signalr_devices.disconnect = AsyncMock(return_value=None)
+        api_mock.signalr_challenges = AsyncMock(spec=SignalRHub)
+        api_mock.signalr_challenges.run = AsyncMock(return_value=None)
+        api_mock.signalr_challenges.connected = False
+        api_mock.signalr_challenges.disconnect = AsyncMock(return_value=None)
 
         api_mock.log_traces = True
         api_mock.get_devices.return_value = json.loads(load_fixture("all_devices.json"))
@@ -87,11 +94,11 @@ async def init_integration(
     with (
         patch("custom_components.hilo.API.async_create", return_value=mock_api),
         patch(
-            "custom_components.hilo.Hilo.should_websocket_reconnect",
+            "custom_components.hilo.Hilo.should_signalr_reconnect",
             new_callable=PropertyMock,
-        ) as mock_should_websocket_reconnect,
+        ) as mock_should_signalr_reconnect,
     ):
-        mock_should_websocket_reconnect.return_value = False
+        mock_should_signalr_reconnect.return_value = False
         await hass.config_entries.async_setup(mock_config_entry.entry_id)
         await hass.async_block_till_done()
 

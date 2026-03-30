@@ -11,6 +11,18 @@
 [![calver][calver-shield]][calver]
 [![discord][discord-shield]][discord]
 
+# ⚠️ BREAKING CHANGE ⚠️
+
+Hilo ferme endpoint API /Devices. Voir issue #564.
+
+Nous avons relâchés v2026.3.2. Toutes les installations qui n'auront pas passé à cette version ne fonctionneront plus au niveau des lectures d'appareils.
+
+Un bug s'est glissé dans v2026.3.2 et v2026.3.3: lors d'un reload ou d'une déconnexion le sensor défi ne revient pas.
+Corrigé dans v2026.3.4.
+
+Tout issue ouvert par quelqu'un qui n'a pas mis à jour Hilo sera fermé.
+
+# ⚠️ BREAKING CHANGE ⚠️
 
 **BETA**
 
@@ -220,5 +232,6 @@ logger:
 [English]: https://github.com/dvd-dev/hilo/blob/main/README.en.md
 [Françaisshield]: https://img.shields.io/badge/fr-Français-blue?style=for-the-badge
 [Français]: https://github.com/dvd-dev/hilo/blob/main/README.md
+
 
 

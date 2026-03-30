@@ -61,12 +61,12 @@ class HiloSwitch(HiloEntity, SwitchEntity):
 
     async def async_turn_off(self, **kwargs):
         """Turn the switch off."""
-        LOG.info(f"{self._device._tag} Turning off")
+        LOG.info("%s Turning off", self._device._tag)
         await self._device.set_attribute("is_on", False)
         self.async_schedule_update_ha_state(True)
 
     async def async_turn_on(self, **kwargs):
         """Turn the switch on."""
-        LOG.info(f"{self._device._tag} Turning on")
+        LOG.info("%s Turning on", self._device._tag)
         await self._device.set_attribute("is_on", True)
         self.async_schedule_update_ha_state(True)
