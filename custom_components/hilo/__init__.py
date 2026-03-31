@@ -3,16 +3,18 @@
 from __future__ import annotations
 
 import asyncio
+import traceback
 from collections import OrderedDict
 from datetime import datetime, timedelta
-import traceback
 from typing import List, Optional
 
 from aiohttp import CookieJar, client_exceptions
 from homeassistant.components.select import (
     ATTR_OPTION,
-    DOMAIN as SELECT_DOMAIN,
     SERVICE_SELECT_OPTION,
+)
+from homeassistant.components.select import (
+    DOMAIN as SELECT_DOMAIN,
 )
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
@@ -28,7 +30,11 @@ from homeassistant.core import Context, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import (
     config_entry_oauth2_flow,
+)
+from homeassistant.helpers import (
     device_registry as dr,
+)
+from homeassistant.helpers import (
     entity_registry as er,
 )
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
@@ -970,6 +976,9 @@ class Hilo:
                 target_cost.state,
             )
             self.set_state("sensor.hilo_rate_current", target_cost.state)
+            if "current" in self.cost_sensors:
+                self.cost_sensors["current"]._cost = target_cost.state
+
         LOG.debug(
             "check_tarif: Current plan: %s Target Tarif: %s Energy used: %s Peak: %s",
             plan_name,
