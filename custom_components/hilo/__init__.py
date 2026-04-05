@@ -972,6 +972,9 @@ class Hilo:
                 target_cost.state,
             )
             self.set_state("sensor.hilo_rate_current", target_cost.state)
+            if "current" in self.cost_sensors:
+                self.cost_sensors["current"]._cost = target_cost.state
+
         LOG.debug(
             "check_tarif: Current plan: %s Target Tarif: %s Energy used: %s Peak: %s",
             plan_name,
