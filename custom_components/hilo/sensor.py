@@ -201,14 +201,17 @@ async def async_setup_entry(
 
     hilo_rate_current = HiloCostSensor(hilo, "Hilo rate current", hq_plan_name)
     cost_entities.append(hilo_rate_current)
+    hilo.cost_sensors["current"] = hilo_rate_current
     async_add_entities(cost_entities)
     async_track_state_change_event(
         hilo._hass, ["sensor.hilo_rate_current"], hilo_rate_current._handle_state_change
     )
+
     # This setups the utility_meter platform
     await utility_manager.update(async_add_entities)
     # This sends the entities to the energy dashboard
     await energy_manager.update()
+    hilo.check_tarif()
 
 
 class BatterySensor(HiloEntity, SensorEntity):
