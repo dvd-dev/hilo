@@ -2,7 +2,7 @@
 # This gets us an environment as close as possible to the default Home Assistant
 # dev environment.
 
-FROM mcr.microsoft.com/devcontainers/python:1-3.13
+FROM mcr.microsoft.com/devcontainers/python:3-3.14-bookworm
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -19,25 +19,25 @@ RUN \
     && echo "deb [signed-by=/usr/share/keyrings/yarn-archive-keyring.gpg] https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list \
     && apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-        # Additional library needed by Home Assistant to simulate a real environment
-        bluez \
-        ffmpeg \
-        libudev-dev \
-        libavformat-dev \
-        libavcodec-dev \
-        libavdevice-dev \
-        libavutil-dev \
-        libgammu-dev \
-        libswscale-dev \
-        libswresample-dev \
-        libavfilter-dev \
-        libpcap-dev \
-        libturbojpeg0 \
-        libyaml-dev \
-        libxml2 \
-        git \
-        cmake \
-        tmux \
+    # Additional library needed by Home Assistant to simulate a real environment
+    bluez \
+    ffmpeg \
+    libudev-dev \
+    libavformat-dev \
+    libavcodec-dev \
+    libavdevice-dev \
+    libavutil-dev \
+    libgammu-dev \
+    libswscale-dev \
+    libswresample-dev \
+    libavfilter-dev \
+    libpcap-dev \
+    libturbojpeg0 \
+    libyaml-dev \
+    libxml2 \
+    git \
+    cmake \
+    tmux \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -56,18 +56,15 @@ RUN git clone --depth 1 https://github.com/home-assistant/hass-release \
 
 USER vscode
 ENV VIRTUAL_ENV="/home/vscode/.local/ha-venv"
+ENV UV_PROJECT_ENVIRONMENT="/home/vscode/.local/ha-venv"
 RUN uv venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-WORKDIR /tmp
-
-# Install Python dependencies from requirements
-COPY requirements.txt ./
-RUN uv pip install -r requirements.txt
-COPY requirements_test.txt ./
-RUN uv pip install -r requirements_test.txt
-
 WORKDIR /workspaces
+
+# Install Python dependencies via uv
+COPY pyproject.toml README.md ./
+RUN uv sync --group test
 
 # Set the default shell to bash instead of sh
 ENV SHELL /bin/bash

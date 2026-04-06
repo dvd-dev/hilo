@@ -15,7 +15,7 @@ Les pull requests sont le meilleur moyen de proposer des modifications du code :
 
 1. **Créez un fork** du dépôt et créez votre branche à partir de `master`.
 2. Si vous avez modifié quelque chose, mettez à jour la documentation.
-3. Assurez-vous que votre code suit les règles de formatage (utilisation de `black`).
+3. Assurez-vous que votre code suit les règles de formatage (utilisation de `ruff`).
 4. Testez votre contribution.
 5. Soumettez une pull request !
 
@@ -137,7 +137,7 @@ Puis redémarrez Home Assistant.
 
 ## 🛠️ Utiliser un style de code cohérent
 
-Nous utilisons [black](https://github.com/psf/black) pour garantir un formatage uniforme du code. Vous pouvez également utiliser les paramètres `pre-commit` intégrés dans ce dépôt.
+Nous utilisons [ruff](https://github.com/astral-sh/ruff) pour garantir un formatage et un linting uniforme du code. Vous pouvez également utiliser les paramètres `pre-commit` intégrés dans ce dépôt.
 
 Pour activer `pre-commit` :
 

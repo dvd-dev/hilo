@@ -58,7 +58,7 @@
     {
       "label": "Install all Requirements",
       "type": "shell",
-      "command": "uv pip install -r requirements.txt",
+      "command": "uv sync",
       "group": {
         "kind": "build",
         "isDefault": true
@@ -72,7 +72,7 @@
     {
       "label": "Install all Test Requirements",
       "type": "shell",
-      "command": "uv pip install -r requirements.txt -r requirements_test.txt",
+      "command": "uv sync --group test",
       "group": {
         "kind": "build",
         "isDefault": true
