@@ -76,8 +76,8 @@ exclude = [
 ]
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "D", "I"]
-ignore = ["E501", "E203", "D202"]
+select = ["E", "F", "W", "I"]
+ignore = ["E501", "E203"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["custom_components.hilo", "tests"]
