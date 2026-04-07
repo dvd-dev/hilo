@@ -15,7 +15,7 @@
     {
       "label": "Pytest",
       "type": "shell",
-      "command": "${command:python.interpreterPath} -m pytest --timeout=10 tests",
+      "command": "uv run pytest --timeout=10 tests",
       "dependsOn": ["Install all Test Requirements"],
       "group": {
         "kind": "test",
@@ -30,7 +30,7 @@
     {
       "label": "Pytest (changed tests only)",
       "type": "shell",
-      "command": "${command:python.interpreterPath} -m pytest --timeout=10 --picked",
+      "command": "uv run pytest --timeout=10 --picked",
       "group": {
         "kind": "test",
         "isDefault": true
@@ -44,7 +44,7 @@
     {
       "label": "Pre-commit",
       "type": "shell",
-      "command": "pre-commit run --show-diff-on-failure",
+      "command": "uv run pre-commit run --show-diff-on-failure",
       "group": {
         "kind": "test",
         "isDefault": true

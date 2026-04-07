@@ -89,13 +89,13 @@ Il est essentiel de tester vos modifications sur une installation locale. Vous p
 Si vous devez modifier `python-hilo` pour vos tests, installez votre fork avec la commande suivante :
 
 ```bash
-pip install -e git+https://github.com/VOTRE_FORK_ICI/python-hilo.git#egg=python-hilo
+uv pip install -e git+https://github.com/VOTRE_FORK_ICI/python-hilo.git#egg=python-hilo
 ```
 
 Redémarrez ensuite Home Assistant pour que l'installation prenne effet. Pour revenir en arrière :
 
 ```bash
-pip install python-hilo
+uv pip install python-hilo
 ```
 
 Puis redémarrez Home Assistant.
