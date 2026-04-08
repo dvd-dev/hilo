@@ -62,7 +62,7 @@ test = [
 
 [tool.ruff]
 line-length = 88
-target-version = "py314"
+target-version = "py312"
 exclude = [
     ".venv",
     ".git",
