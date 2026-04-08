@@ -151,7 +151,7 @@ async def async_setup_entry(  # noqa: C901
             log_traces=current_options.get(CONF_LOG_TRACES, DEFAULT_LOG_TRACES),
         )
 
-    except TimeoutError, client_exceptions.ClientConnectorError:
+    except (TimeoutError, client_exceptions.ClientConnectorError):
         LOG.debug("Timeout")
         raise ConfigEntryNotReady
 
