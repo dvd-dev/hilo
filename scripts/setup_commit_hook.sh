@@ -1,4 +1,4 @@
 #!/bin/bash
-pip install -r requirements_test.txt
+uv sync --group test
 pre-commit install
 pre-commit install --hook-type commit-msg

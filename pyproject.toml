@@ -1,0 +1,110 @@
+[project]
+name = "hilo"
+version = "2026.3.6"
+description = "Home Assistant custom integration for Hilo energy systems"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.12"
+authors = [
+    { name = "David Vallée Delisle", email = "me@dvd.dev" },
+]
+keywords = [
+    "homeassistant",
+    "hilo",
+    "hiloenergie",
+    "energy",
+    "smart-home",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Home Automation",
+]
+dependencies = [
+    "colorlog>=6.10.1",
+    "homeassistant>=2024.4.1",
+    "pip>=21.3.1",
+    "pyyaml>=6.0.2",
+]
+
+[project.urls]
+Homepage = "https://github.com/dvd-dev/hilo"
+Repository = "https://github.com/dvd-dev/hilo"
+Issues = "https://github.com/dvd-dev/hilo/issues"
+Documentation = "https://github.com/dvd-dev/hilo#readme"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["custom_components/hilo"]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.0",
+    "pre-commit>=4.0.0",
+    "gitlint>=0.19.1",
+]
+test = [
+    "pytest",
+    "pytest-cov",
+    "pytest-homeassistant-custom-component",
+    "python-hilo>=2026.3.5",
+    "bandit>=1.7.1",
+    "ruff>=0.15.0",
+    "pre-commit>=4.0.0",
+    "gitlint>=0.19.1",
+    "pyflakes>=2.4.0",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+exclude = [
+    ".venv",
+    ".git",
+    ".tox",
+    "docs",
+    "venv",
+    "bin",
+    "lib",
+    "deps",
+    "build",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501", "E203"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["custom_components.hilo", "tests"]
+force-sort-within-sections = true
+combine-as-imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+norecursedirs = [".git"]
+asyncio_default_fixture_loop_scope = "function"
+asyncio_mode = "auto"
+addopts = [
+    "-p syrupy",
+    "--strict",
+    "--cov=custom_components",
+]
+
+[tool.coverage.run]
+source = ["custom_components"]
+
+[tool.coverage.report]
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplemented()",
+    "if __name__ == .__main__.:",
+    "main()",
+]

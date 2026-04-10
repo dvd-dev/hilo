@@ -1,8 +1,9 @@
 # serializer version: 1
 # name: test_climate[climate.thermostat_1-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
       'hvac_modes': list([
@@ -12,6 +13,7 @@
       'min_temp': 5.0,
     }),
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -25,6 +27,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Thermostat 1',
     'options': dict({
     }),
     'original_device_class': None,
@@ -32,6 +35,7 @@
     'original_name': 'Thermostat 1',
     'platform': 'hilo',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': <ClimateEntityFeature: 1>,
     'translation_key': None,
     'unique_id': '1a2b3c4d5e6f-climate',
