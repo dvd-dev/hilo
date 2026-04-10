@@ -35,9 +35,12 @@ class HiloLight(HiloEntity, LightEntity):
         """Initialize the Hilo light entity."""
         super().__init__(hilo, device=device, name=device.name)
         old_unique_id = f"{slugify(device.name)}-light"
-        self._attr_unique_id = f"{slugify(device.identifier)}-light"
+        self._attr_unique_id = f"{device.identifier.lower()}-light"
         hilo.async_migrate_unique_id(
             old_unique_id, self._attr_unique_id, Platform.LIGHT
+        )
+        hilo.async_migrate_unique_id(
+            f"{slugify(device.identifier)}-light", self._attr_unique_id, Platform.LIGHT
         )
         self._debounced_turn_on = Debouncer(
             hass,

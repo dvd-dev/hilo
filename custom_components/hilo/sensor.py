@@ -29,6 +29,7 @@ from homeassistant.const import (
     __short_version__ as current_version,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.debounce import Debouncer
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -226,9 +227,14 @@ class BatterySensor(HiloEntity, SensorEntity):
         self._attr_name = f"{device.name} Battery"
         super().__init__(hilo, name=self._attr_name, device=device)
         old_unique_id = f"{slugify(device.name)}-battery"
-        self._attr_unique_id = f"{slugify(device.identifier)}-battery"
+        self._attr_unique_id = f"{device.identifier.lower()}-battery"
         hilo.async_migrate_unique_id(
             old_unique_id, self._attr_unique_id, Platform.SENSOR
+        )
+        hilo.async_migrate_unique_id(
+            f"{slugify(device.identifier)}-battery",
+            self._attr_unique_id,
+            Platform.SENSOR,
         )
         LOG.debug("Setting up BatterySensor entity: %s", self._attr_name)
 
@@ -260,9 +266,12 @@ class Co2Sensor(HiloEntity, SensorEntity):
         self._attr_name = f"{device.name} CO2"
         super().__init__(hilo, name=self._attr_name, device=device)
         old_unique_id = f"{slugify(device.name)}-co2"
-        self._attr_unique_id = f"{slugify(device.identifier)}-co2"
+        self._attr_unique_id = f"{device.identifier.lower()}-co2"
         hilo.async_migrate_unique_id(
             old_unique_id, self._attr_unique_id, Platform.SENSOR
+        )
+        hilo.async_migrate_unique_id(
+            f"{slugify(device.identifier)}-co2", self._attr_unique_id, Platform.SENSOR
         )
         LOG.debug("Setting up CO2Sensor entity: %s", self._attr_name)
 
@@ -294,16 +303,31 @@ class EnergySensor(IntegrationSensor):
         self._device = device
         self._attr_name = f"{device.name} Hilo Energy"
         old_unique_id = f"hilo_energy_{slugify(device.name)}"
-        self._attr_unique_id = f"{slugify(device.identifier)}-energy"
+        self._attr_unique_id = f"{device.identifier.lower()}-energy"
         hilo.async_migrate_unique_id(
             old_unique_id, self._attr_unique_id, Platform.SENSOR
+        )
+        hilo.async_migrate_unique_id(
+            f"{slugify(device.identifier)}-energy",
+            self._attr_unique_id,
+            Platform.SENSOR,
         )
         self._unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
         self._suggested_display_precision = 2
 
         if device.type == "Meter":
             self._attr_name = HILO_ENERGY_TOTAL
-        self._source = f"sensor.{slugify(device.name)}_power"
+
+        power_unique_id = f"{device.identifier.lower()}-power"
+        entity_registry = er.async_get(hass)
+        self._source = next(
+            (
+                entry.entity_id
+                for entry in entity_registry.entities.values()
+                if entry.unique_id == power_unique_id and entry.platform == DOMAIN
+            ),
+            f"sensor.{slugify(device.name)}_power",  # fallback
+        )
         # ic-dev21: Set initial state and last_valid_state, removes log errors and unavailable states
         initial_state = 0
         self._attr_native_value = initial_state
@@ -384,9 +408,12 @@ class NoiseSensor(HiloEntity, SensorEntity):
         self._attr_name = f"{device.name} Noise"
         super().__init__(hilo, name=self._attr_name, device=device)
         old_unique_id = f"{slugify(device.name)}-noise"
-        self._attr_unique_id = f"{slugify(device.identifier)}-noise"
+        self._attr_unique_id = f"{device.identifier.lower()}-noise"
         hilo.async_migrate_unique_id(
             old_unique_id, self._attr_unique_id, Platform.SENSOR
+        )
+        hilo.async_migrate_unique_id(
+            f"{slugify(device.identifier)}-noise", self._attr_unique_id, Platform.SENSOR
         )
         LOG.debug("Setting up NoiseSensor entity: %s", self._attr_name)
 
@@ -417,9 +444,12 @@ class PowerSensor(HiloEntity, SensorEntity):
         self._attr_name = f"{device.name} Power"
         super().__init__(hilo, name=self._attr_name, device=device)
         old_unique_id = f"{slugify(device.name)}-power"
-        self._attr_unique_id = f"{slugify(device.identifier)}-power"
+        self._attr_unique_id = f"{device.identifier.lower()}-power"
         hilo.async_migrate_unique_id(
             old_unique_id, self._attr_unique_id, Platform.SENSOR
+        )
+        hilo.async_migrate_unique_id(
+            f"{slugify(device.identifier)}-power", self._attr_unique_id, Platform.SENSOR
         )
         LOG.debug("Setting up PowerSensor entity: %s", self._attr_name)
 
@@ -451,9 +481,14 @@ class TemperatureSensor(HiloEntity, SensorEntity):
         self._attr_name = f"{device.name} Temperature"
         super().__init__(hilo, name=self._attr_name, device=device)
         old_unique_id = f"{slugify(device.name)}-temperature"
-        self._attr_unique_id = f"{slugify(device.identifier)}-temperature"
+        self._attr_unique_id = f"{device.identifier.lower()}-temperature"
         hilo.async_migrate_unique_id(
             old_unique_id, self._attr_unique_id, Platform.SENSOR
+        )
+        hilo.async_migrate_unique_id(
+            f"{slugify(device.identifier)}-temperature",
+            self._attr_unique_id,
+            Platform.SENSOR,
         )
         LOG.debug("Setting up TemperatureSensor entity: %s", self._attr_name)
 
@@ -489,9 +524,14 @@ class TargetTemperatureSensor(HiloEntity, SensorEntity):
         self._attr_name = f"{device.name} Target Temperature"
         super().__init__(hilo, name=self._attr_name, device=device)
         old_unique_id = f"{slugify(device.name)}-target-temperature"
-        self._attr_unique_id = f"{slugify(device.identifier)}-target-temperature"
+        self._attr_unique_id = f"{device.identifier.lower()}-target-temperature"
         hilo.async_migrate_unique_id(
             old_unique_id, self._attr_unique_id, Platform.SENSOR
+        )
+        hilo.async_migrate_unique_id(
+            f"{slugify(device.identifier)}-target-temperature",
+            self._attr_unique_id,
+            Platform.SENSOR,
         )
         LOG.debug("Setting up TargetTemperatureSensor entity: %s", self._attr_name)
 
@@ -526,7 +566,11 @@ class WifiStrengthSensor(HiloEntity, SensorEntity):
         """Hilo Wi-Fi strength sensor initialization."""
         self._attr_name = f"{device.name} WifiStrength"
         super().__init__(hilo, name=self._attr_name, device=device)
-        self._attr_unique_id = f"{slugify(device.name)}-wifistrength"
+        old_unique_id = f"{slugify(device.name)}-wifistrength"
+        self._attr_unique_id = f"{device.identifier.lower()}-wifistrength"
+        hilo.async_migrate_unique_id(
+            old_unique_id, self._attr_unique_id, Platform.SENSOR
+        )
         LOG.debug("Setting up WifiStrengthSensor entity: %s", self._attr_name)
 
     @property
@@ -560,11 +604,14 @@ class HiloNotificationSensor(HiloEntity, RestoreEntity, SensorEntity):
         self._attr_name = "Notifications Hilo"
         super().__init__(hilo, name=self._attr_name, device=device)
         old_unique_id = slugify(self._attr_name)
-        self._attr_unique_id = (
-            f"{slugify(device.identifier)}-{slugify(self._attr_name)}"
-        )
+        self._attr_unique_id = f"{device.identifier.lower()}-{slugify(self._attr_name)}"
         hilo.async_migrate_unique_id(
             old_unique_id, self._attr_unique_id, Platform.SENSOR
+        )
+        hilo.async_migrate_unique_id(
+            f"{slugify(device.identifier)}-{slugify(self._attr_name)}",
+            self._attr_unique_id,
+            Platform.SENSOR,
         )
         LOG.debug("Setting up NotificationSensor entity: %s", self._attr_name)
         self.scan_interval = timedelta(seconds=NOTIFICATION_SCAN_INTERVAL)
@@ -650,11 +697,14 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
 
         super().__init__(hilo, name=self._attr_name, device=device)
         old_unique_id = slugify(self._attr_name)
-        self._attr_unique_id = (
-            f"{slugify(device.identifier)}-{slugify(self._attr_name)}"
-        )
+        self._attr_unique_id = f"{device.identifier.lower()}-{slugify(self._attr_name)}"
         hilo.async_migrate_unique_id(
             old_unique_id, self._attr_unique_id, Platform.SENSOR
+        )
+        hilo.async_migrate_unique_id(
+            f"{slugify(device.identifier)}-{slugify(self._attr_name)}",
+            self._attr_unique_id,
+            Platform.SENSOR,
         )
         LOG.debug("Setting up RewardSensor entity: %s", self._attr_name)
         self._history_state_yaml: str = "hilo_eventhistory_state.yaml"
@@ -901,11 +951,14 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
         ]
         super().__init__(hilo, name=self._attr_name, device=device)
         old_unique_id = slugify(self._attr_name)
-        self._attr_unique_id = (
-            f"{slugify(device.identifier)}-{slugify(self._attr_name)}"
-        )
+        self._attr_unique_id = f"{device.identifier.lower()}-{slugify(self._attr_name)}"
         hilo.async_migrate_unique_id(
             old_unique_id, self._attr_unique_id, Platform.SENSOR
+        )
+        hilo.async_migrate_unique_id(
+            f"{slugify(device.identifier)}-{slugify(self._attr_name)}",
+            self._attr_unique_id,
+            Platform.SENSOR,
         )
         LOG.debug("Setting up ChallengeSensor entity: %s", self._attr_name)
         self.scan_interval = timedelta(seconds=EVENT_SCAN_INTERVAL_REDUCTION)
@@ -1134,9 +1187,14 @@ class DeviceSensor(HiloEntity, SensorEntity):
         self._attr_name = device.name
         super().__init__(hilo, name=self._attr_name, device=device)
         old_unique_id = slugify(device.name)
-        self._attr_unique_id = f"{slugify(device.identifier)}-{slugify(device.name)}"
+        self._attr_unique_id = f"{device.identifier.lower()}-{slugify(device.name)}"
         hilo.async_migrate_unique_id(
             old_unique_id, self._attr_unique_id, Platform.SENSOR
+        )
+        hilo.async_migrate_unique_id(
+            f"{slugify(device.identifier)}-{slugify(device.name)}",
+            self._attr_unique_id,
+            Platform.SENSOR,
         )
         LOG.debug("Setting up DeviceSensor entity: %s", self._attr_name)
 
@@ -1184,11 +1242,14 @@ class HiloCostSensor(HiloEntity, SensorEntity):
         self._last_update = dt_util.utcnow()
         self._cost = amount
         old_unique_id = slugify(self._attr_name)
-        self._attr_unique_id = (
-            f"{slugify(device.identifier)}-{slugify(self._attr_name)}"
-        )
+        self._attr_unique_id = f"{device.identifier.lower()}-{slugify(self._attr_name)}"
         hilo.async_migrate_unique_id(
             old_unique_id, self._attr_unique_id, Platform.SENSOR
+        )
+        hilo.async_migrate_unique_id(
+            f"{slugify(device.identifier)}-{slugify(self._attr_name)}",
+            self._attr_unique_id,
+            Platform.SENSOR,
         )
         self._last_update = dt_util.utcnow()
         super().__init__(hilo, name=self._attr_name, device=device)
@@ -1263,8 +1324,15 @@ class HiloOutdoorTempSensor(HiloEntity, SensorEntity):
         """Initialize."""
         self._attr_name = "Outdoor Weather Hilo"
         super().__init__(hilo, name=self._attr_name, device=device)
-        self._attr_unique_id = (
-            f"{slugify(device.identifier)}-{slugify(self._attr_name)}"
+        old_unique_id = slugify(self._attr_name)
+        self._attr_unique_id = f"{device.identifier.lower()}-{slugify(self._attr_name)}"
+        hilo.async_migrate_unique_id(
+            old_unique_id, self._attr_unique_id, Platform.SENSOR
+        )
+        hilo.async_migrate_unique_id(
+            f"{slugify(device.identifier)}-{slugify(self._attr_name)}",
+            self._attr_unique_id,
+            Platform.SENSOR,
         )
         LOG.debug("Setting up OutdoorWeatherSensor entity: %s", self._attr_name)
         self.scan_interval = timedelta(seconds=WEATHER_SCAN_INTERVAL)
