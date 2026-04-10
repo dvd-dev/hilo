@@ -10,6 +10,7 @@
 [![black][black-shield]][black]
 [![calver][calver-shield]][calver]
 [![discord][discord-shield]][discord]
+[![Installations (analytics)][installs-shield]][analytics]
 
 # ⚠️ BREAKING CHANGE ⚠️
 
@@ -232,6 +233,7 @@ logger:
 [English]: https://github.com/dvd-dev/hilo/blob/main/README.en.md
 [Françaisshield]: https://img.shields.io/badge/fr-Français-blue?style=for-the-badge
 [Français]: https://github.com/dvd-dev/hilo/blob/main/README.md
-
+[installs-shield]: https://img.shields.io/badge/dynamic/json?url=https://analytics.home-assistant.io/custom_integrations.json&query=$.hilo.total&label=Installations%20(analytics)&color=blue
+[analytics]: https://analytics.home-assistant.io/custom_integrations.json
 
 
