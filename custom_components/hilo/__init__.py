@@ -68,6 +68,7 @@ from .const import (
     HILO_ENERGY_TOTAL,
     LOG,
     MIN_SCAN_INTERVAL,
+    SIGNAL_WEBSOCKET_STATUS,
 )
 from .oauth2 import AuthCodeWithPKCEImplementation
 
@@ -75,6 +76,7 @@ DISPATCHER_TOPIC_SIGNALR_EVENT = "pyhilo_signalr_event"
 SIGNAL_UPDATE_ENTITY = "pyhilo_device_update_{}"
 COORDINATOR_AWARE_PLATFORMS = [Platform.SENSOR]
 PLATFORMS = COORDINATOR_AWARE_PLATFORMS + [
+    Platform.BINARY_SENSOR,
     Platform.CLIMATE,
     Platform.LIGHT,
     Platform.SWITCH,
@@ -303,6 +305,8 @@ class Hilo:
         self.generate_energy_meters = entry.options.get(
             CONF_GENERATE_ENERGY_METERS, DEFAULT_GENERATE_ENERGY_METERS
         )
+        self._device_hub_connected: bool = False
+        self._challenge_hub_connected: bool = False
         # This will get filled in by async_init:
         self.coordinator: DataUpdateCoordinator | None = None
         self.unknown_tracker_device: HiloDevice | None = None
@@ -311,12 +315,23 @@ class Hilo:
             self._api._get_device_callbacks = [self._get_unknown_source_tracker]
         self._signalr_listeners = []
 
+    def _set_hub_connected(self, hub_id: int, connected: bool) -> None:
+        """Update the connectivity state of a SignalR hub and notify listeners."""
+        if hub_id == 0:
+            self._device_hub_connected = connected
+        elif hub_id == 1:
+            self._challenge_hub_connected = connected
+        async_dispatcher_send(self._hass, SIGNAL_WEBSOCKET_STATUS)
+
     async def _on_devices_connected(self) -> None:
         """Trigger device subscriptions after the device hub connects."""
+        self._set_hub_connected(0, True)
         await self.subscribe_to_location()
+
 
     async def _on_challenges_connected(self) -> None:
         """Trigger challenge subscriptions after the challenge hub connects."""
+        self._set_hub_connected(1, True)
         await self.subscribe_to_challenge()
         await self.subscribe_to_challengelist()
 
@@ -766,6 +781,7 @@ class Hilo:
                 backoff = 5
             except asyncio.CancelledError:
                 LOG.debug("SignalRHub[%s]: loop cancelled — stopping", id)
+                self._set_hub_connected(id, False)
                 return
             except SignalRServerError as err:
                 LOG.warning(
@@ -782,6 +798,8 @@ class Hilo:
                     err,
                 )
 
+            self._set_hub_connected(id, False)
+
             if not self.should_signalr_reconnect:
                 return
 
@@ -789,6 +807,7 @@ class Hilo:
                 await asyncio.sleep(backoff)
             except asyncio.CancelledError:
                 LOG.debug("SignalRHub[%s]: sleep cancelled — stopping", id)
+                self._set_hub_connected(id, False)
                 return
 
             backoff = min(backoff * 2, 300)
