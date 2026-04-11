@@ -328,7 +328,6 @@ class Hilo:
         self._set_hub_connected(0, True)
         await self.subscribe_to_location()
 
-
     async def _on_challenges_connected(self) -> None:
         """Trigger challenge subscriptions after the challenge hub connects."""
         self._set_hub_connected(1, True)
