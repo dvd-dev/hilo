@@ -43,10 +43,7 @@ class HiloWebSocketStatusSensor(HiloEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool:
         """Return True if any WebSocket hub is connected."""
-        return (
-            self._hilo._device_hub_connected
-            or self._hilo._challenge_hub_connected
-        )
+        return self._hilo._device_hub_connected or self._hilo._challenge_hub_connected
 
     @property
     def icon(self) -> str:
