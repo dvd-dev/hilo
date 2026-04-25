@@ -104,6 +104,10 @@ class HiloClimate(HiloEntity, ClimateEntity):
         """Return the minimum temperature."""
         return self._device.min_temp
 
+    @property
+    def humidity(self):
+        return self._device.humidity
+
     def set_hvac_mode(self, hvac_mode):
         """Set hvac mode."""
         return
