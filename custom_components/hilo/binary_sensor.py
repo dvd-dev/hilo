@@ -10,7 +10,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import slugify
 
-from . import Hilo
+from . import HUB_CHALLENGES, HUB_DEVICES, Hilo
 from .const import DOMAIN, LOG, SIGNAL_WEBSOCKET_STATUS
 from .entity import HiloEntity
 
@@ -43,7 +43,7 @@ class HiloWebSocketStatusSensor(HiloEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool:
         """Return True if any WebSocket hub is connected."""
-        return self._hilo._device_hub_connected or self._hilo._challenge_hub_connected
+        return any(self._hilo._hub_connected.values())
 
     @property
     def icon(self) -> str:
@@ -54,8 +54,8 @@ class HiloWebSocketStatusSensor(HiloEntity, BinarySensorEntity):
     def extra_state_attributes(self) -> dict:
         """Return individual hub connectivity details."""
         return {
-            "devices_hub": self._hilo._device_hub_connected,
-            "challenges_hub": self._hilo._challenge_hub_connected,
+            "devices_hub": self._hilo._hub_connected[HUB_DEVICES],
+            "challenges_hub": self._hilo._hub_connected[HUB_CHALLENGES],
         }
 
     async def async_added_to_hass(self) -> None:
