@@ -22,7 +22,7 @@ export PYTHONPATH="${PYTHONPATH}:${PWD}/custom_components"
 # Check if python-hilo exists and install it in development mode
 if [[ -d "/workspaces/python-hilo/pyhilo" ]]; then
     echo "Installing custom version of python-hilo..."
-    uv pip install -e "/workspaces/python-hilo"
+    uv pip install "/workspaces/python-hilo"
     SKIP_PACKAGES="--skip-pip-packages python-hilo"
 else
     echo "Using PyPI version of python-hilo..."
