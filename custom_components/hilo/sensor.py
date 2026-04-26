@@ -202,6 +202,19 @@ async def async_setup_entry(
 
     hilo_rate_current = HiloCostSensor(hilo, "Hilo rate current", hq_plan_name)
     cost_entities.append(hilo_rate_current)
+
+    # Create hilo_rate_current_total sensor that includes access rate per hour
+    access_rate = tariff_config.get("access", 0)
+    if access_rate > 0:
+        hilo_cost_total = HiloCostTotalSensor(
+            hilo,
+            "Hilo cost total",
+            hq_plan_name,
+            tariff_config,
+            energy_meter_period,
+        )
+        cost_entities.append(hilo_cost_total)
+
     hilo.cost_sensors["current"] = hilo_rate_current
     async_add_entities(cost_entities)
     async_track_state_change_event(
@@ -1236,6 +1249,9 @@ class HiloCostSensor(HiloEntity, SensorEntity):
         if "low_threshold" in name:
             self._attr_device_class = SensorDeviceClass.ENERGY
             self._attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+        elif "access" in name.lower():
+            # Access fee is a fixed daily cost, not per kWh
+            self._attr_native_unit_of_measurement = f"{CURRENCY_DOLLAR}/day"
         self.data = None
         self._attr_name = name
         self.plan_name = plan_name
@@ -1307,7 +1323,133 @@ class HiloCostSensor(HiloEntity, SensorEntity):
     async def async_update(self):
         """Update the state."""
         self._last_update = dt_util.utcnow()
-        return super().async_update()
+
+
+class HiloCostTotalSensor(HiloEntity, SensorEntity):
+    """Sensor that totals all electricity costs including access fee.
+
+    Calculates: (low_kwh × low_rate) + (medium_kwh × medium_rate)
+                + (high_kwh × high_rate) + access_fee_prorated_today
+
+    All values in dollars. Updates on poll via should_poll + scan_interval.
+    """
+
+    _attr_device_class = SensorDeviceClass.MONETARY
+    _attr_state_class = SensorStateClass.TOTAL
+    _attr_icon = "mdi:cash-register"
+
+    def __init__(self, hilo, name, plan_name, tariff_config, energy_meter_period):
+        """Initialize."""
+        for d in hilo.devices.all:
+            if d.type == "Gateway":
+                device = d
+        # Check if currency is configured, set a default if not
+        currency = hilo._hass.config.currency
+        if currency:
+            self._attr_native_unit_of_measurement = currency
+        else:
+            self._attr_native_unit_of_measurement = "CAD"
+        self._attr_name = name
+        self.plan_name = plan_name
+        self._tariff_config = tariff_config
+        self._access_rate = tariff_config.get("access", 0)
+        self._last_update = dt_util.utcnow()
+        old_unique_id = slugify(self._attr_name)
+        self._attr_unique_id = (
+            f"{slugify(device.identifier)}-{slugify(self._attr_name)}"
+        )
+        hilo.async_migrate_unique_id(
+            old_unique_id, self._attr_unique_id, Platform.SENSOR
+        )
+        super().__init__(hilo, name=self._attr_name, device=device)
+        LOG.info(
+            "Initializing total cost sensor %s %s access_rate: %s",
+            name,
+            plan_name,
+            self._access_rate,
+        )
+
+    def _update_callback(self):
+        """Gateway value updates don't need to trigger a cost refresh."""
+        return
+
+    @property
+    def state(self):
+        """Return the total cost in dollars."""
+        total = 0.0
+        for tarif in ["low", "medium", "high"]:
+            rate = self._tariff_config.get(tarif, 0)
+            if rate <= 0:
+                continue
+            energy_entity = f"sensor.{HILO_ENERGY_TOTAL}_{tarif}"
+            energy_state = self._hilo._hass.states.get(energy_entity)
+            if energy_state is None or energy_state.state in ("unknown", "unavailable"):
+                continue
+            try:
+                total += float(energy_state.state) * rate
+            except (ValueError, TypeError):
+                LOG.debug(
+                    "Could not parse energy state for %s: %s",
+                    energy_entity,
+                    energy_state.state,
+                )
+        # Access fee: prorated based on time elapsed today
+        now = dt_util.now()
+        midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        seconds_today = (now - midnight).total_seconds()
+        total += self._access_rate * (seconds_today / 86400)
+        return round(total, 2)
+
+    @property
+    def suggested_display_precision(self) -> int:
+        """Return the suggested display precision."""
+        return 2
+
+    @property
+    def should_poll(self) -> bool:
+        """Enable polling to update the cost periodically."""
+        return True
+
+    @property
+    def extra_state_attributes(self):
+        """Return the cost breakdown attributes."""
+        attrs = {
+            "Plan": self.plan_name,
+            "Access Rate ($/day)": self._access_rate,
+            "last_update": self._last_update,
+        }
+        for tarif in ["low", "medium", "high"]:
+            rate = self._tariff_config.get(tarif, 0)
+            if rate > 0:
+                energy_entity = f"sensor.{HILO_ENERGY_TOTAL}_{tarif}"
+                energy_state = self._hilo._hass.states.get(energy_entity)
+                kwh = 0.0
+                if energy_state is not None and energy_state.state not in (
+                    "unknown",
+                    "unavailable",
+                ):
+                    try:
+                        kwh = float(energy_state.state)
+                    except (ValueError, TypeError):
+                        pass
+                attrs[f"{tarif}_kwh"] = round(kwh, 3)
+                attrs[f"{tarif}_rate"] = rate
+                attrs[f"{tarif}_cost"] = round(kwh * rate, 2)
+        now = dt_util.now()
+        midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        seconds_today = (now - midnight).total_seconds()
+        attrs["access_cost_today"] = round(
+            self._access_rate * (seconds_today / 86400), 4
+        )
+        return attrs
+
+    async def async_added_to_hass(self):
+        """Handle entity about to be added to hass event."""
+        await super().async_added_to_hass()
+
+    async def async_update(self):
+        """Update the state."""
+        self._last_update = dt_util.utcnow()
 
 
 class HiloOutdoorTempSensor(HiloEntity, SensorEntity):
