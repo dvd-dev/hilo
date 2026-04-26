@@ -1352,7 +1352,6 @@ class HiloCostTotalSensor(HiloEntity, SensorEntity):
         self._attr_name = name
         self.plan_name = plan_name
         self._tariff_config = tariff_config
-        self._energy_meter_period = energy_meter_period
         self._access_rate = tariff_config.get("access", 0)
         self._last_update = dt_util.utcnow()
         old_unique_id = slugify(self._attr_name)
@@ -1382,9 +1381,7 @@ class HiloCostTotalSensor(HiloEntity, SensorEntity):
             rate = self._tariff_config.get(tarif, 0)
             if rate <= 0:
                 continue
-            energy_entity = (
-                f"sensor.{HILO_ENERGY_TOTAL}_{self._energy_meter_period}_{tarif}"
-            )
+            energy_entity = f"sensor.{HILO_ENERGY_TOTAL}_{tarif}"
             energy_state = self._hilo._hass.states.get(energy_entity)
             if energy_state is None or energy_state.state in ("unknown", "unavailable"):
                 continue
@@ -1424,9 +1421,7 @@ class HiloCostTotalSensor(HiloEntity, SensorEntity):
         for tarif in ["low", "medium", "high"]:
             rate = self._tariff_config.get(tarif, 0)
             if rate > 0:
-                energy_entity = (
-                    f"sensor.{HILO_ENERGY_TOTAL}_{self._energy_meter_period}_{tarif}"
-                )
+                energy_entity = f"sensor.{HILO_ENERGY_TOTAL}_{tarif}"
                 energy_state = self._hilo._hass.states.get(energy_entity)
                 kwh = 0.0
                 if energy_state is not None and energy_state.state not in (
