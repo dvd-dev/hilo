@@ -68,6 +68,7 @@ from .const import (
     HILO_ENERGY_TOTAL,
     LOG,
     MIN_SCAN_INTERVAL,
+    SIGNAL_WEBSOCKET_STATUS,
 )
 from .oauth2 import AuthCodeWithPKCEImplementation
 
@@ -75,10 +76,15 @@ DISPATCHER_TOPIC_SIGNALR_EVENT = "pyhilo_signalr_event"
 SIGNAL_UPDATE_ENTITY = "pyhilo_device_update_{}"
 COORDINATOR_AWARE_PLATFORMS = [Platform.SENSOR]
 PLATFORMS = COORDINATOR_AWARE_PLATFORMS + [
+    Platform.BINARY_SENSOR,
     Platform.CLIMATE,
     Platform.LIGHT,
     Platform.SWITCH,
 ]
+
+# SignalR hub identifiers (used as indices into per-hub state dicts/lists).
+HUB_DEVICES = 0
+HUB_CHALLENGES = 1
 
 
 @callback
@@ -184,7 +190,9 @@ async def async_setup_entry(  # noqa: C901
         LOG.debug("HILO_DEBUG: log_traces is %s", log_traces)
         signalr_event = signalr_event_from_payload(event.data)
         LOG.debug("HILO_DEBUG: SignalR event parsed: %s", signalr_event)
-        await hilo.on_signalr_event(signalr_event)
+        # Debug events have no real hub origin; attribute them to the
+        # devices hub by convention.
+        await hilo.on_signalr_event(signalr_event, HUB_DEVICES)
 
     log_traces = current_options.get(CONF_LOG_TRACES)
     if log_traces:
@@ -303,6 +311,11 @@ class Hilo:
         self.generate_energy_meters = entry.options.get(
             CONF_GENERATE_ENERGY_METERS, DEFAULT_GENERATE_ENERGY_METERS
         )
+        # Per-hub connectivity state. Indexed by HUB_DEVICES / HUB_CHALLENGES.
+        self._hub_connected: dict[int, bool] = {
+            HUB_DEVICES: False,
+            HUB_CHALLENGES: False,
+        }
         # This will get filled in by async_init:
         self.coordinator: DataUpdateCoordinator | None = None
         self.unknown_tracker_device: HiloDevice | None = None
@@ -311,14 +324,47 @@ class Hilo:
             self._api._get_device_callbacks = [self._get_unknown_source_tracker]
         self._signalr_listeners = []
 
+    def _set_hub_connected(self, hub_id: int, connected: bool) -> None:
+        """Update the connectivity state of a SignalR hub and notify listeners."""
+        if self._hub_connected.get(hub_id) == connected:
+            return
+        self._hub_connected[hub_id] = connected
+        async_dispatcher_send(self._hass, SIGNAL_WEBSOCKET_STATUS)
+
     async def _on_devices_connected(self) -> None:
         """Trigger device subscriptions after the device hub connects."""
-        await self.subscribe_to_location()
+        try:
+            await self.subscribe_to_location()
+        except Exception:
+            self._set_hub_connected(HUB_DEVICES, False)
+            raise
+        self._set_hub_connected(HUB_DEVICES, True)
 
     async def _on_challenges_connected(self) -> None:
         """Trigger challenge subscriptions after the challenge hub connects."""
-        await self.subscribe_to_challenge()
-        await self.subscribe_to_challengelist()
+        try:
+            await self.subscribe_to_challenge()
+            await self.subscribe_to_challengelist()
+        except Exception:
+            self._set_hub_connected(HUB_CHALLENGES, False)
+            raise
+        self._set_hub_connected(HUB_CHALLENGES, True)
+
+    async def _on_devices_disconnected(self) -> None:
+        """Mark the device hub as disconnected."""
+        self._set_hub_connected(HUB_DEVICES, False)
+
+    async def _on_challenges_disconnected(self) -> None:
+        """Mark the challenge hub as disconnected."""
+        self._set_hub_connected(HUB_CHALLENGES, False)
+
+    async def _on_devices_event(self, event: SignalREvent) -> None:
+        """Dispatch a SignalR event from the device hub."""
+        await self.on_signalr_event(event, HUB_DEVICES)
+
+    async def _on_challenges_event(self, event: SignalREvent) -> None:
+        """Dispatch a SignalR event from the challenge hub."""
+        await self.on_signalr_event(event, HUB_CHALLENGES)
 
     def validate_heartbeat(self, event: SignalREvent) -> None:
         """Validate heartbeat messages from SignalR."""
@@ -486,7 +532,7 @@ class Hilo:
                 )
 
     @callback
-    async def on_signalr_event(self, event: SignalREvent) -> None:
+    async def on_signalr_event(self, event: SignalREvent, hub_id: int) -> None:
         """Define a callback for receiving a SignalR event."""
         async_dispatcher_send(self._hass, DISPATCHER_TOPIC_SIGNALR_EVENT, event)
 
@@ -692,14 +738,18 @@ class Hilo:
 
         # Step 2: Register SignalR callbacks and start connections
         self._api.signalr_devices.add_connect_callback(self._on_devices_connected)
+        self._api.signalr_devices.add_disconnect_callback(self._on_devices_disconnected)
+        self._api.signalr_devices.add_event_callback(self._on_devices_event)
         self._api.signalr_challenges.add_connect_callback(self._on_challenges_connected)
-        self._api.signalr_devices.add_event_callback(self.on_signalr_event)
-        self._api.signalr_challenges.add_event_callback(self.on_signalr_event)
-        self._signalr_reconnect_tasks[0] = asyncio.create_task(
-            self.start_signalr_loop(self._api.signalr_devices, 0)
+        self._api.signalr_challenges.add_disconnect_callback(
+            self._on_challenges_disconnected
         )
-        self._signalr_reconnect_tasks[1] = asyncio.create_task(
-            self.start_signalr_loop(self._api.signalr_challenges, 1)
+        self._api.signalr_challenges.add_event_callback(self._on_challenges_event)
+        self._signalr_reconnect_tasks[HUB_DEVICES] = asyncio.create_task(
+            self.start_signalr_loop(self._api.signalr_devices, HUB_DEVICES)
+        )
+        self._signalr_reconnect_tasks[HUB_CHALLENGES] = asyncio.create_task(
+            self.start_signalr_loop(self._api.signalr_challenges, HUB_CHALLENGES)
         )
 
         # Step 3: Wait for DeviceListInitialValuesReceived from SignalR
@@ -749,38 +799,41 @@ class Hilo:
             update_method=self.async_update,
         )
 
-    async def start_signalr_loop(self, hub, id) -> None:
+    async def start_signalr_loop(self, hub, hub_id: int) -> None:
         """Start a SignalR reconnection loop that retries forever until HA stops."""
         backoff = 5  # seconds; doubles on each error, reset to 5 after a clean run
         while self.should_signalr_reconnect:
             try:
-                LOG.info("SignalRHub[%s]: connecting", id)
+                LOG.info("SignalRHub[%s]: connecting", hub_id)
                 await hub.run()
                 # hub.run() returned without raising — server closed the connection.
                 # That's a normal disconnect; reset backoff and reconnect quickly.
                 LOG.warning(
                     "SignalRHub[%s]: connection closed by server; reconnecting in %ss",
-                    id,
+                    hub_id,
                     backoff,
                 )
                 backoff = 5
             except asyncio.CancelledError:
-                LOG.debug("SignalRHub[%s]: loop cancelled — stopping", id)
+                LOG.debug("SignalRHub[%s]: loop cancelled — stopping", hub_id)
+                self._set_hub_connected(hub_id, False)
                 return
             except SignalRServerError as err:
                 LOG.warning(
                     "SignalRHub[%s]: server-initiated close; reconnecting in %ss — %s",
-                    id,
+                    hub_id,
                     backoff,
                     err,
                 )
             except Exception as err:  # pylint: disable=broad-except
                 LOG.warning(
                     "SignalRHub[%s]: connection error; reconnecting in %ss — %s",
-                    id,
+                    hub_id,
                     backoff,
                     err,
                 )
+
+            self._set_hub_connected(hub_id, False)
 
             if not self.should_signalr_reconnect:
                 return
@@ -788,7 +841,8 @@ class Hilo:
             try:
                 await asyncio.sleep(backoff)
             except asyncio.CancelledError:
-                LOG.debug("SignalRHub[%s]: sleep cancelled — stopping", id)
+                LOG.debug("SignalRHub[%s]: sleep cancelled — stopping", hub_id)
+                self._set_hub_connected(hub_id, False)
                 return
 
             backoff = min(backoff * 2, 300)
