@@ -7,9 +7,10 @@
 [![Project Maintenance][maintenance-shield]][user_profile]
 [![License][license-shield]][license]
 [![pre-commit][pre-commit-shield]][pre-commit]
-[![black][black-shield]][black]
+[![ruff][ruff-shield]][ruff]
 [![calver][calver-shield]][calver]
 [![discord][discord-shield]][discord]
+[![Installations (analytics)][installs-shield]][analytics]
 
 # ⚠️ BREAKING CHANGE ⚠️
 
@@ -224,14 +225,15 @@ logger:
 [pre-commit]: https://github.com/pre-commit/pre-commit
 [calver-shield]: https://img.shields.io/badge/calver-YYYY.MM.Micro-22bfda.svg?style=for-the-badge
 [calver]: http://calver.org/
-[black-shield]: https://img.shields.io/badge/code%20style-black-000000.svg?style=for-the-badge
-[black]: https://github.com/psf/black
+[ruff-shield]: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json&style=for-the-badge
+[ruff]: https://github.com/astral-sh/ruff
 [discord-shield]: https://img.shields.io/badge/discord-Chat-green?logo=discord&style=for-the-badge
 [discord]: https://discord.gg/MD5ydRJxpc
 [Englishshield]: https://img.shields.io/badge/en-English-red?style=for-the-badge
 [English]: https://github.com/dvd-dev/hilo/blob/main/README.en.md
 [Françaisshield]: https://img.shields.io/badge/fr-Français-blue?style=for-the-badge
 [Français]: https://github.com/dvd-dev/hilo/blob/main/README.md
-
+[installs-shield]: https://img.shields.io/badge/dynamic/json?url=https://analytics.home-assistant.io/custom_integrations.json&query=$.hilo.total&label=Installations%20(analytics)&color=blue&style=for-the-badge
+[analytics]: https://analytics.home-assistant.io/custom_integrations.json
 
 

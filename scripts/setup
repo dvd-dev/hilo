@@ -1,10 +1,25 @@
-#!/usr/bin/env bash
-# Resolve all dependencies that the application requires to run.
+echo "Pre-installing Home Assistant component requirements..."
+HA_VERSION=$(/home/vscode/.local/ha-venv/bin/python -c "import homeassistant.const; print(homeassistant.const.__version__)")
+uv pip install --continue-on-error \
+  -r "https://raw.githubusercontent.com/home-assistant/core/${HA_VERSION}/requirements_all.txt" || true
 
-# Stop on errors
-set -e
-
-cd "$(dirname "$0")/.."
-
-echo "Installing development dependencies..."
-python3 -m pip install --requirement requirements.txt
+# Ensure critical packages that may have been skipped are installed
+uv pip install \
+  ha-ffmpeg \
+  hassil \
+  "PyTurboJPEG<2.0" \
+  aiousbwatcher \
+  aiodhcpwatcher \
+  aiodiscover \
+  async-upnp-client \
+  radios \
+  infrared-protocols \
+  av \
+  PyMetno \
+  home-assistant-intents \
+  mutagen \
+  go2rtc-client \
+  pymicro-vad \
+  pyspeex-noise \
+  pyserial \
+  gTTS

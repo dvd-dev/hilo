@@ -70,9 +70,14 @@ class HiloClimate(HiloEntity, ClimateEntity):
         """Initialize the climate entity."""
         super().__init__(hilo, device=device, name=device.name)
         old_unique_id = f"{slugify(device.name)}-climate"
-        self._attr_unique_id = f"{slugify(device.identifier)}-climate"
+        self._attr_unique_id = f"{device.identifier.lower()}-climate"
         hilo.async_migrate_unique_id(
             old_unique_id, self._attr_unique_id, Platform.CLIMATE
+        )
+        hilo.async_migrate_unique_id(
+            f"{slugify(device.identifier)}-climate",
+            self._attr_unique_id,
+            Platform.CLIMATE,
         )
         self.operations = [HVACMode.HEAT]
         self._has_operation = False

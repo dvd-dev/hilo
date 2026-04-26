@@ -34,9 +34,14 @@ class HiloSwitch(HiloEntity, SwitchEntity):
         """Initialize the switch."""
         super().__init__(hilo, device=device, name=device.name)
         old_unique_id = f"{slugify(device.name)}-switch"
-        self._attr_unique_id = f"{slugify(device.identifier)}-switch"
+        self._attr_unique_id = f"{device.identifier.lower()}-switch"
         hilo.async_migrate_unique_id(
             old_unique_id, self._attr_unique_id, Platform.SWITCH
+        )
+        hilo.async_migrate_unique_id(
+            f"{slugify(device.identifier)}-switch",
+            self._attr_unique_id,
+            Platform.SWITCH,
         )
         LOG.debug("Setting up Switch entity: %s", self._attr_name)
 

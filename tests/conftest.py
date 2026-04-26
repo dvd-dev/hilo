@@ -76,8 +76,16 @@ def mock_api() -> Generator[MagicMock]:
         api_mock.signalr_challenges.connected = False
         api_mock.signalr_challenges.disconnect = AsyncMock(return_value=None)
 
+        all_devices = json.loads(load_fixture("all_devices.json"))
+
         api_mock.log_traces = True
-        api_mock.get_devices.return_value = json.loads(load_fixture("all_devices.json"))
+        api_mock.wait_for_device_cache = AsyncMock(return_value=None)
+        api_mock.get_device_cache.return_value = all_devices
+        api_mock.get_location_ids = AsyncMock(return_value=(123, "urn:test:hilo:id"))
+        api_mock.get_gateway = AsyncMock(
+            return_value=next(d for d in all_devices if d.get("type") == "Gateway")
+        )
+        api_mock._get_device_callbacks = []
         api_mock.async_create.return_value = api_mock
         yield api_mock
 
