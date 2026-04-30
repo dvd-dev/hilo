@@ -27,7 +27,7 @@ classifiers = [
 dependencies = [
     "colorlog>=6.10.1",
     "homeassistant>=2024.4.1",
-    "pip>=21.3.1",
+    "pip>=26.1",
     "pyyaml>=6.0.2",
 ]
 
