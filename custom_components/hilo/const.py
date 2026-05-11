@@ -51,17 +51,17 @@ WEATHER_SCAN_INTERVAL = 1800
 CONF_TARIFF = {
     "rate d": {
         "low_threshold": 40,
-        "low": 0.06905,
-        "medium": 0.10652,
+        "low": 0.07065,
+        "medium": 0.11142,
         "high": 0,
         "access": 0.46154,
-        "reward_rate": 0.56786,
+        "reward_rate": 0.58490,
     },
     "flex d": {
         "low_threshold": 40,
-        "low": 0.04774,
-        "medium": 0.08699,
-        "high": 0.45088,
+        "low": 0.04886,
+        "medium": 0.09103,
+        "high": 0.46463,
         "access": 0.46154,
         "reward_rate": 0.55,
     },
