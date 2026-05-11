@@ -177,6 +177,31 @@ async def async_setup_entry(  # noqa: C901
         hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     )
 
+    # Note (ic-dev21): This is a bit of a hack to rename some entities that were created with non-standard names in early versions
+    # HA has changed the way they name entities linked to a device by default and this breaks the naming scheme of the gateway entities.
+    # If we let the HA default behaviour, all gateway entities (such as challenge sensor) will be prefixed with "hilo_gateway_",
+    # This code will check for the old entity IDs and rename them to the new format if they exist.
+
+    entity_registry = er.async_get(hass)
+    gateway_entity_renames = {
+        "sensor.hilo_gateway_defi_hilo": "sensor.defi_hilo",
+        "sensor.hilo_gateway_notifications_hilo": "sensor.notifications_hilo",
+        "sensor.hilo_gateway_recompenses_hilo": "sensor.recompenses_hilo",
+        "sensor.hilo_gateway_outdoor_weather_hilo": "sensor.outdoor_weather_hilo",
+        "sensor.hilo_gateway_hilo_rate_current": "sensor.hilo_rate_current",
+        "sensor.hilo_gateway_hilo_rate_low": "sensor.hilo_rate_low",
+        "sensor.hilo_gateway_hilo_rate_medium": "sensor.hilo_rate_medium",
+        "sensor.hilo_gateway_hilo_rate_access": "sensor.hilo_rate_access",
+        "sensor.hilo_gateway_hilo_rate_low_threshold": "sensor.hilo_rate_low_threshold",
+        "sensor.hilo_gateway_hilo_rate_reward_rate": "sensor.hilo_rate_reward_rate",
+        "sensor.hilo_gateway_hilo_cost_total": "sensor.hilo_cost_total",
+        "sensor.hilo_gateway": "sensor.hilo_gateway",
+    }
+    for old_id, new_id in gateway_entity_renames.items():
+        if old_id != new_id and entity_registry.async_get(old_id):
+            entity_registry.async_update_entity(old_id, new_entity_id=new_id)
+            LOG.info("Migrated entity ID %s -> %s", old_id, new_id)
+
     async def handle_debug_event(event: Event):
         """Handle an event."""
         LOG.debug("HILO_DEBUG: Event received: %s", event)
