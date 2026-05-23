@@ -202,6 +202,15 @@ async def async_setup_entry(  # noqa: C901
             entity_registry.async_update_entity(old_id, new_entity_id=new_id)
             LOG.info("Migrated entity ID %s -> %s", old_id, new_id)
 
+    # Note (ic-dev21): this new renaming by HA also breaks sensor.hilo_energy_total, which is used in check_tarif
+    energy_entity_renames = {
+        "sensor.meter00_hilo_energy_total": "sensor.hilo_energy_total"
+    }
+    for old_id, new_id in energy_entity_renames.items():
+        if old_id != new_id and entity_registry.async_get(old_id):
+            entity_registry.async_update_entity(old_id, new_entity_id=new_id)
+            LOG.info("Migrated entity ID %s -> %s", old_id, new_id)
+
     async def handle_debug_event(event: Event):
         """Handle an event."""
         LOG.debug("HILO_DEBUG: Event received: %s", event)
