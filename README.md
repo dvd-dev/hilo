@@ -12,19 +12,6 @@
 [![discord][discord-shield]][discord]
 [![Installations (analytics)][installs-shield]][analytics]
 
-# ⚠️ BREAKING CHANGE ⚠️
-
-Hilo ferme endpoint API /Devices. Voir issue #564.
-
-Nous avons relâchés v2026.3.2. Toutes les installations qui n'auront pas passé à cette version ne fonctionneront plus au niveau des lectures d'appareils.
-
-Un bug s'est glissé dans v2026.3.2 et v2026.3.3: lors d'un reload ou d'une déconnexion le sensor défi ne revient pas.
-Corrigé dans v2026.3.4.
-
-Tout issue ouvert par quelqu'un qui n'a pas mis à jour Hilo sera fermé.
-
-# ⚠️ BREAKING CHANGE ⚠️
-
 **BETA**
 
 Ceci est une version Bêta. Il y aura probablement des bogues, irritants, etc. Merci pour votre patience et d'ouvrir des "Issues".
