@@ -169,6 +169,9 @@ async def async_setup_entry(  # noqa: C901
         await hilo.async_init(scan_interval)
     except HiloError as err:
         raise ConfigEntryNotReady from err
+    except (TimeoutError, client_exceptions.ClientError) as err:
+        LOG.debug("Timeout with API connection")
+        raise ConfigEntryNotReady from err
 
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = hilo
