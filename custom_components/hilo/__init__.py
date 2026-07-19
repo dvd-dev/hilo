@@ -80,6 +80,24 @@ PLATFORMS = COORDINATOR_AWARE_PLATFORMS + [
     Platform.SWITCH,
 ]
 
+# Suffixes used when building gateway-attached entity unique_ids in sensor.py
+# (e.g. f"{device.identifier.lower()}-{suffix}"). Used to migrate those
+# unique_ids when the gateway's identifier changes from DSN-based to MAC-based.
+GATEWAY_ENTITY_SUFFIXES = [
+    "defi_hilo",
+    "recompenses_hilo",
+    "notifications_hilo",
+    "outdoor_weather_hilo",
+    "hilo_gateway",
+    "hilo_rate_current",
+    "hilo_rate_low",
+    "hilo_rate_medium",
+    "hilo_rate_access",
+    "hilo_rate_low_threshold",
+    "hilo_rate_reward_rate",
+    "hilo_cost_total",
+]
+
 
 @callback
 def _async_standardize_config_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
@@ -122,6 +140,38 @@ def _async_register_custom_device(
         model=device.model,
         name=device.name,
     )
+
+
+@callback
+def _async_migrate_gateway_device_identifier(
+    hass: HomeAssistant, entry: ConfigEntry, old_dsn: str | None, new_mac: str
+) -> None:
+    """Migrate the gateway device registry entry from DSN-based to MAC-based identity.
+
+    Preserves the device's registry entry (and thus its device_id, so entities,
+    dashboards, and automations referencing it stay attached) by renaming its
+    identifier in place instead of letting a new device get created.
+    """
+    if not old_dsn or old_dsn == new_mac:
+        return
+
+    device_registry = dr.async_get(hass)
+    old_device = device_registry.async_get_device(identifiers={(DOMAIN, old_dsn)})
+    if old_device is None:
+        return  # fresh install, or already migrated
+
+    new_device = device_registry.async_get_device(identifiers={(DOMAIN, new_mac)})
+    if new_device is not None and new_device.id != old_device.id:
+        LOG.warning(
+            "Gateway device already registered under new identifier %s, skipping device migration",
+            new_mac,
+        )
+        return
+
+    device_registry.async_update_device(
+        old_device.id, new_identifiers={(DOMAIN, new_mac)}
+    )
+    LOG.info("Migrated gateway device identifier %s -> %s", old_dsn, new_mac)
 
 
 async def async_setup_entry(  # noqa: C901
@@ -201,18 +251,34 @@ async def async_setup_entry(  # noqa: C901
         "sensor.hilo_gateway": "sensor.hilo_gateway",
     }
     for old_id, new_id in gateway_entity_renames.items():
-        if old_id != new_id and entity_registry.async_get(old_id):
-            entity_registry.async_update_entity(old_id, new_entity_id=new_id)
-            LOG.info("Migrated entity ID %s -> %s", old_id, new_id)
+        if old_id == new_id or not entity_registry.async_get(old_id):
+            continue
+        if entity_registry.async_get(new_id):
+            LOG.warning(
+                "Skipping migration %s -> %s: target entity ID already registered",
+                old_id,
+                new_id,
+            )
+            continue
+        entity_registry.async_update_entity(old_id, new_entity_id=new_id)
+        LOG.info("Migrated entity ID %s -> %s", old_id, new_id)
 
     # Note (ic-dev21): this new renaming by HA also breaks sensor.hilo_energy_total, which is used in check_tarif
     energy_entity_renames = {
         "sensor.meter00_hilo_energy_total": "sensor.hilo_energy_total"
     }
     for old_id, new_id in energy_entity_renames.items():
-        if old_id != new_id and entity_registry.async_get(old_id):
-            entity_registry.async_update_entity(old_id, new_entity_id=new_id)
-            LOG.info("Migrated entity ID %s -> %s", old_id, new_id)
+        if old_id == new_id or not entity_registry.async_get(old_id):
+            continue
+        if entity_registry.async_get(new_id):
+            LOG.warning(
+                "Skipping migration %s -> %s: target entity ID already registered",
+                old_id,
+                new_id,
+            )
+            continue
+        entity_registry.async_update_entity(old_id, new_entity_id=new_id)
+        LOG.info("Migrated entity ID %s -> %s", old_id, new_id)
 
     async def handle_debug_event(event: Event):
         """Handle an event."""
@@ -713,6 +779,33 @@ class Hilo:
             )
         return self._events[event_id]
 
+    async def _fetch_legacy_gateway_dsn(self) -> str | None:
+        """One-time fetch of the legacy DSN-based gateway identifier.
+
+        Used only to bridge identity during the DSN -> MAC migration. Safe to
+        fail once Hilo retires this endpoint: migration simply becomes a no-op
+        (there's no old identity to migrate from for new installs).
+        """
+        try:
+            gw = await self._api.get_gateway(self.devices.location_id)
+            return gw.get("identifier")
+        except Exception as err:
+            LOG.debug(
+                "Legacy gateway DSN unavailable (expected once endpoint is retired): %s",
+                err,
+            )
+            return None
+
+    @callback
+    def async_migrate_gateway_entities(self, old_dsn: str | None, new_mac: str) -> None:
+        """Migrate gateway-attached entity unique_ids from DSN-based to MAC-based."""
+        if not old_dsn or old_dsn == new_mac:
+            return
+        for suffix in GATEWAY_ENTITY_SUFFIXES:
+            old_unique_id = f"{old_dsn.lower()}-{suffix}"
+            new_unique_id = f"{new_mac.lower()}-{suffix}"
+            self.async_migrate_unique_id(old_unique_id, new_unique_id, Platform.SENSOR)
+
     async def async_init(self, scan_interval: int) -> None:
         """Initialize the Hilo "manager" class.
 
@@ -754,10 +847,18 @@ class Hilo:
             )
         )
 
-        # Step 6: Register custom devices in HA
-        _async_register_custom_device(
-            self._hass, self.entry, self.devices.find_device(1)
-        )
+        # Step 6: Migrate gateway identity (DSN -> MAC) if needed, then register
+        # custom devices in HA.
+        gateway = self.devices.find_device(1)
+        if gateway:
+            old_dsn = await self._fetch_legacy_gateway_dsn()
+            if old_dsn:
+                _async_migrate_gateway_device_identifier(
+                    self._hass, self.entry, old_dsn, gateway.identifier
+                )
+                self.async_migrate_gateway_entities(old_dsn, gateway.identifier)
+        _async_register_custom_device(self._hass, self.entry, gateway)
+
         if self.track_unknown_sources:
             if not self.unknown_tracker_device:
                 self.unknown_tracker_device = self.devices.generate_device(
