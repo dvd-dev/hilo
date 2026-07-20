@@ -7,6 +7,7 @@ from homeassistant.components.utility_meter.const import DAILY
 LOG = logging.getLogger(__package__)
 DOMAIN = "hilo"
 HILO_ENERGY_TOTAL = "hilo_energy_total"
+SIGNAL_WEBSOCKET_STATUS = "pyhilo_websocket_status"
 
 # Configurations
 CONF_APPRECIATION_PHASE = "appreciation_phase"
