@@ -175,9 +175,7 @@ def _async_migrate_gateway_device_identifier(
     LOG.info("Migrated gateway device identifier %s -> %s", old_dsn, new_mac)
 
 
-async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry
-) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Hilo as config entry."""
     HiloFlowHandler.async_register_implementation(
         hass, AuthCodeWithPKCEImplementation(hass)
@@ -211,9 +209,7 @@ async def async_setup_entry(
 
     _async_standardize_config_entry(hass, entry)
     scan_interval = current_options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
-    scan_interval = (
-        max(scan_interval, MIN_SCAN_INTERVAL)
-    )
+    scan_interval = max(scan_interval, MIN_SCAN_INTERVAL)
 
     hilo = Hilo(hass, entry, api)
     try:
