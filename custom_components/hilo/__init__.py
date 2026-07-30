@@ -3,16 +3,18 @@
 from __future__ import annotations
 
 import asyncio
+import traceback
 from collections import OrderedDict
 from datetime import datetime, timedelta
-import traceback
 from typing import List, Optional
 
 from aiohttp import CookieJar, client_exceptions
 from homeassistant.components.select import (
     ATTR_OPTION,
-    DOMAIN as SELECT_DOMAIN,
     SERVICE_SELECT_OPTION,
+)
+from homeassistant.components.select import (
+    DOMAIN as SELECT_DOMAIN,
 )
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
@@ -28,7 +30,11 @@ from homeassistant.core import Context, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import (
     config_entry_oauth2_flow,
+)
+from homeassistant.helpers import (
     device_registry as dr,
+)
+from homeassistant.helpers import (
     entity_registry as er,
 )
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
@@ -174,7 +180,7 @@ def _async_migrate_gateway_device_identifier(
     LOG.info("Migrated gateway device identifier %s -> %s", old_dsn, new_mac)
 
 
-async def async_setup_entry(  # noqa: C901
+async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry
 ) -> bool:
     """Set up Hilo as config entry."""
@@ -211,7 +217,7 @@ async def async_setup_entry(  # noqa: C901
     _async_standardize_config_entry(hass, entry)
     scan_interval = current_options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
     scan_interval = (
-        scan_interval if scan_interval >= MIN_SCAN_INTERVAL else MIN_SCAN_INTERVAL
+        max(scan_interval, MIN_SCAN_INTERVAL)
     )
 
     hilo = Hilo(hass, entry, api)
@@ -254,11 +260,12 @@ async def async_setup_entry(  # noqa: C901
         if old_id == new_id or not entity_registry.async_get(old_id):
             continue
         if entity_registry.async_get(new_id):
-            LOG.warning(
-                "Skipping migration %s -> %s: target entity ID already registered",
+            LOG.info(
+                "Skipping migration %s -> %s, target entity ID already registered",
                 old_id,
                 new_id,
             )
+            entity_registry.async_update_entity(old_id, new_entity_id=new_id)
             continue
         entity_registry.async_update_entity(old_id, new_entity_id=new_id)
         LOG.info("Migrated entity ID %s -> %s", old_id, new_id)
@@ -271,11 +278,12 @@ async def async_setup_entry(  # noqa: C901
         if old_id == new_id or not entity_registry.async_get(old_id):
             continue
         if entity_registry.async_get(new_id):
-            LOG.warning(
-                "Skipping migration %s -> %s: target entity ID already registered",
+            LOG.info(
+                "Skipping migration %s -> %s, target entity ID already registered",
                 old_id,
                 new_id,
             )
+            entity_registry.async_update_entity(old_id, new_entity_id=new_id)
             continue
         entity_registry.async_update_entity(old_id, new_entity_id=new_id)
         LOG.info("Migrated entity ID %s -> %s", old_id, new_id)
@@ -388,7 +396,7 @@ class Hilo:
         self._should_signalr_reconnect = True
         self._signalr_reconnect_tasks: list[asyncio.Task | None] = [None, None]
         self._update_task: list[asyncio.Task | None] = [None, None]
-        self.subscriptions: List[Optional[asyncio.Task]] = [None]
+        self.subscriptions: list[asyncio.Task | None] = [None]
         self.hq_plan_name = entry.options.get(CONF_HQ_PLAN_NAME, DEFAULT_HQ_PLAN_NAME)
         self.appreciation = entry.options.get(
             CONF_APPRECIATION_PHASE, DEFAULT_APPRECIATION_PHASE
@@ -1205,7 +1213,7 @@ class Hilo:
             ATTR_UNIT_OF_MEASUREMENT: parent_unit,  # note ic-dev21: now uses parent_unit directly
             ATTR_DEVICE_CLASS: SensorDeviceClass.ENERGY,
         }
-        if not all(a in attrs.keys() for a in new_attrs.keys()):
+        if not all(a in attrs.keys() for a in new_attrs):
             LOG.warning(
                 f"Fixing utility sensor: {entity} {current_state} new_attrs: {new_attrs}"
             )
