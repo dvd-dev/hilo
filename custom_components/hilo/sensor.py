@@ -349,7 +349,18 @@ class EnergySensor(IntegrationSensor):
             identifiers={(DOMAIN, self._device.identifier)},
         )
 
-        if Version(current_version) >= Version("2025.8"):
+        if Version(current_version) >= Version("2026.8"):
+            super().__init__(                
+                integration_method=METHOD_LEFT,
+                max_sub_interval=timedelta(seconds=MAX_SUB_INTERVAL),
+                name=self._attr_name,
+                round_digits=2,
+                source_entity=self._source,
+                unique_id=self._attr_unique_id,
+                unit_prefix="k",
+                unit_time="h",
+            )
+        elif Version(current_version) >= Version("2025.8"):
             super().__init__(
                 hass,
                 integration_method=METHOD_LEFT,
