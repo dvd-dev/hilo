@@ -350,7 +350,7 @@ class EnergySensor(IntegrationSensor):
         )
 
         if Version(current_version) >= Version("2026.8"):
-            super().__init__(                
+            super().__init__(
                 integration_method=METHOD_LEFT,
                 max_sub_interval=timedelta(seconds=MAX_SUB_INTERVAL),
                 name=self._attr_name,
