@@ -778,22 +778,18 @@ class Hilo:
             )
         return self._events[event_id]
 
-    async def _fetch_legacy_gateway_dsn(self) -> str | None:
-        """One-time fetch of the legacy DSN-based gateway identifier.
-
-        Used only to bridge identity during the DSN -> MAC migration. Safe to
-        fail once Hilo retires this endpoint: migration simply becomes a no-op
-        (there's no old identity to migrate from for new installs).
-        """
-        try:
-            gw = await self._api.get_gateway(self.devices.location_id)
-            return gw.get("identifier")
-        except Exception as err:
-            LOG.debug(
-                "Legacy gateway DSN unavailable (expected once endpoint is retired): %s",
-                err,
-            )
-            return None
+    async def _fetch_legacy_gateway_dsn(self, new_mac: str) -> str | None:
+        """This function looks up the Hilo gateway device in the device registry and
+        returns its old DSN-based identifier if it exists. If it doesn't,
+        it returns Noneto use the MAC address instead."""
+        device_registry = dr.async_get(self._hass)
+        for device in device_registry.devices.values():
+            if device.manufacturer != "Hilo" or device.model != "EQ000017":
+                continue
+            for domain, identifier in device.identifiers:
+                if domain == DOMAIN and identifier != new_mac:
+                    return identifier
+        return None
 
     @callback
     def async_migrate_gateway_entities(self, old_dsn: str | None, new_mac: str) -> None:
@@ -850,7 +846,7 @@ class Hilo:
         # custom devices in HA.
         gateway = self.devices.find_device(1)
         if gateway:
-            old_dsn = await self._fetch_legacy_gateway_dsn()
+            old_dsn = await self._fetch_legacy_gateway_dsn(gateway.identifier)
             if old_dsn:
                 _async_migrate_gateway_device_identifier(
                     self._hass, self.entry, old_dsn, gateway.identifier
