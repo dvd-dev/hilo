@@ -126,7 +126,8 @@
       "LoadConnected",
       "LockKeypad",
       "BackLight"
-    ]
+    ],
+    "Disconnected": false
   },
   {
     "id": 111001,
