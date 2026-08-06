@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
+    ATTR_HVAC_MODE,
     ATTR_TARGET_TEMP_HIGH,
     ATTR_TARGET_TEMP_LOW,
     ClimateEntityFeature,
@@ -210,7 +211,7 @@ class HiloClimate(HiloEntity, ClimateEntity):
         """Return the current HVAC mode reported by Hilo."""
         if not self._is_low_voltage:
             return HVACMode.HEAT
-        raw = self._device.mode
+        raw = self._device.low_voltage_mode
         if raw is None:
             return HVACMode.HEAT
         mode = HILO_MODE_TO_HVAC.get(normalize_mode(raw))
@@ -290,10 +291,18 @@ class HiloClimate(HiloEntity, ClimateEntity):
         so the exact spelling Hilo expects is preserved.
         """
         if not self._is_low_voltage:
+            if hvac_mode == HVACMode.HEAT:
+                # Restoring the only mode this device ever reports is a
+                # legitimate no-op (e.g. climate.set_hvac_mode: heat from an
+                # automation), not something worth warning about.
+                return
             LOG.warning(
                 "%s Only heating is available on this device", self._device._tag
             )
             return
+
+        self._check_challenge_lock()
+
         target = next(
             (
                 raw
@@ -308,28 +317,44 @@ class HiloClimate(HiloEntity, ClimateEntity):
                 f"(allowed: {self._device.allowed_modes})"
             )
         LOG.info("%s Setting mode to %s", self._device._tag, target)
-        await self._device.async_set_low_voltage_state(mode=target)
+        try:
+            await self._device.async_set_low_voltage_state(mode=target)
+        except ValueError as err:
+            raise HomeAssistantError(str(err)) from err
 
     async def async_set_fan_mode(self, fan_mode):
         """Set a new fan mode."""
+        if not self._is_low_voltage:
+            return
         LOG.info("%s Setting fan mode to %s", self._device._tag, fan_mode)
-        await self._device.async_set_low_voltage_state(fan_mode=fan_mode)
+        try:
+            await self._device.async_set_low_voltage_state(fan_mode=fan_mode)
+        except ValueError as err:
+            raise HomeAssistantError(str(err)) from err
 
     async def async_set_temperature(self, **kwargs):
         """Set new target temperature.
 
         In heat or cool mode Home Assistant sends a single setpoint, which maps
         to the heating or the cooling one depending on the current mode. In auto
-        mode it sends a range, which maps to both at once.
+        mode it sends a range, which maps to both at once. A hvac_mode kwarg is
+        forwarded by HA's SET_TEMPERATURE_SCHEMA when a service call sets both
+        the mode and the setpoint together; the mode is switched first so the
+        setpoint below is routed against the mode being requested rather than
+        the one the device is still reporting.
         """
         low = kwargs.get(ATTR_TARGET_TEMP_LOW)
         high = kwargs.get(ATTR_TARGET_TEMP_HIGH)
         single = kwargs.get(ATTR_TEMPERATURE)
+        hvac_mode = kwargs.get(ATTR_HVAC_MODE)
 
         if low is None and high is None and single is None:
             return
 
         self._check_challenge_lock()
+
+        if hvac_mode is not None:
+            await self.async_set_hvac_mode(hvac_mode)
 
         if not self._is_low_voltage:
             LOG.info("%s Setting temperature to %s", self._device._tag, single)
@@ -342,10 +367,14 @@ class HiloClimate(HiloEntity, ClimateEntity):
         if high is not None:
             changes["cool_setpoint"] = high
         if single is not None:
-            if self.hvac_mode == HVACMode.COOL:
+            target_mode = hvac_mode if hvac_mode is not None else self.hvac_mode
+            if target_mode == HVACMode.COOL:
                 changes["cool_setpoint"] = single
             else:
                 changes["target_temperature"] = single
 
         LOG.info("%s Setting temperature: %s", self._device._tag, changes)
-        await self._device.async_set_low_voltage_state(**changes)
+        try:
+            await self._device.async_set_low_voltage_state(**changes)
+        except ValueError as err:
+            raise HomeAssistantError(str(err)) from err
