@@ -45,7 +45,9 @@
 # name: test_climate[climate.thermostat_1-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
+      'current_temperature': 0,
       'friendly_name': 'Thermostat 1',
+      'hvac_action': 'idle',
       'hvac_modes': list([
         <HVACMode.HEAT: 'heat'>,
       ]),
@@ -53,12 +55,13 @@
       'max_temp': 36.0,
       'min_temp': 5.0,
       'supported_features': <ClimateEntityFeature: 1>,
+      'temperature': 0,
     }),
     'context': <ANY>,
     'entity_id': 'climate.thermostat_1',
     'last_changed': <ANY>,
     'last_reported': <ANY>,
     'last_updated': <ANY>,
-    'state': 'unavailable',
+    'state': 'heat',
   })
 # ---
