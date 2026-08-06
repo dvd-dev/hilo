@@ -288,7 +288,12 @@ class HiloClimate(HiloEntity, ClimateEntity):
         """Set a new HVAC mode.
 
         The value sent back is taken from the vocabulary the device advertises,
-        so the exact spelling Hilo expects is preserved.
+        so the exact spelling Hilo expects is preserved. Among the raw strings
+        that map to the requested mode, the one whose normalized spelling
+        exactly matches the Home Assistant mode is preferred over any other
+        match: Hilo maps both "heat" and "emergencyheat" to HVACMode.HEAT, and
+        picking the first one in allowed_modes order would silently engage the
+        resistive backup strip (EMERGENCY_HEAT) for a plain Heat request.
         """
         if not self._is_low_voltage:
             if hvac_mode == HVACMode.HEAT:
@@ -303,19 +308,24 @@ class HiloClimate(HiloEntity, ClimateEntity):
 
         self._check_challenge_lock()
 
-        target = next(
-            (
-                raw
-                for raw in self._device.allowed_modes
-                if HILO_MODE_TO_HVAC.get(normalize_mode(raw)) == hvac_mode
-            ),
-            None,
-        )
-        if target is None:
+        candidates = [
+            raw
+            for raw in self._device.allowed_modes
+            if HILO_MODE_TO_HVAC.get(normalize_mode(raw)) == hvac_mode
+        ]
+        if not candidates:
             raise HomeAssistantError(
                 f"Mode {hvac_mode} is not offered by {self._device.name} "
                 f"(allowed: {self._device.allowed_modes})"
             )
+        target = next(
+            (
+                raw
+                for raw in candidates
+                if normalize_mode(raw) == normalize_mode(hvac_mode)
+            ),
+            candidates[0],
+        )
         LOG.info("%s Setting mode to %s", self._device._tag, target)
         try:
             await self._device.async_set_low_voltage_state(mode=target)
