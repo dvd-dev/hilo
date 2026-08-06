@@ -199,7 +199,7 @@ class HiloClimate(HiloEntity, ClimateEntity):
         if not modes:
             # An ordinary thermostat advertises an empty list, and a climate
             # entity with no mode at all is invalid in Home Assistant.
-            return [HVACMode.HEAT]
+            modes = [HVACMode.HEAT]
         current = self.hvac_mode
         if current not in modes:
             modes.append(current)
