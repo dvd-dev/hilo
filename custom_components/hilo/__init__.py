@@ -223,9 +223,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = hilo
 
-    hass.async_create_task(
-        hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-    )
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     # Note (ic-dev21): This is a bit of a hack to rename some entities that were created with non-standard names in early versions
     # HA has changed the way they name entities linked to a device by default and this breaks the naming scheme of the gateway entities.
