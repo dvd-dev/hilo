@@ -15,7 +15,6 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
-    CONCENTRATION_PARTS_PER_MILLION,
     CONF_SCAN_INTERVAL,
     CURRENCY_DOLLAR,
     PERCENTAGE,
@@ -24,6 +23,7 @@ from homeassistant.const import (
     Platform,
     UnitOfEnergy,
     UnitOfPower,
+    UnitOfRatio,
     UnitOfSoundPressure,
     UnitOfTemperature,
     __short_version__ as current_version,
@@ -271,7 +271,7 @@ class Co2Sensor(HiloEntity, SensorEntity):
     """Define a Co2 sensor entity."""
 
     _attr_device_class = SensorDeviceClass.CO2
-    _attr_native_unit_of_measurement = CONCENTRATION_PARTS_PER_MILLION
+    _attr_native_unit_of_measurement = UnitOfRatio.PARTS_PER_MILLION
     _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(self, hilo, device):
