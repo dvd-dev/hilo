@@ -23,11 +23,20 @@ from homeassistant.const import (
     Platform,
     UnitOfEnergy,
     UnitOfPower,
-    UnitOfRatio,
     UnitOfSoundPressure,
     UnitOfTemperature,
     __short_version__ as current_version,
 )
+# This is to add backward compatibility
+try:
+    from homeassistant.const import UnitOfRatio
+
+    PARTS_PER_MILLION = UnitOfRatio.PARTS_PER_MILLION
+except ImportError:
+    from homeassistant.const import CONCENTRATION_PARTS_PER_MILLION
+
+    PARTS_PER_MILLION = CONCENTRATION_PARTS_PER_MILLION
+
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.debounce import Debouncer
@@ -271,7 +280,7 @@ class Co2Sensor(HiloEntity, SensorEntity):
     """Define a Co2 sensor entity."""
 
     _attr_device_class = SensorDeviceClass.CO2
-    _attr_native_unit_of_measurement = UnitOfRatio.PARTS_PER_MILLION
+    _attr_native_unit_of_measurement = PARTS_PER_MILLION
     _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(self, hilo, device):
