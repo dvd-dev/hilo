@@ -27,6 +27,7 @@ from homeassistant.const import (
     UnitOfTemperature,
     __short_version__ as current_version,
 )
+
 # This is to add backward compatibility
 try:
     from homeassistant.const import UnitOfRatio
