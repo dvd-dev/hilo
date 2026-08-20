@@ -1058,7 +1058,10 @@ class Hilo:
 
             for tarif_name, rate in tarif_config.items():
                 if rate > 0 and tarif_name in ["low", "medium", "high"]:
-                    if hasattr(self, "cost_sensors") and tarif_name in self.cost_sensors:
+                    if (
+                        hasattr(self, "cost_sensors")
+                        and tarif_name in self.cost_sensors
+                    ):
                         sensor = self.cost_sensors[tarif_name]
                         if sensor._cost != rate:
                             sensor._cost = rate
