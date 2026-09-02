@@ -951,7 +951,7 @@ class Hilo:
 
     async def async_update(self) -> None:
         """Update tarif periodically."""
-        if self.generate_energy_meters or self.track_unknown_sources:
+        if self.generate_energy_meters:
             self.check_tarif()
 
         if self.track_unknown_sources:
