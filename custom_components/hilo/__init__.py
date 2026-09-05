@@ -337,14 +337,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
-        try:
-            if hasattr(hilo, "_api") and hilo._api and hasattr(hilo._api, "session"):
-                if hilo._api.session and not hilo._api.session.closed:
-                    await hilo._api.session.close()
-                    LOG.debug("Session closed")
-        except Exception as err:
-            LOG.error("Error closing session: %s", err)
-
         LOG.debug("Hilo Integration unloaded")
         hass.data[DOMAIN].pop(entry.entry_id)
 
