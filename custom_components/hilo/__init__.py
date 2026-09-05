@@ -326,6 +326,14 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             except asyncio.CancelledError:
                 pass
 
+    for task in list(hilo.subscriptions):
+        if task and not task.done():
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
+
     try:
         await hilo._api.signalr_devices.disconnect()
     except Exception as err:
