@@ -781,7 +781,7 @@ class Hilo:
         returns its old DSN-based identifier if it exists. If it doesn't,
         it returns Noneto use the MAC address instead."""
         device_registry = dr.async_get(self._hass)
-        for device in device_registry.devices.values():
+        for device in device_registry.devices:
             if device.manufacturer != "Hilo" or device.model != "EQ000017":
                 continue
             for domain, identifier in device.identifiers:
