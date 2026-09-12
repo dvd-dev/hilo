@@ -23,6 +23,7 @@ from homeassistant.const import (
     CONF_USERNAME,
     EVENT_HOMEASSISTANT_STOP,
     Platform,
+    __short_version__ as current_version,
 )
 from homeassistant.core import Context, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
@@ -34,6 +35,7 @@ from homeassistant.helpers import (
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from packaging.version import Version
 from pyhilo import API
 from pyhilo.device import HiloDevice
 from pyhilo.devices import Devices
@@ -781,7 +783,13 @@ class Hilo:
         returns its old DSN-based identifier if it exists. If it doesn't,
         it returns Noneto use the MAC address instead."""
         device_registry = dr.async_get(self._hass)
-        for device in device_registry.devices:
+        devices = device_registry.devices
+        device_iter = (
+            devices
+            if Version(current_version) >= Version("2026.9")
+            else devices.values()
+        )
+        for device in device_iter:
             if device.manufacturer != "Hilo" or device.model != "EQ000017":
                 continue
             for domain, identifier in device.identifiers:
