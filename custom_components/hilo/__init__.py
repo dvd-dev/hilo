@@ -159,11 +159,22 @@ def _async_migrate_gateway_device_identifier(
         return
 
     device_registry = dr.async_get(hass)
-    old_device = device_registry.async_get_device(identifiers={(DOMAIN, old_dsn)})
+    if Version(current_version) >= Version("2026.8"):
+        old_device = device_registry.async_get_device_by_identifier(
+            (DOMAIN, old_dsn, entry.entry_id)
+        )
+    else:
+        old_device = device_registry.async_get_device(identifiers={(DOMAIN, old_dsn)})
+
     if old_device is None:
         return  # fresh install, or already migrated
 
-    new_device = device_registry.async_get_device(identifiers={(DOMAIN, new_mac)})
+    if Version(current_version) >= Version("2026.8"):
+        new_device = device_registry.async_get_device_by_identifier(
+            (DOMAIN, new_mac), entry.entry_id
+        )
+    else:
+        new_device = device_registry.async_get_device(identifiers={(DOMAIN, new_mac)})
     if new_device is not None and new_device.id != old_device.id:
         LOG.warning(
             "Gateway device already registered under new identifier %s, skipping device migration",
