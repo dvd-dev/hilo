@@ -45,7 +45,9 @@
 # name: test_climate[climate.thermostat_1-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
+      'current_temperature': 0,
       'friendly_name': 'Thermostat 1',
+      'hvac_action': 'idle',
       'hvac_modes': list([
         <HVACMode.HEAT: 'heat'>,
       ]),
@@ -53,12 +55,97 @@
       'max_temp': 36.0,
       'min_temp': 5.0,
       'supported_features': <ClimateEntityFeature: 1>,
+      'temperature': 0,
     }),
     'context': <ANY>,
     'entity_id': 'climate.thermostat_1',
     'last_changed': <ANY>,
     'last_reported': <ANY>,
     'last_updated': <ANY>,
-    'state': 'unavailable',
+    'state': 'heat',
+  })
+# ---
+# name: test_climate[climate.thermostat_24v-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+      None,
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'fan_modes': list([
+        'ON',
+        'AUTO',
+        'CIRCULATE',
+      ]),
+      'hvac_modes': list([
+        <HVACMode.HEAT: 'heat'>,
+        <HVACMode.OFF: 'off'>,
+        <HVACMode.COOL: 'cool'>,
+        <HVACMode.HEAT_COOL: 'heat_cool'>,
+      ]),
+      'max_temp': 32.0,
+      'min_temp': 10.0,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'climate',
+    'entity_category': None,
+    'entity_id': 'climate.thermostat_24v',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Thermostat 24V',
+    'options': dict({
+    }),
+    'original_device_class': None,
+    'original_icon': 'mdi:snowflake',
+    'original_name': 'Thermostat 24V',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': <ClimateEntityFeature: 393>,
+    'translation_key': None,
+    'unique_id': '2b3c4d5e6f70-climate',
+    'unit_of_measurement': None,
+  })
+# ---
+# name: test_climate[climate.thermostat_24v-state]
+  StateSnapshot({
+    'attributes': ReadOnlyDict({
+      'current_humidity': 57,
+      'current_temperature': 24,
+      'fan_mode': 'ON',
+      'fan_modes': list([
+        'ON',
+        'AUTO',
+        'CIRCULATE',
+      ]),
+      'friendly_name': 'Thermostat 24V',
+      'hvac_action': 'idle',
+      'hvac_modes': list([
+        <HVACMode.HEAT: 'heat'>,
+        <HVACMode.OFF: 'off'>,
+        <HVACMode.COOL: 'cool'>,
+        <HVACMode.HEAT_COOL: 'heat_cool'>,
+      ]),
+      'icon': 'mdi:snowflake',
+      'max_temp': 32.0,
+      'min_temp': 10.0,
+      'supported_features': <ClimateEntityFeature: 393>,
+      'temperature': 24.0,
+    }),
+    'context': <ANY>,
+    'entity_id': 'climate.thermostat_24v',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'cool',
   })
 # ---
