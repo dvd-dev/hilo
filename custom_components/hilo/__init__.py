@@ -161,8 +161,8 @@ def _async_migrate_gateway_device_identifier(
     device_registry = dr.async_get(hass)
     if Version(current_version) >= Version("2026.8"):
         old_device = device_registry.async_get_device_by_identifier(
-            (DOMAIN, old_dsn, entry.entry_id)
-        )
+            (DOMAIN, old_dsn), entry.entry_id)
+
     else:
         old_device = device_registry.async_get_device(identifiers={(DOMAIN, old_dsn)})
 
