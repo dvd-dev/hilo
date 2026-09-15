@@ -268,7 +268,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 old_id,
                 new_id,
             )
-            entity_registry.async_update_entity(old_id, new_entity_id=new_id)
+
             continue
         entity_registry.async_update_entity(old_id, new_entity_id=new_id)
         LOG.info("Migrated entity ID %s -> %s", old_id, new_id)
@@ -286,7 +286,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 old_id,
                 new_id,
             )
-            entity_registry.async_update_entity(old_id, new_entity_id=new_id)
+
             continue
         entity_registry.async_update_entity(old_id, new_entity_id=new_id)
         LOG.info("Migrated entity ID %s -> %s", old_id, new_id)
