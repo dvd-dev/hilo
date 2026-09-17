@@ -1218,7 +1218,7 @@ test = [
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "pytest-homeassistant-custom-component" },
-    { name = "python-hilo", specifier = ">=2026.3.5" },
+    { name = "python-hilo", specifier = ">=2026.9.1" },
     { name = "ruff", specifier = ">=0.16.7" },
 ]
 
@@ -2469,25 +2469,21 @@ wheels = [
 
 [[package]]
 name = "python-hilo"
-version = "2026.3.5"
+version = "2026.9.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
     { name = "aiohttp" },
-    { name = "aiosignal" },
-    { name = "async-timeout" },
-    { name = "attrs" },
     { name = "backoff" },
     { name = "httpx", extra = ["http2"] },
     { name = "httpx-sse" },
     { name = "pysignalr" },
     { name = "python-dateutil" },
     { name = "pyyaml" },
-    { name = "voluptuous" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/88/c4/e9cb64f0c532254b2e47bf6a39201b0e877e92ee0cda278995805f948121/python_hilo-2026.3.5.tar.gz", hash = "sha256:e6e3c463ed028630ea05076c658f1ad77ef509eab771211d00de8a1a951963d0", size = 34713, upload-time = "2026-03-30T01:24:21.994Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/cd/31/1847a875ec17cc8950b777cd5990915f9468c299e2707401303d035a00ad/python_hilo-2026.9.1.tar.gz", hash = "sha256:6002cc2f2d05efad6af2427a381ae72f21f6cd53ddd073d40530b97da1e6a1ef", size = 149989, upload-time = "2026-09-08T11:39:56.681Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c6/3b/39a8df9b80ee86d5b3fc532d060d863a6c0e30b80c9f8693abb43e3ca047/python_hilo-2026.3.5-py3-none-any.whl", hash = "sha256:1b9e0d687204d559af528a2ead62338ef3635e3916f6362a4c3152a5083ac375", size = 39257, upload-time = "2026-03-30T01:24:21.019Z" },
+    { url = "https://files.pythonhosted.org/packages/8b/37/237d58acbf4d00623f0fc722b2580f398fd872f1966bc7cb883519bed90c/python_hilo-2026.9.1-py3-none-any.whl", hash = "sha256:e92338addcecbf1dd1ac7f62e81e91c4b8885726586e107066e8b8a8f448943a", size = 39609, upload-time = "2026-09-08T11:39:55.63Z" },
 ]
 
 [[package]]
