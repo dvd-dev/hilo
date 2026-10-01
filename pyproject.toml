@@ -59,7 +59,7 @@ test = [
     "ruff>=0.16.8",
     "pre-commit>=4.6.2",
     "gitlint>=0.19.1",
-    "pyflakes>=2.4.0",
+    "pyflakes>=4.0.0",
 ]
 
 [tool.ruff]
