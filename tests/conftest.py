@@ -7,6 +7,8 @@ from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
+from pyhilo.const import HILO_READING_TYPES
+from pyhilo.device import DeviceAttribute, get_device_attributes
 from pyhilo.signalr import SignalRHub
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
@@ -77,6 +79,32 @@ def mock_api() -> Generator[MagicMock]:
         api_mock.signalr_challenges.disconnect = AsyncMock(return_value=None)
 
         all_devices = json.loads(load_fixture("all_devices.json"))
+
+        # autospec makes dev_atts() return the same generic mock for every
+        # argument, so get_attribute() can never match a reading and every
+        # device looks unavailable with default limits. Resolve for real,
+        # mirroring pyhilo.API.dev_atts's own lookup contract.
+        device_attributes = get_device_attributes()
+
+        def _dev_atts(
+            attribute: str, value_type: str | None = None
+        ) -> DeviceAttribute | str:
+            return next(
+                (
+                    x
+                    for x in device_attributes
+                    if x.hilo_attribute == attribute or x.attr == attribute
+                ),
+                (
+                    DeviceAttribute(
+                        attribute, HILO_READING_TYPES.get(value_type, "null")
+                    )
+                    if value_type
+                    else attribute
+                ),
+            )
+
+        api_mock.dev_atts.side_effect = _dev_atts
 
         api_mock.log_traces = True
         api_mock.wait_for_device_cache = AsyncMock(return_value=None)
