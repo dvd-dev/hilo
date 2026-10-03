@@ -1,25 +1,15 @@
 # From https://github.com/home-assistant/core/blob/dev/Dockerfile.dev
 # This gets us an environment as close as possible to the default Home Assistant
-# dev environment.
+# dev environment for custom component development.
 
 FROM mcr.microsoft.com/devcontainers/python:3-3.14-bookworm
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# Uninstall pre-installed formatting and linting tools
-# They would conflict with our pinned versions
 RUN \
-    pipx uninstall pydocstyle \
-    && pipx uninstall pycodestyle \
-    && pipx uninstall mypy \
-    && pipx uninstall pylint
-
-RUN \
-    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --batch --yes --dearmor -o /usr/share/keyrings/yarn-archive-keyring.gpg \
-    && echo "deb [signed-by=/usr/share/keyrings/yarn-archive-keyring.gpg] https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list \
-    && apt-get update \
+    apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    # Additional library needed by Home Assistant to simulate a real environment
+    # Libraries needed by Home Assistant to simulate a real environment
     bluez \
     ffmpeg \
     libudev-dev \
@@ -44,27 +34,22 @@ RUN \
 # Add go2rtc binary
 COPY --from=ghcr.io/alexxit/go2rtc:latest /usr/local/bin/go2rtc /bin/go2rtc
 
-# Install uv
-RUN pip3 install uv
-
-WORKDIR /usr/src
-
-# Setup hass-release
-RUN git clone --depth 1 https://github.com/home-assistant/hass-release \
-    && uv pip install --system -e hass-release/ \
-    && chown -R vscode /usr/src/hass-release/data
+# Install uv and uvx
+RUN pip3 install --no-cache-dir uv
 
 USER vscode
 ENV VIRTUAL_ENV="/home/vscode/.local/ha-venv"
 ENV UV_PROJECT_ENVIRONMENT="/home/vscode/.local/ha-venv"
-RUN uv venv $VIRTUAL_ENV
+RUN uv venv --python 3.14 $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+WORKDIR /tmp/build
+
+# Pre-install dependencies into venv
+COPY pyproject.toml README.md ./
+RUN uv sync --no-install-project --group test
 
 WORKDIR /workspaces
 
-# Install Python dependencies via uv
-COPY pyproject.toml README.md ./
-RUN uv sync --group test
-
 # Set the default shell to bash instead of sh
-ENV SHELL /bin/bash
+ENV SHELL=/bin/bash

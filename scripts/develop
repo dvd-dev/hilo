@@ -13,16 +13,13 @@ if [[ ! -d "${PWD}/config" ]]; then
     hass --config "${PWD}/config" --script ensure_config
 fi
 
-# Set the path to custom_components
-## This let's us have the structure we want <root>/custom_components/hilo
-## while at the same time have Home Assistant configuration inside <root>/config
-## without resulting to symlinks.
-export PYTHONPATH="${PYTHONPATH}:${PWD}/custom_components"
+# Set the path to workspace root so custom_components.hilo can be imported by Home Assistant
+export PYTHONPATH="${PWD}${PYTHONPATH:+:${PYTHONPATH}}"
 
-# Check if python-hilo exists and install it in development mode
+# Check if python-hilo exists and install it in editable development mode
 if [[ -d "/workspaces/python-hilo/pyhilo" ]]; then
-    echo "Installing custom version of python-hilo..."
-    uv pip install "/workspaces/python-hilo"
+    echo "Installing custom version of python-hilo (editable)..."
+    uv pip install -e "/workspaces/python-hilo"
     SKIP_PACKAGES="--skip-pip-packages python-hilo"
 else
     echo "Using PyPI version of python-hilo..."
