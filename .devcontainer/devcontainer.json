@@ -1,12 +1,16 @@
 {
   "name": "dvd-dev/hilo",
-  "dockerFile": "Dockerfile.dev",
+  "build": {
+    "dockerfile": "Dockerfile.dev",
+    "context": ".."
+  },
   // This is required because there is no conditional mount support in devcontainers.
   // We create the python-hilo directory if it doesn't exist.
   "initializeCommand": "mkdir -p ${localWorkspaceFolder}/../python-hilo || true",
-  "postCreateCommand": "scripts/setup",
+  "postCreateCommand": "git config --global --add safe.directory ${containerWorkspaceFolder} && git config --global --add safe.directory /workspaces/python-hilo && scripts/setup",
   "containerEnv": {
-    "PYTHONASYNCIODEBUG": "1"
+    "PYTHONASYNCIODEBUG": "1",
+    "PYTHONPATH": "${containerWorkspaceFolder}"
   },
   "features": {
     "ghcr.io/devcontainers/features/github-cli:1": {}
@@ -21,25 +25,22 @@
   "customizations": {
     "vscode": {
       "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.debugpy",
         "charliermarsh.ruff",
         "tamasfe.even-better-toml",
-        "ms-python.pylint",
-        "ms-python.vscode-pylance",
-        "github.copilot-chat",
         "redhat.vscode-yaml",
         "esbenp.prettier-vscode",
-        "github.vscode-pull-request-github",
+        "GitHub.vscode-pull-request-github",
+        "github.copilot-chat",
         "ryanluker.vscode-coverage-gutters"
       ],
-      // Please keep this file in sync with settings in settings.default.json
       "settings": {
-        "python.experiments.optOutFrom": ["pythonTestAdapter"],
-        //"python.defaultInterpreterPath": "/usr/local/bin/python",
         "python.defaultInterpreterPath": "/home/vscode/.local/ha-venv/bin/python",
-        "python.pythonPath": "/home/vscode/.local/ha-venv/bin/python",
         "python.terminal.activateEnvInCurrentTerminal": true,
+        "python.testing.pytestEnabled": true,
         "python.testing.pytestArgs": ["--no-cov"],
-        "pylint.importStrategy": "fromEnvironment",
         "editor.formatOnPaste": false,
         "editor.formatOnSave": true,
         "editor.formatOnType": true,
@@ -61,12 +62,15 @@
         "[python]": {
           "editor.defaultFormatter": "charliermarsh.ruff"
         },
-        "json.schemas": [
-          {
-            "fileMatch": ["homeassistant/components/*/manifest.json"],
-            "url": "${containerWorkspaceFolder}/script/json_schemas/manifest_schema.json"
-          }
-        ]
+        "[json]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[jsonc]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[yaml]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        }
       }
     }
   },
