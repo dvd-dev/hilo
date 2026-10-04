@@ -43,7 +43,6 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.debounce import Debouncer
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import Throttle, slugify
 import homeassistant.util.dt as dt_util
@@ -60,7 +59,6 @@ from .const import (
     CONF_ENERGY_METER_PERIOD,
     CONF_GENERATE_ENERGY_METERS,
     CONF_HQ_PLAN_NAME,
-    CONF_TARIFF,
     CONF_UNTARIFICATED_DEVICES,
     DEFAULT_ENERGY_METER_PERIOD,
     DEFAULT_GENERATE_ENERGY_METERS,
@@ -162,7 +160,7 @@ async def async_setup_entry(
     generate_energy_meters = entry.options.get(
         CONF_GENERATE_ENERGY_METERS, DEFAULT_GENERATE_ENERGY_METERS
     )
-    tariff_config = CONF_TARIFF.get(hq_plan_name)
+    tariff_config = hilo.get_tariff_config()
     if untarificated_devices:
         default_tariff_list = ["total"]
     else:
@@ -210,7 +208,10 @@ async def async_setup_entry(
             cost_entities.append(sensor)
             hilo.cost_sensors[tarif] = sensor  # Stores reference for check_tarif
 
-    hilo_rate_current = HiloCostSensor(hilo, "Hilo rate current", hq_plan_name)
+    initial_current_cost = tariff_config.get("low", 0)
+    hilo_rate_current = HiloCostSensor(
+        hilo, "Hilo rate current", hq_plan_name, initial_current_cost
+    )
     cost_entities.append(hilo_rate_current)
 
     # Create hilo_rate_current_total sensor that includes access rate per hour
@@ -227,9 +228,6 @@ async def async_setup_entry(
 
     hilo.cost_sensors["current"] = hilo_rate_current
     async_add_entities(cost_entities)
-    async_track_state_change_event(
-        hilo._hass, ["sensor.hilo_rate_current"], hilo_rate_current._handle_state_change
-    )
 
     # This setups the utility_meter platform
     await utility_manager.update(async_add_entities)
@@ -1294,30 +1292,6 @@ class HiloCostSensor(HiloEntity, SensorEntity):
             "Initializing energy cost sensor %s %s Amount: %s", name, plan_name, amount
         )
 
-    def _handle_state_change(self, event):
-        LOG.debug("_handle_state_change() %s | %s ", self, self._last_update)
-        if (state := event.data.get("new_state")) is None:
-            return
-
-        now = dt_util.utcnow()
-        try:
-            if (
-                state.attributes.get("hilo_update")
-                and self._last_update + timedelta(seconds=30) < now
-            ):
-                LOG.debug(
-                    "Setting new state %s state=%s state.attributes=%s",
-                    state.state,
-                    state,
-                    state.attributes,
-                )
-                self._cost = state.state
-                self._last_update = now
-        except ValueError:
-            LOG.error(
-                "Invalidate state received for %s: %s", self._attr_unique_id, state
-            )
-
     @property
     def state(self):
         """Return the cost."""
@@ -1372,7 +1346,6 @@ class HiloCostTotalSensor(HiloEntity, SensorEntity):
             self._attr_native_unit_of_measurement = "CAD"
         self._attr_name = name
         self.plan_name = plan_name
-        self._tariff_config = tariff_config
         self._access_rate = tariff_config.get("access", 0)
         self._last_update = dt_util.utcnow()
         old_unique_id = slugify(self._attr_name)
@@ -1395,11 +1368,16 @@ class HiloCostTotalSensor(HiloEntity, SensorEntity):
         return
 
     @property
+    def tariff_config(self):
+        """Return the active tariff configuration."""
+        return self._hilo.get_tariff_config()
+
+    @property
     def state(self):
         """Return the total cost in dollars."""
         total = 0.0
         for tarif in ["low", "medium", "high"]:
-            rate = self._tariff_config.get(tarif, 0)
+            rate = self.tariff_config.get(tarif, 0)
             if rate <= 0:
                 continue
             energy_entity = f"sensor.{HILO_ENERGY_TOTAL}_{tarif}"
@@ -1440,7 +1418,7 @@ class HiloCostTotalSensor(HiloEntity, SensorEntity):
             "last_update": self._last_update,
         }
         for tarif in ["low", "medium", "high"]:
-            rate = self._tariff_config.get(tarif, 0)
+            rate = self.tariff_config.get(tarif, 0)
             if rate > 0:
                 energy_entity = f"sensor.{HILO_ENERGY_TOTAL}_{tarif}"
                 energy_state = self._hilo._hass.states.get(energy_entity)
