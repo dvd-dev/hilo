@@ -126,7 +126,8 @@
       "LoadConnected",
       "LockKeypad",
       "BackLight"
-    ]
+    ],
+    "Disconnected": false
   },
   {
     "id": 111001,
@@ -227,5 +228,57 @@
     "settableAttributesList": [],
     "supportedParameters": "",
     "supportedParametersList": []
+  },
+  {
+    "id": 111004,
+    "assetId": "d6fd23f0-6c7a-45aa-8d84-1f000e11a4b5",
+    "hiloId": "urn:hilo:philo:2b3c4d5e6f70:0",
+    "identifier": "2b3c4d5e6f70",
+    "gatewayId": 1001,
+    "gatewayExternalId": "100000",
+    "gatewayAssetId": "bff2b9f2-760f-4210-b9e6-686e12b407ae",
+    "name": "Thermostat 24V",
+    "type": "Thermostat24V",
+    "groupId": 7833,
+    "category": "Heating",
+    "icon": null,
+    "loadConnected": null,
+    "modelNumber": "T9-T10",
+    "locationId": 123,
+    "parameters": null,
+    "externalGroup": "LowVoltageTstat",
+    "provider": 6,
+    "providerData": null,
+    "isFavorite": false,
+    "eTag": "",
+    "supportedAttributes": "CurrentTemperature,TargetTemperature,Heating,Humidity,Power,Disconnected,MaxTempSetpoint,MinTempSetpoint",
+    "supportedAttributesList": [
+      "CurrentTemperature",
+      "TargetTemperature",
+      "Heating",
+      "Humidity",
+      "Power",
+      "Disconnected",
+      "MaxTempSetpoint",
+      "MinTempSetpoint"
+    ],
+    "settableAttributes": "Disconnected",
+    "settableAttributesList": ["Disconnected"],
+    "supportedParameters": "",
+    "supportedParametersList": [],
+    "CurrentTemperature": 24,
+    "TargetTemperature": 19,
+    "Humidity": 57,
+    "Heating": 0,
+    "Thermostat24VMode": "COOL",
+    "Thermostat24VAllowedMode": ["EMERGENCY_HEAT", "HEAT", "OFF", "COOL", "AUTO"],
+    "Thermostat24VAllowedFanMode": ["ON", "AUTO", "CIRCULATE"],
+    "FanMode": "ON",
+    "FanSpeed": 1,
+    "CurrentState": "OFF",
+    "CoolTemperatureSet": 24,
+    "MinCoolSetpoint": 10,
+    "MaxCoolSetpoint": 32,
+    "Disconnected": false
   }
 ]

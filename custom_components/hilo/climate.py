@@ -4,6 +4,9 @@ from datetime import datetime, timedelta
 
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
+    ATTR_HVAC_MODE,
+    ATTR_TARGET_TEMP_HIGH,
+    ATTR_TARGET_TEMP_LOW,
     ClimateEntityFeature,
     HVACAction,
     HVACMode,
@@ -16,12 +19,32 @@ from homeassistant.const import (
     UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import slugify
 
 from . import Hilo
 from .const import CLIMATE_CLASSES, DOMAIN, LOG
 from .entity import HiloEntity
+
+# Hilo mode vocabulary -> Home Assistant HVAC modes. Keys are normalized
+# (lowercase, no separator) so a casing change upstream is tolerated: Hilo
+# spells them EMERGENCY_HEAT, HEAT, OFF, COOL and AUTO.
+HILO_MODE_TO_HVAC = {
+    "off": HVACMode.OFF,
+    "heat": HVACMode.HEAT,
+    "heating": HVACMode.HEAT,
+    "emergencyheat": HVACMode.HEAT,
+    "auxheat": HVACMode.HEAT,
+    "cool": HVACMode.COOL,
+    "cooling": HVACMode.COOL,
+    "auto": HVACMode.HEAT_COOL,
+}
+
+
+def normalize_mode(value) -> str:
+    """Normalize a Hilo mode string for lookup purposes."""
+    return str(value).strip().lower().replace("_", "").replace(" ", "").replace("-", "")
 
 
 def validate_reduction_phase(events, tag):
@@ -61,10 +84,8 @@ async def async_setup_entry(
 class HiloClimate(HiloEntity, ClimateEntity):
     """Representation of a Hilo Climate entity."""
 
-    _attr_hvac_modes = [HVACMode.HEAT]
     _attr_temperature_unit: str = UnitOfTemperature.CELSIUS
     _attr_precision: float = PRECISION_TENTHS
-    _attr_supported_features: int = ClimateEntityFeature.TARGET_TEMPERATURE
 
     def __init__(self, hilo: Hilo, device):
         """Initialize the climate entity."""
@@ -85,57 +106,285 @@ class HiloClimate(HiloEntity, ClimateEntity):
         LOG.debug("Setting up Climate entity: %s", self._attr_name)
 
     @property
+    def _is_low_voltage(self) -> bool:
+        """Whether the device is a 24 V thermostat reporting a real mode.
+
+        getattr() keeps the platform working against an older python-hilo: the
+        entity then simply behaves as it did before, heating only.
+        """
+        return getattr(self._device, "is_low_voltage", False)
+
+    # ------------------------------------------------------------------
+    # Temperature
+    # ------------------------------------------------------------------
+    @property
     def current_temperature(self):
         """Return the current temperature."""
         return self._device.current_temperature
 
     @property
+    def current_humidity(self):
+        """Return the ambient humidity, on devices that report it."""
+        if not self._is_low_voltage:
+            return None
+        return self._device.current_humidity
+
+    @property
     def target_temperature(self):
-        """Return the target temperature."""
+        """Return the target temperature.
+
+        In cooling mode the relevant setpoint is the cooling one; returning the
+        heating setpoint would display a value unrelated to what the system is
+        actually doing. In auto mode both matter, so the range properties are
+        used instead.
+        """
+        if self.hvac_mode == HVACMode.HEAT_COOL:
+            return None
+        if self.hvac_mode == HVACMode.COOL:
+            cool_setpoint = self._device.cool_setpoint
+            if cool_setpoint is not None:
+                return cool_setpoint
         return self._device.target_temperature
+
+    @property
+    def target_temperature_low(self):
+        """Heating setpoint, used in auto mode."""
+        if self.hvac_mode != HVACMode.HEAT_COOL:
+            return None
+        return self._device.target_temperature
+
+    @property
+    def target_temperature_high(self):
+        """Cooling setpoint, used in auto mode."""
+        if self.hvac_mode != HVACMode.HEAT_COOL:
+            return None
+        return self._device.cool_setpoint
 
     @property
     def max_temp(self):
         """Return the maximum temperature."""
+        if self.hvac_mode == HVACMode.COOL:
+            max_cool = self._device.max_cool_setpoint
+            if max_cool is not None:
+                return max_cool
         return self._device.max_temp
 
     @property
     def min_temp(self):
         """Return the minimum temperature."""
+        if self.hvac_mode == HVACMode.COOL:
+            min_cool = self._device.min_cool_setpoint
+            if min_cool is not None:
+                return min_cool
         return self._device.min_temp
 
-    def set_hvac_mode(self, hvac_mode):
-        """Set hvac mode."""
-        return
+    # ------------------------------------------------------------------
+    # HVAC mode
+    # ------------------------------------------------------------------
+    @property
+    def hvac_modes(self):
+        """Return the HVAC modes advertised by the device."""
+        if not self._is_low_voltage:
+            return [HVACMode.HEAT]
+        modes = []
+        for raw in self._device.allowed_modes:
+            mode = HILO_MODE_TO_HVAC.get(normalize_mode(raw))
+            if mode is None:
+                LOG.debug(
+                    "%s Unknown Hilo thermostat mode %s, ignoring",
+                    self._device._tag,
+                    raw,
+                )
+            elif mode not in modes:
+                modes.append(mode)
+        if not modes:
+            # An ordinary thermostat advertises an empty list, and a climate
+            # entity with no mode at all is invalid in Home Assistant.
+            modes = [HVACMode.HEAT]
+        current = self.hvac_mode
+        if current not in modes:
+            modes.append(current)
+        return modes
 
     @property
     def hvac_mode(self):
-        """Return hvac mode."""
-        return HVACMode.HEAT
+        """Return the current HVAC mode reported by Hilo."""
+        if not self._is_low_voltage:
+            return HVACMode.HEAT
+        raw = self._device.low_voltage_mode
+        if raw is None:
+            return HVACMode.HEAT
+        mode = HILO_MODE_TO_HVAC.get(normalize_mode(raw))
+        if mode is None:
+            LOG.warning(
+                "%s Unknown Hilo thermostat mode %s, falling back to heat",
+                self._device._tag,
+                raw,
+            )
+            return HVACMode.HEAT
+        return mode
 
     @property
     def hvac_action(self):
         """Return the current hvac action."""
+        if self.hvac_mode == HVACMode.OFF:
+            return HVACAction.OFF
         return self._device.hvac_action
+
+    # ------------------------------------------------------------------
+    # Fan
+    # ------------------------------------------------------------------
+    @property
+    def fan_modes(self):
+        """Return the fan modes advertised by the device, if any."""
+        if not self._is_low_voltage:
+            return None
+        return self._device.allowed_fan_modes or None
+
+    @property
+    def fan_mode(self):
+        """Return the current fan mode, if any."""
+        if not self._is_low_voltage:
+            return None
+        return self._device.fan_mode
+
+    @property
+    def supported_features(self):
+        """Return the features supported by this particular device."""
+        if self.hvac_mode == HVACMode.HEAT_COOL:
+            features = ClimateEntityFeature.TARGET_TEMPERATURE_RANGE
+        else:
+            features = ClimateEntityFeature.TARGET_TEMPERATURE
+        if self.fan_modes:
+            features |= ClimateEntityFeature.FAN_MODE
+        modes = self.hvac_modes
+        if HVACMode.OFF in modes:
+            features |= ClimateEntityFeature.TURN_OFF
+            if len(modes) > 1:
+                features |= ClimateEntityFeature.TURN_ON
+        return features
 
     @property
     def icon(self):
         """Return the icon to use in the frontend, based on hvac_action."""
+        if self.hvac_mode == HVACMode.COOL:
+            return "mdi:snowflake"
         if self._device.hvac_action == HVACAction.HEATING:
             return "mdi:radiator"
         return "mdi:radiator-disabled"
 
+    # ------------------------------------------------------------------
+    # Commands
+    # ------------------------------------------------------------------
+    def _check_challenge_lock(self) -> None:
+        """Block setpoint changes during a Hilo challenge reduction phase."""
+        if self._hilo.challenge_lock:
+            challenge = self._hilo._hass.states.get("sensor.defi_hilo")
+            validate_reduction_phase(
+                challenge.attributes.get("next_events", []), self._device._tag
+            )
+
+    async def async_set_hvac_mode(self, hvac_mode):
+        """Set a new HVAC mode.
+
+        The value sent back is taken from the vocabulary the device advertises,
+        so the exact spelling Hilo expects is preserved. Among the raw strings
+        that map to the requested mode, the one whose normalized spelling
+        exactly matches the Home Assistant mode is preferred over any other
+        match: Hilo maps both "heat" and "emergencyheat" to HVACMode.HEAT, and
+        picking the first one in allowed_modes order would silently engage the
+        resistive backup strip (EMERGENCY_HEAT) for a plain Heat request.
+        """
+        if not self._is_low_voltage:
+            if hvac_mode == HVACMode.HEAT:
+                # Restoring the only mode this device ever reports is a
+                # legitimate no-op (e.g. climate.set_hvac_mode: heat from an
+                # automation), not something worth warning about.
+                return
+            LOG.warning(
+                "%s Only heating is available on this device", self._device._tag
+            )
+            return
+
+        self._check_challenge_lock()
+
+        candidates = [
+            raw
+            for raw in self._device.allowed_modes
+            if HILO_MODE_TO_HVAC.get(normalize_mode(raw)) == hvac_mode
+        ]
+        if not candidates:
+            raise HomeAssistantError(
+                f"Mode {hvac_mode} is not offered by {self._device.name} "
+                f"(allowed: {self._device.allowed_modes})"
+            )
+        target = next(
+            (
+                raw
+                for raw in candidates
+                if normalize_mode(raw) == normalize_mode(hvac_mode)
+            ),
+            candidates[0],
+        )
+        LOG.info("%s Setting mode to %s", self._device._tag, target)
+        try:
+            await self._device.async_set_low_voltage_state(mode=target)
+        except ValueError as err:
+            raise HomeAssistantError(str(err)) from err
+
+    async def async_set_fan_mode(self, fan_mode):
+        """Set a new fan mode."""
+        if not self._is_low_voltage:
+            return
+        LOG.info("%s Setting fan mode to %s", self._device._tag, fan_mode)
+        try:
+            await self._device.async_set_low_voltage_state(fan_mode=fan_mode)
+        except ValueError as err:
+            raise HomeAssistantError(str(err)) from err
+
     async def async_set_temperature(self, **kwargs):
-        """Set new target temperature."""
-        if ATTR_TEMPERATURE in kwargs:
-            if self._hilo.challenge_lock:
-                challenge = self._hilo._hass.states.get("sensor.defi_hilo")
-                validate_reduction_phase(
-                    challenge.attributes.get("next_events", []), self._device._tag
-                )
-            LOG.info(
-                f"{self._device._tag} Setting temperature to {kwargs[ATTR_TEMPERATURE]}"
-            )
-            await self._device.set_attribute(
-                "target_temperature", kwargs[ATTR_TEMPERATURE]
-            )
+        """Set new target temperature.
+
+        In heat or cool mode Home Assistant sends a single setpoint, which maps
+        to the heating or the cooling one depending on the current mode. In auto
+        mode it sends a range, which maps to both at once. A hvac_mode kwarg is
+        forwarded by HA's SET_TEMPERATURE_SCHEMA when a service call sets both
+        the mode and the setpoint together; the mode is switched first so the
+        setpoint below is routed against the mode being requested rather than
+        the one the device is still reporting.
+        """
+        low = kwargs.get(ATTR_TARGET_TEMP_LOW)
+        high = kwargs.get(ATTR_TARGET_TEMP_HIGH)
+        single = kwargs.get(ATTR_TEMPERATURE)
+        hvac_mode = kwargs.get(ATTR_HVAC_MODE)
+
+        if low is None and high is None and single is None:
+            return
+
+        self._check_challenge_lock()
+
+        if hvac_mode is not None:
+            await self.async_set_hvac_mode(hvac_mode)
+
+        if not self._is_low_voltage:
+            LOG.info("%s Setting temperature to %s", self._device._tag, single)
+            await self._device.set_attribute("target_temperature", single)
+            return
+
+        changes = {}
+        if low is not None:
+            changes["target_temperature"] = low
+        if high is not None:
+            changes["cool_setpoint"] = high
+        if single is not None:
+            target_mode = hvac_mode if hvac_mode is not None else self.hvac_mode
+            if target_mode == HVACMode.COOL:
+                changes["cool_setpoint"] = single
+            else:
+                changes["target_temperature"] = single
+
+        LOG.info("%s Setting temperature: %s", self._device._tag, changes)
+        try:
+            await self._device.async_set_low_voltage_state(**changes)
+        except ValueError as err:
+            raise HomeAssistantError(str(err)) from err
