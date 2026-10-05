@@ -22,6 +22,8 @@ from homeassistant.const import (
     CONF_SCAN_INTERVAL,
     CONF_USERNAME,
     EVENT_HOMEASSISTANT_STOP,
+    STATE_UNAVAILABLE,
+    STATE_UNKNOWN,
     Platform,
     __short_version__ as current_version,
 )
@@ -35,6 +37,7 @@ from homeassistant.helpers import (
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.util import dt as dt_util
 from packaging.version import Version
 from pyhilo import API
 from pyhilo.device import HiloDevice
@@ -417,6 +420,7 @@ class Hilo:
         self.generate_energy_meters = entry.options.get(
             CONF_GENERATE_ENERGY_METERS, DEFAULT_GENERATE_ENERGY_METERS
         )
+        self.cost_sensors: dict = {}
         # This will get filled in by async_init:
         self.coordinator: DataUpdateCoordinator | None = None
         self.unknown_tracker_device: HiloDevice | None = None
@@ -1047,42 +1051,56 @@ class Hilo:
         )
         return challenge_sensor.state == "reduction"
 
-    def check_season(self):
+    def check_season(self, current_time: datetime | None = None) -> bool:
         """Determine if we are using a winter or summer rate."""
-        current_month = datetime.now().month
+        if current_time is None:
+            current_time = dt_util.now()
+        current_month = current_time.month
         LOG.debug("check_season current month is %s", current_month)
         return current_month in [12, 1, 2, 3]
 
+    @property
+    def plan_name(self) -> str:
+        """Determine which plan is active depending on season and user-selected rate."""
+        if self.hq_plan_name == "flex d":
+            if self.check_season():
+                return "flex d"
+            return "rate d"
+        return self.hq_plan_name
+
+    def get_tariff_config(self) -> dict[str, float]:
+        """Return the active tariff configuration based on plan and season.
+
+        For Flex D in non-winter (summer) months, Hydro-Québec bills at Rate D
+        rates for baseline consumption, while peak events do not occur. We keep
+        the high rate and reward rate from Flex D so that the utility-meter
+        tariff lists and dashboard entities remain consistent across seasons,
+        only swapping in Rate D's low and medium rates.
+        """
+        if self.hq_plan_name == "flex d":
+            config = CONF_TARIFF["flex d"].copy()
+            if not self.check_season():
+                rate_d = CONF_TARIFF["rate d"]
+                config["low"] = rate_d["low"]
+                config["medium"] = rate_d["medium"]
+            return config
+        return CONF_TARIFF.get(self.hq_plan_name, CONF_TARIFF["rate d"]).copy()
+
     def check_tarif(self):
         """Determine which tarif to select depending on season and user-selected rate."""
-        if self.generate_energy_meters:
-            season = self.check_season()
-            LOG.debug("check_tarif current season state is %s", season)
-            tarif = "low"
-            base_sensor = f"sensor.{HILO_ENERGY_TOTAL}_low"
-            energy_used = self._hass.states.get(base_sensor)
-            if not energy_used:
-                LOG.warning("check_tarif: Unable to find state for %s", base_sensor)
-                return tarif
-            user_selected_plan_name = self.hq_plan_name
+        if not self.generate_energy_meters:
+            return
 
-            if user_selected_plan_name == "flex d":
-                if season:
-                    plan_name = "flex d"
-                else:
-                    plan_name = "rate d"
-            else:
-                plan_name = user_selected_plan_name
-
-            tarif_config = CONF_TARIFF.get(plan_name)
+        tarif_config = self.get_tariff_config()
 
         for tarif_name, rate in tarif_config.items():
             if rate > 0 and tarif_name in ["low", "medium", "high"]:
-                if hasattr(self, "cost_sensors") and tarif_name in self.cost_sensors:
+                if tarif_name in self.cost_sensors:
                     sensor = self.cost_sensors[tarif_name]
                     if sensor._cost != rate:
                         sensor._cost = rate
-                        sensor.async_write_ha_state()
+                        if sensor.hass is not None:
+                            sensor.async_write_ha_state()
                         LOG.debug(
                             "check_tarif Updated %s sensor from %s to %s",
                             tarif_name,
@@ -1090,47 +1108,46 @@ class Hilo:
                             rate,
                         )
 
-        current_cost = self._hass.states.get("sensor.hilo_rate_current")
-
-        if not current_cost:
-            LOG.warning(
-                "check_tarif: Unable to find state for sensor.hilo_rate_current"
-            )
-            return
-
-        try:
-            if float(energy_used.state) >= tarif_config.get("low_threshold"):
-                tarif = "medium"
-        except ValueError:
-            LOG.warning(
-                "Unable to restore a valid state of %s: %s",
+        tarif = "low"
+        base_sensor = f"sensor.{HILO_ENERGY_TOTAL}_low"
+        energy_used = self._hass.states.get(base_sensor)
+        if energy_used and energy_used.state not in (STATE_UNKNOWN, STATE_UNAVAILABLE):
+            try:
+                if float(energy_used.state) >= tarif_config["low_threshold"]:
+                    tarif = "medium"
+            except (ValueError, TypeError):
+                LOG.warning(
+                    "Unable to restore a valid state of %s: %s",
+                    base_sensor,
+                    energy_used.state,
+                )
+        else:
+            LOG.debug(
+                "check_tarif: %s state not available yet, defaulting to low",
                 base_sensor,
-                energy_used.state,
             )
 
         if tarif_config.get("high", 0) > 0 and self.high_times:
             tarif = "high"
-        target_cost = self._hass.states.get(f"sensor.hilo_rate_{tarif}")
 
-        if not target_cost:
-            LOG.warning("check_tarif: sensor.hilo_rate_%s not available yet", tarif)
-            return
-
-        if target_cost.state != current_cost.state:
-            LOG.debug(
-                "check_tarif: Updating current cost, was %s now %s",
-                current_cost.state,
-                target_cost.state,
-            )
-            self.set_state("sensor.hilo_rate_current", target_cost.state)
-            if "current" in self.cost_sensors:
-                self.cost_sensors["current"]._cost = target_cost.state
+        target_cost_rate = tarif_config[tarif]
+        if "current" in self.cost_sensors:
+            sensor = self.cost_sensors["current"]
+            if sensor._cost != target_cost_rate:
+                LOG.debug(
+                    "check_tarif: Updating current cost, was %s now %s",
+                    sensor._cost,
+                    target_cost_rate,
+                )
+                sensor._cost = target_cost_rate
+                if sensor.hass is not None:
+                    sensor.async_write_ha_state()
 
         LOG.debug(
             "check_tarif: Current plan: %s Target Tarif: %s Energy used: %s Peak: %s",
-            plan_name,
+            self.plan_name,
             tarif,
-            energy_used.state,
+            energy_used.state if energy_used else "N/A",
             self.high_times,
         )
 
