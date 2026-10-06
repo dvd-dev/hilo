@@ -1,16 +1,56 @@
-name: Linting
+name: Check
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
       - dev
   pull_request:
+    branches:
+      - main
+      - dev
 
 env:
-  DEFAULT_PYTHON: 3.13
+  DEFAULT_PYTHON: "3.14"
 
 jobs:
+  test:
+    runs-on: "ubuntu-latest"
+    name: Run Unit Tests (${{ matrix.python-version }})
+    strategy:
+      fail-fast: false
+      matrix:
+        # TODO: Drop Python 3.13 once support for older Home Assistant versions (<2026.3) is dropped.
+        python-version: ["3.13", "3.14"]
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v7.0.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.2.0
+
+      - name: Install dependencies
+        run: |
+          uv sync --python ${{ matrix.python-version }} --group test
+
+      - name: Run unit tests
+        run: |
+          uv run --python ${{ matrix.python-version }} pytest -v --cov-report=html:htmlcov
+
+      - name: Upload Test & Coverage Results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-coverage-report-${{ matrix.python-version }}
+          path: htmlcov/
+          if-no-files-found: ignore
+
   pre-commit:
     runs-on: "ubuntu-latest"
     name: Pre-commit
