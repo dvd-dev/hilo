@@ -1,6 +1,6 @@
 [project]
 name = "hilo"
-version = "2026.9.5"
+version = "2026.10.1"
 description = "Home Assistant custom integration for Hilo energy systems"
 readme = "README.md"
 license = "MIT"
