@@ -3124,7 +3124,7 @@ test = [
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "pytest-homeassistant-custom-component" },
-    { name = "python-hilo", specifier = ">=2026.9.1" },
+    { name = "python-hilo", specifier = "==2026.9.1" },
     { name = "ruff", specifier = ">=0.16.9" },
 ]
 
