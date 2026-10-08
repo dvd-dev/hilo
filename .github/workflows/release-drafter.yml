@@ -1,14 +1,41 @@
+---
 name: Draft a release note
+
+# yamllint disable-line rule:truthy
 on:
   push:
     branches:
       - main
+
+permissions:
+  contents: read
+
 jobs:
   draft_release:
     name: Release Drafter
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
     steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+        with:
+          # Full history so that all existing tags are available.
+          fetch-depth: 0
+          persist-credentials: false
+
+      # Release Drafter's version resolver only understands SemVer, so the next
+      # CalVer version (YYYY.M.N) is computed by scripts/build_release.py and passed in.
+      - name: Compute next CalVer version
+        id: calver
+        run: |
+          version="$(python3 scripts/build_release.py --next-version)"
+          echo "Next version: ${version}"
+          echo "version=${version}" >> "${GITHUB_OUTPUT}"
+
       - name: Run release-drafter
         uses: release-drafter/release-drafter@v7.7.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          version: ${{ steps.calver.outputs.version }}
+          token: ${{ github.token }}

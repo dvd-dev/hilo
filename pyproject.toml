@@ -1,6 +1,7 @@
 [project]
 name = "hilo"
-version = "2026.9.5"
+# Placeholder: the real version comes from the GitHub release tag (see .github/workflows/release.yml).
+version = "0.0.0"
 description = "Home Assistant custom integration for Hilo energy systems"
 readme = "README.md"
 license = "MIT"

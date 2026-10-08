@@ -1,0 +1,46 @@
+---
+name: Release
+
+# Publishing a GitHub release builds the HACS archive (hilo.zip) and attaches
+# it to that release. The version committed in the repository is a placeholder
+# (0.0.0); the real version comes from the release tag and is written into
+# manifest.json inside the archive only.
+
+# yamllint disable-line rule:truthy
+on:
+  release:
+    types:
+      - published
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    name: Build and attach HACS archive
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Build HACS archive
+        run: |
+          python3 scripts/build_release.py \
+            --tag "${{ github.event.release.tag_name }}" \
+            --output "${RUNNER_TEMP}/hilo.zip"
+
+      - name: Upload hilo.zip to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release upload "${{ github.event.release.tag_name }}" "${RUNNER_TEMP}/hilo.zip" --clobber

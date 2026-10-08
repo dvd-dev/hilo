@@ -155,6 +155,20 @@ pre-commit run --all-files
 
 ---
 
+## Publier une nouvelle version
+
+Le numéro de version **n'est pas** conservé dans le code : `manifest.json` et `pyproject.toml` contiennent volontairement `0.0.0`. La version réelle provient du tag de la release GitHub.
+
+1. À chaque merge dans `main`, [Release Drafter](.github/workflows/release-drafter.yml) met à jour un brouillon de release avec la prochaine version CalVer (`vAAAA.M.N`, ex. `v2026.10.1`).
+2. Révisez le brouillon (notes, nom et tag) sur la page **Releases** de GitHub.
+3. Cliquez sur **Publish release**.
+
+Le workflow [Release](.github/workflows/release.yml) inscrit alors la version dans `manifest.json`, crée l'archive `hilo.zip` et l'attache à la release. HACS installe cette archive (`zip_release` dans `hacs.json`).
+
+Pour une version bêta, utilisez un tag comme `v2026.10.1b1` et cochez **Set as a pre-release**.
+
+---
+
 ## 📜 Licence
 
 En contribuant, vous acceptez que vos contributions soient sous licence MIT, comme le reste du projet. Pour plus d'informations, consultez la [licence MIT](http://choosealicense.com/licenses/mit/).
