@@ -69,3 +69,11 @@ repos:
     hooks:
       - id: check-yaml
       - id: trailing-whitespace
+  - repo: local
+    hooks:
+      - id: check-requirements-sync
+        name: Check manifest.json requirements match pyproject.toml
+        language: python
+        entry: python scripts/check_requirements_sync.py
+        files: ^(pyproject\.toml|custom_components/hilo/manifest\.json)$
+        pass_filenames: false

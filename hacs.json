@@ -1,5 +1,7 @@
 {
   "name": "Hilo",
   "render_readme": true,
-  "homeassistant": "2025.8.0"
+  "homeassistant": "2025.8.0",
+  "zip_release": true,
+  "filename": "hilo.zip"
 }
