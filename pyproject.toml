@@ -53,7 +53,7 @@ dev = [
 test = [
     "pytest",
     "pytest-cov",
-    "pytest-homeassistant-custom-component",
+    "pytest-homeassistant-custom-component>=0.13.0",
     "python-hilo==2026.9.1",
     "bandit>=1.7.1",
     "ruff>=0.16.9",
