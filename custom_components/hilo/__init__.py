@@ -854,6 +854,22 @@ class Hilo:
 
         # Step 4: Build device list (websocket devices + gateway REST + callbacks)
         await self.devices.update()
+        # The cloud returns a null identifier for some devices (observed for
+        # the gateway since ~2026-09-10). Every entity constructor builds
+        # unique_ids as f"{device.identifier.lower()}-..." and would crash
+        # with AttributeError, killing the whole sensor platform. Coerce to
+        # the empty string, which is what the cloud used to return and what
+        # existing device-registry entries and entity unique_ids were built
+        # from. Also handled in python-hilo for older payloads.
+        for dev in self.devices.all:
+            if dev is not None and dev.identifier is None:
+                LOG.warning(
+                    "Device %s (type %s) has no identifier from the cloud, "
+                    "coercing to empty string",
+                    dev.name,
+                    dev.type,
+                )
+                dev.identifier = ""
 
         # Step 5: Initialize GraphQL
         await self.graphql_helper.async_init()
