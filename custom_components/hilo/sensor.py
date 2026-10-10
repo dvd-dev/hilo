@@ -739,7 +739,9 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
             Platform.SENSOR,
         )
         LOG.debug("Setting up RewardSensor entity: %s", self._attr_name)
-        self._history_state_yaml: str = "hilo_eventhistory_state.yaml"
+        self._history_state_yaml: str = hilo._hass.config.path(
+            "hilo_eventhistory_state.yaml"
+        )
         self.scan_interval = timedelta(seconds=REWARD_SCAN_INTERVAL)
         self._state = 0
         self._history = []
