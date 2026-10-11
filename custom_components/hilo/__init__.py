@@ -215,6 +215,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 hass, entry, implementation
             ),
             log_traces=current_options.get(CONF_LOG_TRACES, DEFAULT_LOG_TRACES),
+            state_yaml=hass.config.path("hilo_state.yaml"),
         )
 
     except (TimeoutError, client_exceptions.ClientConnectorError):
