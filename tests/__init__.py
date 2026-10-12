@@ -16,7 +16,8 @@ async def setup_with_selected_platforms(
     mock_api: MagicMock,
 ) -> None:
     """Set up the Hilo integration with the selected platforms."""
-    entry.add_to_hass(hass)
+    if not hass.config_entries.async_get_entry(entry.entry_id):
+        entry.add_to_hass(hass)
     with (
         patch("custom_components.hilo.PLATFORMS", platforms),
         patch("custom_components.hilo.API.async_create", return_value=mock_api),

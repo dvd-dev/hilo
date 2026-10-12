@@ -6,14 +6,65 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
 import pytest
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, State
+from homeassistant.helpers import entity_registry as er
+from pyhilo.api import API as RealAPI
+from pyhilo.device import get_device_attributes
 from pyhilo.signalr import SignalRHub
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
     load_fixture,
 )
+from pytest_homeassistant_custom_component.syrupy import (
+    HomeAssistantSnapshotExtension,
+    HomeAssistantSnapshotSerializer,
+)
+from syrupy.assertion import SnapshotAssertion
+from syrupy.types import SerializableData
 
 from custom_components.hilo.const import DOMAIN
+
+
+class CrossVersionSnapshotSerializer(HomeAssistantSnapshotSerializer):
+    """Normalize internal HA data structures across Python 3.13 and 3.14 (HA 2026.3+)."""
+
+    @classmethod
+    def _serializable_state(cls, data: State) -> SerializableData:
+        serialized = super()._serializable_state(data)
+        if "attributes" in serialized and isinstance(serialized["attributes"], dict):
+            serialized["attributes"] = {
+                str(k): v for k, v in serialized["attributes"].items()
+            }
+        return serialized
+
+    @classmethod
+    def _serializable_entity_registry_entry(
+        cls, data: er.RegistryEntry
+    ) -> SerializableData:
+        serialized = super()._serializable_entity_registry_entry(data)
+        if "aliases" in serialized:
+            aliases = serialized["aliases"]
+            if aliases is None:
+                serialized["aliases"] = []
+            elif isinstance(aliases, (set, list)):
+                serialized["aliases"] = sorted(str(a) for a in aliases if a is not None)
+        if "capabilities" in serialized and isinstance(serialized["capabilities"], dict):
+            serialized["capabilities"] = {
+                str(k): v for k, v in serialized["capabilities"].items()
+            }
+        return serialized
+
+
+class CrossVersionSnapshotExtension(HomeAssistantSnapshotExtension):
+    """Snapshot extension with cross-version normalization."""
+
+    serializer_class = CrossVersionSnapshotSerializer
+
+
+@pytest.fixture
+def snapshot(snapshot: SnapshotAssertion) -> SnapshotAssertion:
+    """Return snapshot assertion fixture with cross-version compatibility."""
+    return snapshot.use_extension(CrossVersionSnapshotExtension)
 
 
 @pytest.fixture(autouse=True)
@@ -85,6 +136,12 @@ def mock_api() -> Generator[MagicMock]:
         api_mock.get_gateway = AsyncMock(
             return_value=next(d for d in all_devices if d.get("type") == "Gateway")
         )
+        dev_atts_fn = RealAPI.dev_atts
+        api_mock.device_attributes = get_device_attributes()
+        api_mock.dev_atts.side_effect = (
+            lambda attr, val_type=None: dev_atts_fn(api_mock, attr, val_type)
+        )
+        api_mock._set_device_attribute = AsyncMock()
         api_mock._get_device_callbacks = []
         api_mock.async_create.return_value = api_mock
         yield api_mock
