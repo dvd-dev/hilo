@@ -4,6 +4,9 @@ from unittest.mock import MagicMock
 
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 from homeassistant.const import (
+    ATTR_ENTITY_ID,
+    SERVICE_TURN_OFF,
+    SERVICE_TURN_ON,
     STATE_OFF,
     STATE_ON,
     STATE_UNAVAILABLE,
@@ -12,7 +15,10 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    snapshot_platform,
+)
 from syrupy.assertion import SnapshotAssertion
 
 from custom_components.hilo.const import DOMAIN
@@ -32,24 +38,7 @@ async def test_switch_entities(
     await setup_with_selected_platforms(
         hass, mock_config_entry, [Platform.SWITCH], mock_api
     )
-
-    entity_entries = er.async_entries_for_config_entry(
-        entity_registry, mock_config_entry.entry_id
-    )
-
-    assert len(entity_entries) == 4
-    assert {e.entity_id for e in entity_entries} == {
-        "switch.smart_plug",
-        "switch.wall_switch",
-        "switch.water_heater_controller",
-        "switch.calypso_water_heater",
-    }
-    for entity_entry in entity_entries:
-        assert entity_entry.domain == SWITCH_DOMAIN
-        assert entity_entry.platform == DOMAIN
-        assert entity_entry == snapshot(name=f"{entity_entry.entity_id}-entry")
-        assert (state := hass.states.get(entity_entry.entity_id))
-        assert state == snapshot(name=f"{entity_entry.entity_id}-state")
+    await snapshot_platform(hass, entity_registry, snapshot, mock_config_entry.entry_id)
 
 
 @pytest.mark.usefixtures("entity_registry_enabled_by_default", "mock_api")
@@ -73,8 +62,8 @@ async def test_switch_turn_on_and_off(
     # Turn the switch on via service call
     await hass.services.async_call(
         SWITCH_DOMAIN,
-        "turn_on",
-        {"entity_id": entity_id},
+        SERVICE_TURN_ON,
+        {ATTR_ENTITY_ID: entity_id},
         blocking=True,
     )
     mock_api._set_device_attribute.assert_called_with(
@@ -92,8 +81,8 @@ async def test_switch_turn_on_and_off(
     # Turn the switch off via service call
     await hass.services.async_call(
         SWITCH_DOMAIN,
-        "turn_off",
-        {"entity_id": entity_id},
+        SERVICE_TURN_OFF,
+        {ATTR_ENTITY_ID: entity_id},
         blocking=True,
     )
     mock_api._set_device_attribute.assert_called_with(
