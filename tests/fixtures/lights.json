@@ -1,0 +1,271 @@
+[
+  {
+    "name": "Hilo Gateway",
+    "Disconnected": {
+      "value": false
+    },
+    "type": "Gateway",
+    "category": "Gateway",
+    "supportedAttributes": "zigBeePairingActivated, zigBeeChannel, firmwareVersion, onlineStatus, lastStatusTime, disconnected",
+    "settableAttributes": "",
+    "id": 1,
+    "identifier": "100000",
+    "sdi": "c123abc987",
+    "provider": 1,
+    "model_number": "EQ000017",
+    "sw_version": "9.3.0",
+    "zigBeePairingActivated": {
+      "value": false
+    },
+    "zigBeeChannel": {
+      "value": 25
+    },
+    "firmwareVersion": {
+      "value": "9.3.0"
+    },
+    "onlineStatus": {
+      "value": "Online"
+    },
+    "lastStatusTime": {
+      "value": null
+    },
+    "disconnected": {
+      "value": null
+    }
+  },
+  {
+    "id": 111008,
+    "assetId": "b5ec12ef-5b69-44f9-9c73-0e999d00f3b9",
+    "hiloId": "urn:hilo:philo:6a7b8c9d0e1f:0",
+    "identifier": "6a7b8c9d0e1f",
+    "gatewayId": 1001,
+    "gatewayExternalId": "100000",
+    "gatewayAssetId": "bff2b9f2-760f-4210-b9e6-686e12b407ae",
+    "name": "Dimmable Light",
+    "type": "LightDimmer",
+    "groupId": 7840,
+    "category": "Light",
+    "icon": null,
+    "loadConnected": null,
+    "modelNumber": "43082",
+    "locationId": 123,
+    "parameters": null,
+    "externalGroup": "Light",
+    "provider": 1,
+    "providerData": null,
+    "isFavorite": false,
+    "eTag": "",
+    "supportedAttributes": "OnOff,Intensity,Disconnected,Power",
+    "supportedAttributesList": [
+      "OnOff",
+      "Intensity",
+      "Disconnected",
+      "Power"
+    ],
+    "settableAttributes": "OnOff,Intensity",
+    "settableAttributesList": [
+      "OnOff",
+      "Intensity"
+    ],
+    "supportedParameters": "",
+    "supportedParametersList": [],
+    "OnOff": {
+      "value": true
+    },
+    "Intensity": {
+      "value": 0.8
+    },
+    "Disconnected": {
+      "value": false
+    }
+  },
+  {
+    "id": 111009,
+    "assetId": "c5ec12ef-5b69-44f9-9c73-0e999d00f3ba",
+    "hiloId": "urn:hilo:philo:7a:8b:9c:0d:1e:2f:0",
+    "identifier": "7a:8b:9c:0d:1e:2f",
+    "gatewayId": 1001,
+    "gatewayExternalId": "100000",
+    "gatewayAssetId": "bff2b9f2-760f-4210-b9e6-686e12b407ae",
+    "name": "Color Light",
+    "type": "ColorBulb",
+    "groupId": 7841,
+    "category": "Light",
+    "icon": null,
+    "loadConnected": null,
+    "modelNumber": "ZB-ColorBulb",
+    "locationId": 123,
+    "parameters": null,
+    "externalGroup": "Light",
+    "provider": 1,
+    "providerData": null,
+    "isFavorite": false,
+    "eTag": "",
+    "supportedAttributes": "OnOff,Intensity,Hue,Saturation,Disconnected,Power",
+    "supportedAttributesList": [
+      "OnOff",
+      "Intensity",
+      "Hue",
+      "Saturation",
+      "Disconnected",
+      "Power"
+    ],
+    "settableAttributes": "OnOff,Intensity,Hue,Saturation",
+    "settableAttributesList": [
+      "OnOff",
+      "Intensity",
+      "Hue",
+      "Saturation"
+    ],
+    "supportedParameters": "",
+    "supportedParametersList": [],
+    "OnOff": {
+      "value": true
+    },
+    "Intensity": {
+      "value": 1.0
+    },
+    "Hue": {
+      "value": 120
+    },
+    "Saturation": {
+      "value": 50
+    },
+    "Disconnected": {
+      "value": false
+    }
+  },
+  {
+    "id": 111010,
+    "assetId": "d5ec12ef-5b69-44f9-9c73-0e999d00f3bb",
+    "hiloId": "urn:hilo:philo:8a9b0c1d2e3f:0",
+    "identifier": "8a9b0c1d2e3f",
+    "gatewayId": 1001,
+    "gatewayExternalId": "100000",
+    "gatewayAssetId": "bff2b9f2-760f-4210-b9e6-686e12b407ae",
+    "name": "White Light",
+    "type": "WhiteBulb",
+    "groupId": 7842,
+    "category": "Light",
+    "icon": null,
+    "loadConnected": null,
+    "modelNumber": "ZB-WhiteBulb",
+    "locationId": 123,
+    "parameters": null,
+    "externalGroup": "Light",
+    "provider": 1,
+    "providerData": null,
+    "isFavorite": false,
+    "eTag": "",
+    "supportedAttributes": "OnOff,Intensity,Disconnected,Power",
+    "supportedAttributesList": [
+      "OnOff",
+      "Intensity",
+      "Disconnected",
+      "Power"
+    ],
+    "settableAttributes": "OnOff,Intensity",
+    "settableAttributesList": [
+      "OnOff",
+      "Intensity"
+    ],
+    "supportedParameters": "",
+    "supportedParametersList": [],
+    "OnOff": {
+      "value": false
+    },
+    "Intensity": {
+      "value": 0.5
+    },
+    "Disconnected": {
+      "value": false
+    }
+  },
+  {
+    "id": 111011,
+    "assetId": "e5ec12ef-5b69-44f9-9c73-0e999d00f3bc",
+    "hiloId": "urn:hilo:philo:9a0b1c2d3e4f:0",
+    "identifier": "9a0b1c2d3e4f",
+    "gatewayId": 1001,
+    "gatewayExternalId": "100000",
+    "gatewayAssetId": "bff2b9f2-760f-4210-b9e6-686e12b407ae",
+    "name": "Light Switch",
+    "type": "LightSwitch",
+    "groupId": 7843,
+    "category": "Light",
+    "icon": null,
+    "loadConnected": null,
+    "modelNumber": "43080",
+    "locationId": 123,
+    "parameters": null,
+    "externalGroup": "Light",
+    "provider": 1,
+    "providerData": null,
+    "isFavorite": false,
+    "eTag": "",
+    "supportedAttributes": "OnOff,Disconnected,Power",
+    "supportedAttributesList": [
+      "OnOff",
+      "Disconnected",
+      "Power"
+    ],
+    "settableAttributes": "OnOff",
+    "settableAttributesList": [
+      "OnOff"
+    ],
+    "supportedParameters": "",
+    "supportedParametersList": [],
+    "OnOff": {
+      "value": false
+    },
+    "Disconnected": {
+      "value": false
+    }
+  },
+  {
+    "id": 111012,
+    "assetId": "f5ec12ef-5b69-44f9-9c73-0e999d00f3bd",
+    "hiloId": "urn:hilo:philo:0a1b2c3d4e5f:0",
+    "identifier": "0a1b2c3d4e5f",
+    "gatewayId": 1001,
+    "gatewayExternalId": "100000",
+    "gatewayAssetId": "bff2b9f2-760f-4210-b9e6-686e12b407ae",
+    "name": "Disconnected Light",
+    "type": "LightDimmer",
+    "groupId": 7844,
+    "category": "Light",
+    "icon": null,
+    "loadConnected": null,
+    "modelNumber": "43082",
+    "locationId": 123,
+    "parameters": null,
+    "externalGroup": "Light",
+    "provider": 1,
+    "providerData": null,
+    "isFavorite": false,
+    "eTag": "",
+    "supportedAttributes": "OnOff,Intensity,Disconnected,Power",
+    "supportedAttributesList": [
+      "OnOff",
+      "Intensity",
+      "Disconnected",
+      "Power"
+    ],
+    "settableAttributes": "OnOff,Intensity",
+    "settableAttributesList": [
+      "OnOff",
+      "Intensity"
+    ],
+    "supportedParameters": "",
+    "supportedParametersList": [],
+    "OnOff": {
+      "value": false
+    },
+    "Intensity": {
+      "value": 0.0
+    },
+    "Disconnected": {
+      "value": true
+    }
+  }
+]

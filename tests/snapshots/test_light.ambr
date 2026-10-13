@@ -392,3 +392,83 @@
     'state': 'on',
   })
 # ---
+# name: test_light_unique_id_migration[device_name][dimmable_light-light-migrated-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'supported_color_modes': list([
+        <ColorMode.BRIGHTNESS: 'brightness'>,
+      ]),
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'light',
+    'entity_category': None,
+    'entity_id': 'light.hilo_dimmable_light_light',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Dimmable Light',
+    'options': dict({
+    }),
+    'original_device_class': None,
+    'original_icon': None,
+    'original_name': 'Dimmable Light',
+    'platform': 'hilo',
+    'previous_unique_id': 'dimmable_light-light',
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '6a7b8c9d0e1f-light',
+    'unit_of_measurement': None,
+  })
+# ---
+# name: test_light_unique_id_migration[slugified_identifier][7a_8b_9c_0d_1e_2f-light-migrated-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'supported_color_modes': list([
+        <ColorMode.HS: 'hs'>,
+      ]),
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'light',
+    'entity_category': None,
+    'entity_id': 'light.hilo_7a_8b_9c_0d_1e_2f_light',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Color Light',
+    'options': dict({
+    }),
+    'original_device_class': None,
+    'original_icon': None,
+    'original_name': 'Color Light',
+    'platform': 'hilo',
+    'previous_unique_id': '7a_8b_9c_0d_1e_2f-light',
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '7a:8b:9c:0d:1e:2f-light',
+    'unit_of_measurement': None,
+  })
+# ---

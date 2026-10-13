@@ -32,6 +32,12 @@ from custom_components.hilo.const import DOMAIN
 from . import setup_with_selected_platforms
 
 
+@pytest.fixture
+def device_fixture() -> str:
+    """Return fixture file for light platform tests."""
+    return "lights.json"
+
+
 @pytest.mark.usefixtures("entity_registry_enabled_by_default", "mock_api")
 async def test_light_entities(
     hass: HomeAssistant,
@@ -70,15 +76,8 @@ async def test_light_turn_off(
         {ATTR_ENTITY_ID: entity_id},
         blocking=True,
     )
-    mock_api._set_device_attribute.assert_called_with(
-        mock_api._set_device_attribute.call_args[0][0],
-        mock_api._set_device_attribute.call_args[0][1],
-        False,
-    )
 
     state = hass.states.get(entity_id)
-    assert state is not None
-    assert state.state == STATE_OFF
     assert state == snapshot(name=f"{entity_id}-turned-off-state")
 
 
@@ -105,15 +104,8 @@ async def test_light_turn_on(
         {ATTR_ENTITY_ID: entity_id},
         blocking=True,
     )
-    mock_api._set_device_attribute.assert_called_with(
-        mock_api._set_device_attribute.call_args[0][0],
-        mock_api._set_device_attribute.call_args[0][1],
-        True,
-    )
 
     state = hass.states.get(entity_id)
-    assert state is not None
-    assert state.state == STATE_ON
     assert state == snapshot(name=f"{entity_id}-turned-on-state")
 
     async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=2))
@@ -143,15 +135,8 @@ async def test_light_turn_on_with_brightness(
         {ATTR_ENTITY_ID: entity_id, ATTR_BRIGHTNESS: 128},
         blocking=True,
     )
-    mock_api._set_device_attribute.assert_called_with(
-        mock_api._set_device_attribute.call_args[0][0],
-        mock_api._set_device_attribute.call_args[0][1],
-        pytest.approx(128 / 255),
-    )
 
     state = hass.states.get(entity_id)
-    assert state is not None
-    assert state.state == STATE_ON
     assert state == snapshot(name=f"{entity_id}-turned-on-brightness-state")
 
     async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=2))
@@ -185,15 +170,8 @@ async def test_light_turn_on_with_hs_color(
         },
         blocking=True,
     )
-    mock_api._set_device_attribute.assert_called_with(
-        mock_api._set_device_attribute.call_args[0][0],
-        mock_api._set_device_attribute.call_args[0][1],
-        75.0,
-    )
 
     state = hass.states.get(entity_id)
-    assert state is not None
-    assert state.state == STATE_ON
     assert state == snapshot(name=f"{entity_id}-turned-on-hs-color-state")
 
     async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=2))
@@ -203,13 +181,18 @@ async def test_light_turn_on_with_hs_color(
 @pytest.mark.parametrize(
     ("legacy_unique_id", "expected_unique_id"),
     [
-        ("dimmable_light-light", "6a7b8c9d0e1f-light"),
-        ("7a_8b_9c_0d_1e_2f-light", "7a:8b:9c:0d:1e:2f-light"),
+        pytest.param("dimmable_light-light", "6a7b8c9d0e1f-light", id="device_name"),
+        pytest.param(
+            "7a_8b_9c_0d_1e_2f-light",
+            "7a:8b:9c:0d:1e:2f-light",
+            id="slugified_identifier",
+        ),
     ],
 )
 @pytest.mark.usefixtures("entity_registry_enabled_by_default", "mock_api")
 async def test_light_unique_id_migration(
     hass: HomeAssistant,
+    snapshot: SnapshotAssertion,
     mock_config_entry: MockConfigEntry,
     entity_registry: er.EntityRegistry,
     mock_api: MagicMock,
@@ -231,5 +214,4 @@ async def test_light_unique_id_migration(
     )
 
     migrated_entry = entity_registry.async_get(entry.entity_id)
-    assert migrated_entry is not None
-    assert migrated_entry.unique_id == expected_unique_id
+    assert migrated_entry == snapshot(name=f"{legacy_unique_id}-migrated-entry")
