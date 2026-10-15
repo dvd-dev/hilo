@@ -1,16 +1,15 @@
 """Fixtures for testing."""
 
-import json
 from collections.abc import Generator
-from typing import Any
+import json
 from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
-import pytest
 from homeassistant.core import HomeAssistant, State
 from homeassistant.helpers import entity_registry as er
 from pyhilo.api import API as RealAPI
 from pyhilo.device import get_device_attributes
 from pyhilo.signalr import SignalRHub
+import pytest
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
     load_fixture,
@@ -48,7 +47,9 @@ class CrossVersionSnapshotSerializer(HomeAssistantSnapshotSerializer):
                 serialized["aliases"] = []
             elif isinstance(aliases, (set, list)):
                 serialized["aliases"] = sorted(str(a) for a in aliases if a is not None)
-        if "capabilities" in serialized and isinstance(serialized["capabilities"], dict):
+        if "capabilities" in serialized and isinstance(
+            serialized["capabilities"], dict
+        ):
             serialized["capabilities"] = {
                 str(k): v for k, v in serialized["capabilities"].items()
             }
@@ -138,8 +139,8 @@ def mock_api() -> Generator[MagicMock]:
         )
         dev_atts_fn = RealAPI.dev_atts
         api_mock.device_attributes = get_device_attributes()
-        api_mock.dev_atts.side_effect = (
-            lambda attr, val_type=None: dev_atts_fn(api_mock, attr, val_type)
+        api_mock.dev_atts.side_effect = lambda attr, val_type=None: dev_atts_fn(
+            api_mock, attr, val_type
         )
         api_mock._set_device_attribute = AsyncMock()
         api_mock._get_device_callbacks = []
