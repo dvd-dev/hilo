@@ -6,7 +6,6 @@ import asyncio
 from collections import OrderedDict
 from datetime import datetime, timedelta
 import traceback
-from typing import List, Optional
 
 from aiohttp import CookieJar, client_exceptions
 from homeassistant.components.select import (
@@ -403,7 +402,7 @@ class Hilo:
         self._should_signalr_reconnect = True
         self._signalr_reconnect_tasks: list[asyncio.Task | None] = [None, None]
         self._update_task: list[asyncio.Task | None] = [None, None]
-        self.subscriptions: List[Optional[asyncio.Task]] = [None]
+        self.subscriptions: list[asyncio.Task | None] = [None]
         self.hq_plan_name = entry.options.get(CONF_HQ_PLAN_NAME, DEFAULT_HQ_PLAN_NAME)
         self.appreciation = entry.options.get(
             CONF_APPRECIATION_PHASE, DEFAULT_APPRECIATION_PHASE
