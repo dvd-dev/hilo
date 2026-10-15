@@ -38,7 +38,7 @@ def device_fixture() -> str:
     return "lights.json"
 
 
-@pytest.mark.usefixtures("entity_registry_enabled_by_default", "mock_api")
+@pytest.mark.usefixtures("entity_registry_enabled_by_default")
 async def test_light_entities(
     hass: HomeAssistant,
     snapshot: SnapshotAssertion,
@@ -53,7 +53,7 @@ async def test_light_entities(
     await snapshot_platform(hass, entity_registry, snapshot, mock_config_entry.entry_id)
 
 
-@pytest.mark.usefixtures("entity_registry_enabled_by_default", "mock_api")
+@pytest.mark.usefixtures("entity_registry_enabled_by_default")
 async def test_light_turn_off(
     hass: HomeAssistant,
     snapshot: SnapshotAssertion,
@@ -81,7 +81,7 @@ async def test_light_turn_off(
     assert state == snapshot(name=f"{entity_id}-turned-off-state")
 
 
-@pytest.mark.usefixtures("entity_registry_enabled_by_default", "mock_api")
+@pytest.mark.usefixtures("entity_registry_enabled_by_default")
 async def test_light_turn_on(
     hass: HomeAssistant,
     snapshot: SnapshotAssertion,
@@ -112,7 +112,7 @@ async def test_light_turn_on(
     await hass.async_block_till_done()
 
 
-@pytest.mark.usefixtures("entity_registry_enabled_by_default", "mock_api")
+@pytest.mark.usefixtures("entity_registry_enabled_by_default")
 async def test_light_turn_on_with_brightness(
     hass: HomeAssistant,
     snapshot: SnapshotAssertion,
@@ -143,7 +143,7 @@ async def test_light_turn_on_with_brightness(
     await hass.async_block_till_done()
 
 
-@pytest.mark.usefixtures("entity_registry_enabled_by_default", "mock_api")
+@pytest.mark.usefixtures("entity_registry_enabled_by_default")
 async def test_light_turn_on_with_hs_color(
     hass: HomeAssistant,
     snapshot: SnapshotAssertion,
@@ -189,7 +189,7 @@ async def test_light_turn_on_with_hs_color(
         ),
     ],
 )
-@pytest.mark.usefixtures("entity_registry_enabled_by_default", "mock_api")
+@pytest.mark.usefixtures("entity_registry_enabled_by_default")
 async def test_light_unique_id_migration(
     hass: HomeAssistant,
     snapshot: SnapshotAssertion,
@@ -214,4 +214,6 @@ async def test_light_unique_id_migration(
     )
 
     migrated_entry = entity_registry.async_get(entry.entity_id)
+    assert migrated_entry is not None
+    assert migrated_entry.unique_id == expected_unique_id
     assert migrated_entry == snapshot(name=f"{legacy_unique_id}-migrated-entry")
