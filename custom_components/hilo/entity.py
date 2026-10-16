@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Union
-
 from homeassistant.const import ATTR_CONNECTIONS
 from homeassistant.core import callback
 from homeassistant.helpers import device_registry as dr
@@ -23,7 +21,7 @@ class HiloEntity(CoordinatorEntity):
     def __init__(
         self,
         hilo: Hilo,
-        name: Union[str, None] = None,
+        name: str | None = None,
         *,
         device: HiloDevice,
     ) -> None:
@@ -77,7 +75,7 @@ class HiloEntity(CoordinatorEntity):
     @callback
     def async_update_from_signalr_event(self, event: SignalREvent) -> None:
         """Update the entity when new data comes from SignalR."""
-        raise NotImplementedError()
+        raise NotImplementedError
 
     async def async_added_to_hass(self):
         """Call when entity is added to hass."""

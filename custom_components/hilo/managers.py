@@ -105,8 +105,7 @@ class UtilityManager:
                         source_entity,
                     )
                     break
-                else:
-                    LOG.debug("Entity %s already exists", entity_id)
+                LOG.debug("Entity %s already exists", entity_id)
 
             if should_include:
                 filtered_configs[source_entity] = config
