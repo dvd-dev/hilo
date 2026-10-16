@@ -29,7 +29,7 @@ Make sure that Home Assistant is stopped before running the script
 
 from datetime import datetime
 import json
-from os import access, W_OK, R_OK
+from os import R_OK, W_OK, access
 from os.path import isfile
 from shutil import copy2
 import sys
@@ -39,9 +39,11 @@ if len(sys.argv) < 2:
     sys.exit(1)
 
 state_file = sys.argv[1]
-if (not isfile(state_file) or
-    not access(state_file, R_OK) or
-    not access(state_file, W_OK)):
+if (
+    not isfile(state_file)
+    or not access(state_file, R_OK)
+    or not access(state_file, W_OK)
+):
     print(f"{state_file} must be read and writeable")
     sys.exit(1)
 
@@ -57,7 +59,7 @@ data = states.get("data")
 new_states = []
 
 for k in data:
-    if "hilo_energy" in k['state']['entity_id']:
+    if "hilo_energy" in k["state"]["entity_id"]:
         continue
     new_states.append(k)
 
