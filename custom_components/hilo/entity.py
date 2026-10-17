@@ -4,17 +4,29 @@ from __future__ import annotations
 
 from typing import Union
 
-from homeassistant.const import ATTR_CONNECTIONS
+from homeassistant.components.climate import ClimateEntity
+from homeassistant.components.light import LightEntity
+from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.switch import SwitchEntity
+from homeassistant.const import ATTR_CONNECTIONS, Platform
 from homeassistant.core import callback
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
-from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.entity import DeviceInfo, Entity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util import slugify
 from pyhilo.device import HiloDevice
 from pyhilo.signalr import SignalREvent
 
 from . import SIGNAL_UPDATE_ENTITY, Hilo
 from .const import DOMAIN
+
+ENTITY_PLATFORMS: tuple[tuple[type[Entity], Platform], ...] = (
+    (ClimateEntity, Platform.CLIMATE),
+    (LightEntity, Platform.LIGHT),
+    (SensorEntity, Platform.SENSOR),
+    (SwitchEntity, Platform.SWITCH),
+)
 
 
 class HiloEntity(CoordinatorEntity):
@@ -34,7 +46,7 @@ class HiloEntity(CoordinatorEntity):
             "identifiers": {(DOMAIN, device.identifier)},
             "manufacturer": device.manufacturer,
             "model": device.model,
-            "name": device.name,
+            "name": f"{hilo.name_prefix}{device.name}",
         }
         try:
             device_info_args["via_device"] = (DOMAIN, device.gateway_external_id)
@@ -56,6 +68,16 @@ class HiloEntity(CoordinatorEntity):
         if not name:
             name = device.name
         self._attr_name = f"{hilo.name_prefix}{name}"
+        # Since Home Assistant 2026.8, generated entity_ids are prefixed with
+        # the device name unless the entity name already starts with it, which
+        # repeats the account label and the gateway name. Suggesting the
+        # entity_id keeps it derived from the entity name alone.
+        platform = next(
+            platform
+            for entity_class, platform in ENTITY_PLATFORMS
+            if isinstance(self, entity_class)
+        )
+        self.entity_id = f"{platform}.{slugify(self._attr_name)}"
         self._device = device
         self._hilo = hilo
         self._device._entity = self

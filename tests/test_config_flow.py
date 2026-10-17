@@ -61,46 +61,128 @@ async def complete_oauth(
     return await hass.config_entries.flow.async_configure(flow_id)
 
 
-@pytest.mark.usefixtures("current_request_with_host", "mock_setup_entry")
-@pytest.mark.parametrize(
-    ("existing_accounts", "expected_label"),
-    [
-        pytest.param([], "", id="first_account_unprefixed"),
-        pytest.param([(ACCOUNT_EMAIL, "")], "second.account", id="additional_account"),
-        pytest.param(
-            [(ACCOUNT_EMAIL, ""), ("second.account@other.com", "second.account")],
-            "second.account 2",
-            id="label_already_taken",
-        ),
-        pytest.param(
-            [("other.account@example.com", "other.account")],
-            "",
-            id="unprefixed_names_free_again",
-        ),
-    ],
-)
-async def test_user_flow_creates_account_entry(
+async def start_user_flow(
     hass: HomeAssistant,
     hass_client_no_auth: ClientSessionGenerator,
     aioclient_mock: AiohttpClientMocker,
     existing_accounts: list[tuple[str, str]],
-    expected_label: str,
-) -> None:
-    """Test each account gets its own entry and a unique entity name label."""
+) -> ConfigFlowResult:
+    """Sign in a new account while the given accounts are configured."""
     for email, label in existing_accounts:
         account_entry(email, label).add_to_hass(hass)
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": SOURCE_USER}
     )
-
-    result = await complete_oauth(
+    return await complete_oauth(
         hass, hass_client_no_auth, aioclient_mock, result["flow_id"], SECOND_EMAIL
+    )
+
+
+@pytest.mark.usefixtures("current_request_with_host", "mock_setup_entry")
+@pytest.mark.parametrize(
+    "existing_accounts",
+    [
+        pytest.param([], id="first_account"),
+        pytest.param(
+            [("other.account@example.com", "Chalet")],
+            id="unprefixed_names_free_again",
+        ),
+    ],
+)
+async def test_user_flow_creates_unprefixed_account(
+    hass: HomeAssistant,
+    hass_client_no_auth: ClientSessionGenerator,
+    aioclient_mock: AiohttpClientMocker,
+    existing_accounts: list[tuple[str, str]],
+) -> None:
+    """Test an account is created with unprefixed names when none has them."""
+    result = await start_user_flow(
+        hass, hass_client_no_auth, aioclient_mock, existing_accounts
     )
 
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["title"] == SECOND_EMAIL
     assert result["result"].unique_id == SECOND_EMAIL
-    assert result["data"][CONF_ACCOUNT_LABEL] == expected_label
+    assert result["data"][CONF_ACCOUNT_LABEL] == ""
+
+
+@pytest.mark.usefixtures("current_request_with_host", "mock_setup_entry")
+async def test_additional_account_is_named(
+    hass: HomeAssistant,
+    hass_client_no_auth: ClientSessionGenerator,
+    aioclient_mock: AiohttpClientMocker,
+) -> None:
+    """Test the name given to an additional account becomes its label."""
+    result = await start_user_flow(
+        hass, hass_client_no_auth, aioclient_mock, [(ACCOUNT_EMAIL, "")]
+    )
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_ACCOUNT_LABEL: " Chalet "}
+    )
+
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["result"].unique_id == SECOND_EMAIL
+    assert result["data"][CONF_ACCOUNT_LABEL] == "Chalet"
+
+
+@pytest.mark.usefixtures("current_request_with_host", "mock_setup_entry")
+@pytest.mark.parametrize(
+    ("existing_accounts", "suggested_label"),
+    [
+        pytest.param([(ACCOUNT_EMAIL, "")], "second.account", id="email_start"),
+        pytest.param(
+            [(ACCOUNT_EMAIL, ""), ("second.account@other.com", "second.account")],
+            "second.account 2",
+            id="email_start_taken",
+        ),
+    ],
+)
+async def test_additional_account_name_suggestion(
+    hass: HomeAssistant,
+    hass_client_no_auth: ClientSessionGenerator,
+    aioclient_mock: AiohttpClientMocker,
+    existing_accounts: list[tuple[str, str]],
+    suggested_label: str,
+) -> None:
+    """Test the suggested name is derived from the email and free."""
+    result = await start_user_flow(
+        hass, hass_client_no_auth, aioclient_mock, existing_accounts
+    )
+
+    assert result["step_id"] == "account_label"
+    assert result["data_schema"]({})[CONF_ACCOUNT_LABEL] == suggested_label
+
+
+@pytest.mark.usefixtures("current_request_with_host", "mock_setup_entry")
+@pytest.mark.parametrize(
+    ("label", "error"),
+    [
+        pytest.param("!!!", "invalid_account_label", id="no_letter_or_digit"),
+        pytest.param("CHALET", "account_label_taken", id="taken"),
+    ],
+)
+async def test_additional_account_name_rejected(
+    hass: HomeAssistant,
+    hass_client_no_auth: ClientSessionGenerator,
+    aioclient_mock: AiohttpClientMocker,
+    label: str,
+    error: str,
+) -> None:
+    """Test unusable names are rejected."""
+    result = await start_user_flow(
+        hass,
+        hass_client_no_auth,
+        aioclient_mock,
+        [(ACCOUNT_EMAIL, ""), ("other.account@example.com", "Chalet")],
+    )
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_ACCOUNT_LABEL: label}
+    )
+
+    assert result["type"] is FlowResultType.FORM
+    assert result["errors"] == {CONF_ACCOUNT_LABEL: error}
 
 
 @pytest.mark.usefixtures("current_request_with_host", "mock_setup_entry")

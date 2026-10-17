@@ -20,7 +20,7 @@
     'labels': set({
     }),
     'name': None,
-    'object_id_base': 'second.account Smart Plug',
+    'object_id_base': None,
     'options': dict({
     }),
     'original_device_class': None,
@@ -28,7 +28,7 @@
     'original_name': 'second.account Smart Plug',
     'platform': 'hilo',
     'previous_unique_id': None,
-    'suggested_object_id': None,
+    'suggested_object_id': 'second_account_smart_plug',
     'supported_features': 0,
     'translation_key': None,
     'unique_id': '7f6e5d4c3b2a-switch',

@@ -135,7 +135,7 @@ def _async_standardize_config_entry(hass: HomeAssistant, entry: ConfigEntry) -> 
 
 @callback
 def _async_register_custom_device(
-    hass: HomeAssistant, entry: ConfigEntry, device: HiloDevice
+    hass: HomeAssistant, entry: ConfigEntry, device: HiloDevice, name: str
 ) -> None:
     """Register a custom device.
 
@@ -148,7 +148,7 @@ def _async_register_custom_device(
         identifiers={(DOMAIN, device.identifier)},
         manufacturer=device.manufacturer,
         model=device.model,
-        name=device.name,
+        name=name,
     )
 
 
@@ -924,7 +924,9 @@ class Hilo:
                     self._hass, self.entry, old_dsn, gateway.identifier
                 )
                 self.async_migrate_gateway_entities(old_dsn, gateway.identifier)
-        _async_register_custom_device(self._hass, self.entry, gateway)
+        _async_register_custom_device(
+            self._hass, self.entry, gateway, f"{self.name_prefix}{gateway.name}"
+        )
 
         if self.track_unknown_sources:
             if not self.unknown_tracker_device:
@@ -933,7 +935,10 @@ class Hilo:
                 )
                 self.unknown_tracker_device.net_consumption = True
             _async_register_custom_device(
-                self._hass, self.entry, self.unknown_tracker_device
+                self._hass,
+                self.entry,
+                self.unknown_tracker_device,
+                f"{self.name_prefix}{self.unknown_tracker_device.name}",
             )
 
         async def signalr_disconnect_listener(_: Event) -> None:

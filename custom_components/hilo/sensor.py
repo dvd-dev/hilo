@@ -342,6 +342,8 @@ class EnergySensor(IntegrationSensor):
 
         if device.type == "Meter":
             self._attr_name = f"{hilo.name_prefix}{HILO_ENERGY_TOTAL}"
+        # Utility meters use this entity_id as their source.
+        self.entity_id = f"sensor.{slugify(self._attr_name)}"
 
         power_unique_id = f"{device.identifier.lower()}-power"
         entity_registry = er.async_get(hass)

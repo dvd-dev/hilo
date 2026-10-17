@@ -77,6 +77,8 @@ async def test_second_account_entities_are_prefixed(
     await snapshot_platform(hass, entity_registry, snapshot, second.entry_id)
 
 
+# utility_meter schedules its daily reset when its meters are added.
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 @pytest.mark.parametrize(
     "meter_entity_id",
     [
@@ -106,6 +108,26 @@ async def test_each_account_gets_its_own_energy_meters(
     assert hass.states.get(meter_entity_id) is not None
 
 
+@pytest.mark.parametrize(
+    "challenge_entity_id",
+    [
+        pytest.param("sensor.defi_hilo", id="first_account"),
+        pytest.param("sensor.second_account_defi_hilo", id="second_account"),
+    ],
+)
+async def test_gateway_entity_ids_are_not_prefixed_with_device(
+    hass: HomeAssistant,
+    mock_api: MagicMock,
+    second_account_api: MagicMock,
+    challenge_entity_id: str,
+) -> None:
+    """Test gateway entity_ids stay derived from the entity name only."""
+    await setup_two_accounts(hass, [Platform.SENSOR], mock_api, second_account_api, {})
+
+    assert hass.states.get(challenge_entity_id) is not None
+
+
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_accounts_do_not_set_up_each_others_meters(
     hass: HomeAssistant,
     caplog: pytest.LogCaptureFixture,

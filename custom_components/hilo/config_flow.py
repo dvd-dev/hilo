@@ -97,6 +97,9 @@ class HiloFlowHandler(AbstractOAuth2FlowHandler, domain=DOMAIN):
     VERSION = 2
     MINOR_VERSION = 2
 
+    _email: str
+    _oauth_data: dict
+
     async def async_step_user(self, user_input=None) -> FlowResult:
         """Handle a flow initialized by the user."""
         self.async_register_implementation(
@@ -155,25 +158,56 @@ class HiloFlowHandler(AbstractOAuth2FlowHandler, domain=DOMAIN):
             )
 
         self._abort_if_unique_id_configured()
-        return self.async_create_entry(
-            title=email,
-            data={**data, CONF_ACCOUNT_LABEL: self._new_account_label(email)},
+        self._email = email
+        self._oauth_data = data
+        # One account keeps unprefixed names, so that an account set up before
+        # multi-account support, or added back after being removed, keeps its
+        # entity_ids, dashboards and energy statistics.
+        if "" not in self._taken_labels():
+            return self._async_create_account_entry("")
+        return await self.async_step_account_label()
+
+    async def async_step_account_label(
+        self, user_input: dict[str, str] | None = None
+    ) -> FlowResult:
+        """Name an additional account, which prefixes its entity names."""
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            label = user_input[CONF_ACCOUNT_LABEL].strip()
+            if not any(char.isalnum() for char in label):
+                errors[CONF_ACCOUNT_LABEL] = "invalid_account_label"
+            elif slugify(label) in self._taken_labels():
+                errors[CONF_ACCOUNT_LABEL] = "account_label_taken"
+            else:
+                return self._async_create_account_entry(label)
+
+        return self.async_show_form(
+            step_id="account_label",
+            data_schema=vol.Schema(
+                {vol.Required(CONF_ACCOUNT_LABEL, default=self._suggested_label()): str}
+            ),
+            errors=errors,
         )
 
-    def _new_account_label(self, email: str) -> str:
-        """Return the entity name prefix for a newly added account.
+    @callback
+    def _async_create_account_entry(self, label: str) -> FlowResult:
+        """Create the entry of a newly added account."""
+        return self.async_create_entry(
+            title=self._email,
+            data={**self._oauth_data, CONF_ACCOUNT_LABEL: label},
+        )
 
-        Unprefixed names are kept for one account so that an account that was
-        set up before multi-account support, or is added back after being
-        removed, keeps its entity_ids, dashboards and energy statistics.
-        """
-        taken = {
+    def _taken_labels(self) -> set[str]:
+        """Return the slugs of the labels used by configured accounts."""
+        return {
             slugify(entry.data.get(CONF_ACCOUNT_LABEL, ""))
             for entry in self._async_current_entries()
         }
-        if "" not in taken:
-            return ""
-        base = email.split("@")[0]
+
+    def _suggested_label(self) -> str:
+        """Suggest a free label derived from the account email."""
+        taken = self._taken_labels()
+        base = self._email.split("@")[0]
         label = base
         suffix = 2
         while slugify(label) in taken:
