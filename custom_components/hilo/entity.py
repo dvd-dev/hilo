@@ -55,7 +55,7 @@ class HiloEntity(CoordinatorEntity):
             pass
         if not name:
             name = device.name
-        self._attr_name = name
+        self._attr_name = f"{hilo.name_prefix}{name}"
         self._device = device
         self._hilo = hilo
         self._device._entity = self
@@ -84,7 +84,9 @@ class HiloEntity(CoordinatorEntity):
         await super().async_added_to_hass()
         self._remove_signal_update = async_dispatcher_connect(
             self._hilo._hass,
-            SIGNAL_UPDATE_ENTITY.format(self._device.hilo_id),
+            SIGNAL_UPDATE_ENTITY.format(
+                self._hilo.entry.entry_id, self._device.hilo_id
+            ),
             self._update_callback,
         )
 

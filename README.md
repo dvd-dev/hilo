@@ -88,6 +88,8 @@ les cas ne sont pas traités encore.
 2. Cliquez sur `+ AJOUTER UNE INTÉGRATION` et recherchez "Hilo".
 3. Authentifiez-vous sur le site web d'Hilo et liez votre compte.
 
+Pour connecter un autre compte Hilo, répétez ces étapes et connectez-vous avec ce compte. Les entités de chaque compte additionnel sont préfixées par la première partie de son courriel (ex. `sensor.jane_doe_hilo_energy_total`) afin de ne jamais entrer en conflit avec celles du premier compte.
+
 ---
 
 ## 📌 Suivis de la consommation électrique

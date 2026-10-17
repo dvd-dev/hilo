@@ -88,6 +88,8 @@ This unofficial HACS integration allows you to use [Hilo](https://www.hiloenergi
 2. Click `+ ADD INTEGRATION` and search for "Hilo".
 3. Authenticate on the Hilo website and link your account.
 
+To connect another Hilo account, repeat these steps and sign in with that account. Entities of each additional account are prefixed with the first part of its email (e.g. `sensor.jane_doe_hilo_energy_total`), so they never collide with the first account's entities.
+
 ---
 
 ## 📌 Power Consumption Tracking

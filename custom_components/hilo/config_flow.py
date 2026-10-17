@@ -2,21 +2,24 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 import logging
 from typing import Any
 
 from awesomeversion import AwesomeVersion
 from homeassistant import config_entries
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import SOURCE_REAUTH, ConfigEntry
 from homeassistant.const import CONF_SCAN_INTERVAL, __version__ as HAVERSION
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import config_validation as cv, selector
 from homeassistant.helpers.config_entry_oauth2_flow import AbstractOAuth2FlowHandler
+from homeassistant.util import slugify
 import jwt
 import voluptuous as vol
 
 from .const import (
+    CONF_ACCOUNT_LABEL,
     CONF_APPRECIATION_PHASE,
     CONF_CHALLENGE_LOCK,
     CONF_GENERATE_ENERGY_METERS,
@@ -81,21 +84,21 @@ STEP_OPTION_SCHEMA = vol.Schema(
 )
 
 
+def account_email(access_token: str) -> str:
+    """Return the email identifying the Hilo account that owns the token."""
+    claims = jwt.decode(access_token, options={"verify_signature": False})
+    return str(claims["email"]).lower()
+
+
 class HiloFlowHandler(AbstractOAuth2FlowHandler, domain=DOMAIN):
     """Handle a Hilo config flow."""
 
     DOMAIN = DOMAIN
     VERSION = 2
-
-    _reauth_entry: ConfigEntry | None = None
+    MINOR_VERSION = 2
 
     async def async_step_user(self, user_input=None) -> FlowResult:
         """Handle a flow initialized by the user."""
-        await self.async_set_unique_id(DOMAIN)
-
-        if self._async_current_entries():
-            return self.async_abort(reason="single_instance_allowed")
-
         self.async_register_implementation(
             self.hass,
             AuthCodeWithPKCEImplementation(self.hass),
@@ -116,12 +119,8 @@ class HiloFlowHandler(AbstractOAuth2FlowHandler, domain=DOMAIN):
         """Define the config flow to handle options."""
         return HiloOptionsFlowHandler(config_entry)
 
-    async def async_step_reauth(self, user_input=None) -> FlowResult:
+    async def async_step_reauth(self, entry_data: Mapping[str, object]) -> FlowResult:
         """Perform reauth upon an API authentication error."""
-        LOG.debug("async_step_reauth")
-        self._reauth_entry = self.hass.config_entries.async_get_entry(
-            self.context["entry_id"]
-        )
         return await self.async_step_reauth_confirm()
 
     async def async_step_reauth_confirm(self, user_input=None) -> FlowResult:
@@ -131,23 +130,51 @@ class HiloFlowHandler(AbstractOAuth2FlowHandler, domain=DOMAIN):
                 step_id="reauth_confirm",
                 data_schema=vol.Schema({}),
             )
+        self.async_register_implementation(
+            self.hass,
+            AuthCodeWithPKCEImplementation(self.hass),
+        )
         user_input["implementation"] = DOMAIN
         return await super().async_step_user(user_input)
 
     async def async_oauth_create_entry(self, data: dict) -> FlowResult:
         """Create an oauth config entry or update existing entry for reauth."""
-        if self._reauth_entry:
-            self.hass.config_entries.async_update_entry(self._reauth_entry, data=data)
-            await self.hass.config_entries.async_reload(self._reauth_entry.entry_id)
-            return self.async_abort(reason="reauth_successful")
+        email = account_email(data["token"]["access_token"])
+        await self.async_set_unique_id(email)
 
-        LOG.debug("Creating entry: %s", data)
+        if self.source == SOURCE_REAUTH:
+            reauth_entry = self._get_reauth_entry()
+            # Entries migrated from version 1 have no token to tell which
+            # account they belong to, so their first reauth claims one.
+            if reauth_entry.unique_id != DOMAIN:
+                self._abort_if_unique_id_mismatch(reason="wrong_account")
+            return self.async_update_reload_and_abort(
+                reauth_entry, unique_id=email, data_updates=data
+            )
 
-        token = data["token"]["access_token"]
-        decoded_token = jwt.decode(token, options={"verify_signature": False})
-        email = decoded_token["email"]
+        self._abort_if_unique_id_configured()
+        return self.async_create_entry(
+            title=email,
+            data={**data, CONF_ACCOUNT_LABEL: self._new_account_label(email)},
+        )
 
-        return self.async_create_entry(title=email, data=data)
+    def _new_account_label(self, email: str) -> str:
+        """Return the entity name prefix for a newly added account.
+
+        The first account keeps unprefixed names so existing entity_ids,
+        dashboards and energy statistics are preserved.
+        """
+        entries = self._async_current_entries()
+        if not entries:
+            return ""
+        taken = {slugify(entry.data.get(CONF_ACCOUNT_LABEL, "")) for entry in entries}
+        base = email.split("@")[0]
+        label = base
+        suffix = 2
+        while slugify(label) in taken:
+            label = f"{base} {suffix}"
+            suffix += 1
+        return label
 
 
 class HiloOptionsFlowHandler(config_entries.OptionsFlow):

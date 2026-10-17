@@ -18,7 +18,7 @@
       "already_configured": "Ce compte Hilo est déjà utilisé.",
       "reauth_successful": "Ré-authentification réussie",
       "user_rejected_authorize": "Association du compte refusée",
-      "single_instance_allowed": "Déjà configurée. Une seule configuration possible."
+      "wrong_account": "Ce compte Hilo ne correspond pas à celui en cours de ré-authentification."
     }
   },
   "options": {
