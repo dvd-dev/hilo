@@ -88,7 +88,10 @@ class UtilityManager:
         # Filter out entities that already exist
         filtered_configs = OrderedDict()
 
+        existing_meters = dict(self.hass.data.get(DATA_UTILITY, {}))
         for source_entity, config in self.meter_configs.items():
+            if source_entity in existing_meters:
+                continue
             # Check if any of the tariff entities for this source already exist
             name = config["name"]
             should_include = False
@@ -127,7 +130,6 @@ class UtilityManager:
         # also holds the meters of other Hilo accounts. Only the new meters are
         # passed in so existing ones aren't set up twice, then the rest are put
         # back so their tariff selects and reset service keep working.
-        existing_meters = dict(self.hass.data.get(DATA_UTILITY, {}))
         await utility_setup(self.hass, config)
         self.hass.data[DATA_UTILITY] = {
             **existing_meters,

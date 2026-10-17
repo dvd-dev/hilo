@@ -37,6 +37,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.util import dt as dt_util, slugify
 from packaging.version import Version
 from pyhilo import API
+from pyhilo.const import UNMONITORED_DEVICES
 from pyhilo.device import HiloDevice
 from pyhilo.devices import Devices
 from pyhilo.event import Event
@@ -266,30 +267,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "sensor.hilo_gateway_hilo_cost_total": "sensor.hilo_cost_total",
         "sensor.hilo_gateway": "sensor.hilo_gateway",
     }
-    for old_id, new_id in gateway_entity_renames.items():
-        old_entry = entity_registry.async_get(old_id)
-        if (
-            old_id == new_id
-            or not old_entry
-            or old_entry.config_entry_id != entry.entry_id
-        ):
-            continue
-        if entity_registry.async_get(new_id):
-            LOG.info(
-                "Skipping migration %s -> %s, target entity ID already registered",
-                old_id,
-                new_id,
-            )
-
-            continue
-        entity_registry.async_update_entity(old_id, new_entity_id=new_id)
-        LOG.info("Migrated entity ID %s -> %s", old_id, new_id)
-
     # Note (ic-dev21): this new renaming by HA also breaks sensor.hilo_energy_total, which is used in check_tarif
     energy_entity_renames = {
         "sensor.meter00_hilo_energy_total": "sensor.hilo_energy_total"
     }
-    for old_id, new_id in energy_entity_renames.items():
+    for old_id, new_id in {**gateway_entity_renames, **energy_entity_renames}.items():
         old_entry = entity_registry.async_get(old_id)
         if (
             old_id == new_id
@@ -1174,13 +1156,14 @@ class Hilo:
             LOG.debug("No smart meter reading available to track unknown sources")
             return
         known_power = sum(
-            int(device.get_value("power", 0))
+            int(device.get_value("power", 0) or 0)
             for device in self.devices.all
             if device.has_attribute("power")
             and device.available
+            and device.model not in UNMONITORED_DEVICES
             and device not in (smart_meter, self.unknown_tracker_device)
         )
-        total_power = int(smart_meter.get_value("power", 0))
+        total_power = int(smart_meter.get_value("power", 0) or 0)
         unknown_power = max(total_power - known_power, 0)
 
         self.devices.parse_values_received(

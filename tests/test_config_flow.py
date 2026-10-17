@@ -72,6 +72,11 @@ async def complete_oauth(
             "second.account 2",
             id="label_already_taken",
         ),
+        pytest.param(
+            [("other.account@example.com", "other.account")],
+            "",
+            id="unprefixed_names_free_again",
+        ),
     ],
 )
 async def test_user_flow_creates_account_entry(
@@ -186,3 +191,31 @@ async def test_reauth_claims_account_for_entry_without_token(
 
     assert result["reason"] == "reauth_successful"
     assert entry.unique_id == ACCOUNT_EMAIL
+
+
+@pytest.mark.usefixtures("current_request_with_host", "mock_setup_entry")
+async def test_reauth_without_token_aborts_for_configured_account(
+    hass: HomeAssistant,
+    hass_client_no_auth: ClientSessionGenerator,
+    aioclient_mock: AiohttpClientMocker,
+    mock_config_entry: MockConfigEntry,
+) -> None:
+    """Test an entry without token cannot claim an account already added."""
+    mock_config_entry.add_to_hass(hass)
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={"auth_implementation": DOMAIN, CONF_ACCOUNT_LABEL: ""},
+        unique_id=DOMAIN,
+        version=2,
+        minor_version=2,
+    )
+    entry.add_to_hass(hass)
+    result = await entry.start_reauth_flow(hass)
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {})
+
+    result = await complete_oauth(
+        hass, hass_client_no_auth, aioclient_mock, result["flow_id"], ACCOUNT_EMAIL
+    )
+
+    assert result["reason"] == "already_configured"
+    assert entry.unique_id == DOMAIN

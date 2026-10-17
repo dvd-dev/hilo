@@ -128,7 +128,7 @@ class HiloClimate(HiloEntity, ClimateEntity):
     async def async_set_temperature(self, **kwargs):
         """Set new target temperature."""
         if ATTR_TEMPERATURE in kwargs:
-            if self._hilo.challenge_lock:
+            if self._hilo.challenge_lock and self._hilo.challenge_sensor:
                 validate_reduction_phase(
                     self._hilo.challenge_sensor.next_events, self._device._tag
                 )

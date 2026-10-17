@@ -106,9 +106,31 @@ async def test_each_account_gets_its_own_energy_meters(
     assert hass.states.get(meter_entity_id) is not None
 
 
-def power_device(device_type: str, power: int, available: bool = True) -> MagicMock:
+async def test_accounts_do_not_set_up_each_others_meters(
+    hass: HomeAssistant,
+    caplog: pytest.LogCaptureFixture,
+    mock_api: MagicMock,
+    second_account_api: MagicMock,
+) -> None:
+    """Test adding an account leaves the existing utility meters alone."""
+    assert await async_setup_component(hass, "utility_meter", {})
+
+    await setup_two_accounts(
+        hass,
+        [Platform.SENSOR],
+        mock_api,
+        second_account_api,
+        {CONF_GENERATE_ENERGY_METERS: True},
+    )
+
+    assert "Entity id already exists" not in caplog.text
+
+
+def power_device(
+    device_type: str, power: int | None, available: bool = True, model: str = "X"
+) -> MagicMock:
     """Return a device reporting the given power."""
-    device = MagicMock(type=device_type, available=available)
+    device = MagicMock(type=device_type, available=available, model=model)
     device.has_attribute.side_effect = lambda attribute: attribute == "power"
     device.get_value.return_value = power
     return device
@@ -146,8 +168,20 @@ async def test_check_tarif_only_switches_own_meters(
     ]
 
 
+@pytest.mark.parametrize(
+    "ignored_device",
+    [
+        pytest.param(
+            power_device("Thermostat", 900, available=False), id="unavailable"
+        ),
+        pytest.param(
+            power_device("Thermostat", 900, model="TH6250WF"), id="unmonitored"
+        ),
+        pytest.param(power_device("Thermostat", None), id="no_reading_value"),
+    ],
+)
 def test_unknown_power_uses_own_devices(
-    hass: HomeAssistant, mock_config_entry: MockConfigEntry
+    hass: HomeAssistant, mock_config_entry: MockConfigEntry, ignored_device: MagicMock
 ) -> None:
     """Test unknown power is the smart meter minus the account's own devices."""
     hilo = account_hilo(hass, mock_config_entry, "second.account")
@@ -156,7 +190,7 @@ def test_unknown_power_uses_own_devices(
         all=[
             power_device("Meter", 5000),
             power_device("Outlet", 1200),
-            power_device("Thermostat", 900, available=False),
+            ignored_device,
             hilo.unknown_tracker_device,
         ]
     )

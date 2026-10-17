@@ -146,7 +146,9 @@ class HiloFlowHandler(AbstractOAuth2FlowHandler, domain=DOMAIN):
             reauth_entry = self._get_reauth_entry()
             # Entries migrated from version 1 have no token to tell which
             # account they belong to, so their first reauth claims one.
-            if reauth_entry.unique_id != DOMAIN:
+            if reauth_entry.unique_id == DOMAIN:
+                self._abort_if_unique_id_configured()
+            else:
                 self._abort_if_unique_id_mismatch(reason="wrong_account")
             return self.async_update_reload_and_abort(
                 reauth_entry, unique_id=email, data_updates=data
@@ -161,13 +163,16 @@ class HiloFlowHandler(AbstractOAuth2FlowHandler, domain=DOMAIN):
     def _new_account_label(self, email: str) -> str:
         """Return the entity name prefix for a newly added account.
 
-        The first account keeps unprefixed names so existing entity_ids,
-        dashboards and energy statistics are preserved.
+        Unprefixed names are kept for one account so that an account that was
+        set up before multi-account support, or is added back after being
+        removed, keeps its entity_ids, dashboards and energy statistics.
         """
-        entries = self._async_current_entries()
-        if not entries:
+        taken = {
+            slugify(entry.data.get(CONF_ACCOUNT_LABEL, ""))
+            for entry in self._async_current_entries()
+        }
+        if "" not in taken:
             return ""
-        taken = {slugify(entry.data.get(CONF_ACCOUNT_LABEL, "")) for entry in entries}
         base = email.split("@")[0]
         label = base
         suffix = 2
