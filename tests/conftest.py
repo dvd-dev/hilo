@@ -2,7 +2,7 @@
 
 from collections.abc import Generator
 import json
-from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
+from unittest.mock import AsyncMock, MagicMock, PropertyMock, create_autospec, patch
 
 from homeassistant.core import HomeAssistant, State
 from homeassistant.helpers import entity_registry as er
@@ -21,7 +21,9 @@ from pytest_homeassistant_custom_component.syrupy import (
 from syrupy.assertion import SnapshotAssertion
 from syrupy.types import SerializableData
 
-from custom_components.hilo.const import DOMAIN
+from custom_components.hilo.const import CONF_ACCOUNT_LABEL, DOMAIN
+
+from . import ACCOUNT_EMAIL, oauth_token
 
 
 class CrossVersionSnapshotSerializer(HomeAssistantSnapshotSerializer):
@@ -89,9 +91,15 @@ def mock_config_entry() -> MockConfigEntry:
     """Return the default mocked config entry."""
     return MockConfigEntry(
         domain=DOMAIN,
-        data={"auth_implementation": "hilo", "token": "123"},
-        unique_id="hilo",
+        title=ACCOUNT_EMAIL,
+        data={
+            "auth_implementation": DOMAIN,
+            "token": oauth_token(ACCOUNT_EMAIL),
+            CONF_ACCOUNT_LABEL: "",
+        },
+        unique_id=ACCOUNT_EMAIL,
         version=2,
+        minor_version=2,
     )
 
 
@@ -120,38 +128,51 @@ def device_fixture() -> str:
     return "all_devices.json"
 
 
+def build_mock_api(device_fixture: str, location_id: int) -> MagicMock:
+    """Return a mocked Hilo API serving the devices of one account."""
+    api_mock = create_autospec(RealAPI)
+    # Mock SignalR hubs to prevent indefinite blocking
+    api_mock.signalr_devices = AsyncMock(spec=SignalRHub)
+    api_mock.signalr_devices.run = AsyncMock(return_value=None)
+    api_mock.signalr_devices.connected = False
+    api_mock.signalr_devices.disconnect = AsyncMock(return_value=None)
+    api_mock.signalr_challenges = AsyncMock(spec=SignalRHub)
+    api_mock.signalr_challenges.run = AsyncMock(return_value=None)
+    api_mock.signalr_challenges.connected = False
+    api_mock.signalr_challenges.disconnect = AsyncMock(return_value=None)
+
+    all_devices = json.loads(load_fixture(device_fixture))
+
+    api_mock.log_traces = True
+    api_mock.wait_for_device_cache = AsyncMock(return_value=None)
+    api_mock.get_device_cache.return_value = all_devices
+    api_mock.get_location_ids = AsyncMock(
+        return_value=(location_id, f"urn:test:hilo:{location_id}")
+    )
+    api_mock.get_gateway = AsyncMock(
+        return_value=next(d for d in all_devices if d.get("type") == "Gateway")
+    )
+    dev_atts_fn = RealAPI.dev_atts
+    api_mock.device_attributes = get_device_attributes()
+    api_mock.dev_atts.side_effect = lambda attr, val_type=None: dev_atts_fn(
+        api_mock, attr, val_type
+    )
+    api_mock._set_device_attribute = AsyncMock()
+    api_mock._get_device_callbacks = []
+    api_mock.async_create.return_value = api_mock
+    return api_mock
+
+
 @pytest.fixture
-def mock_api(device_fixture: str) -> Generator[MagicMock]:
+def mock_api(device_fixture: str) -> MagicMock:
     """Return a mocked Hilo API"""
-    with patch("pyhilo.API", autospec=True) as api_mock:
-        # Mock SignalR hubs to prevent indefinite blocking
-        api_mock.signalr_devices = AsyncMock(spec=SignalRHub)
-        api_mock.signalr_devices.run = AsyncMock(return_value=None)
-        api_mock.signalr_devices.connected = False
-        api_mock.signalr_devices.disconnect = AsyncMock(return_value=None)
-        api_mock.signalr_challenges = AsyncMock(spec=SignalRHub)
-        api_mock.signalr_challenges.run = AsyncMock(return_value=None)
-        api_mock.signalr_challenges.connected = False
-        api_mock.signalr_challenges.disconnect = AsyncMock(return_value=None)
+    return build_mock_api(device_fixture, 123)
 
-        all_devices = json.loads(load_fixture(device_fixture))
 
-        api_mock.log_traces = True
-        api_mock.wait_for_device_cache = AsyncMock(return_value=None)
-        api_mock.get_device_cache.return_value = all_devices
-        api_mock.get_location_ids = AsyncMock(return_value=(123, "urn:test:hilo:id"))
-        api_mock.get_gateway = AsyncMock(
-            return_value=next(d for d in all_devices if d.get("type") == "Gateway")
-        )
-        dev_atts_fn = RealAPI.dev_atts
-        api_mock.device_attributes = get_device_attributes()
-        api_mock.dev_atts.side_effect = lambda attr, val_type=None: dev_atts_fn(
-            api_mock, attr, val_type
-        )
-        api_mock._set_device_attribute = AsyncMock()
-        api_mock._get_device_callbacks = []
-        api_mock.async_create.return_value = api_mock
-        yield api_mock
+@pytest.fixture
+def second_account_api() -> MagicMock:
+    """Return a mocked Hilo API for a second account at another location."""
+    return build_mock_api("second_account_devices.json", 456)
 
 
 @pytest.fixture
