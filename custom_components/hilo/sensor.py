@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from os.path import isfile
 
 import aiofiles
@@ -906,7 +906,7 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
                         )
 
                     start_date_utc = datetime.fromisoformat(raw_event["startDateUtc"])
-                    event_age = datetime.now(timezone.utc) - start_date_utc
+                    event_age = datetime.now(UTC) - start_date_utc
                     if (
                         current_history_event
                         and current_history_event.get("state") == "off"
@@ -936,7 +936,7 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
     async def _load_history(self) -> list:
         history: list = []
         if isfile(self._history_state_yaml):
-            async with aiofiles.open(self._history_state_yaml, mode="r") as yaml_file:
+            async with aiofiles.open(self._history_state_yaml) as yaml_file:
                 LOG.debug("Loading history state from yaml")
                 content = await yaml_file.read()
                 try:

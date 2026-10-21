@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Union
 
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.light import LightEntity
@@ -35,7 +34,7 @@ class HiloEntity(CoordinatorEntity):
     def __init__(
         self,
         hilo: Hilo,
-        name: Union[str, None] = None,
+        name: str | None = None,
         *,
         device: HiloDevice,
     ) -> None:

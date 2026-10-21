@@ -52,7 +52,7 @@ backup_file = f"{state_file}.{now}"
 print(f"Working on {state_file}, backuping as {backup_file}")
 copy2(state_file, backup_file)
 
-with open(state_file, "r") as f:
+with open(state_file) as f:
     states = json.loads(f.read())
 
 data = states.get("data")
