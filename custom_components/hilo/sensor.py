@@ -1062,18 +1062,17 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
                     await asyncio.sleep(300)
                     del self._events[oldest_event_id]
                     break
-                else:
-                    current_event = self._events[event_id]
-                    LOG.debug(
-                        "handle_challenge_list_update current event is: %s",
-                        current_event,
-                    )
-                    updated_event = Event(**{**current_event.as_dict(), **challenge})
-                    if self._hilo.appreciation > 0:
-                        updated_event.appreciation(self._hilo.appreciation)
-                    if self._hilo.pre_cold > 0:
-                        updated_event.pre_cold(self._hilo.pre_cold)
-                    self._events[event_id] = updated_event
+                current_event = self._events[event_id]
+                LOG.debug(
+                    "handle_challenge_list_update current event is: %s",
+                    current_event,
+                )
+                updated_event = Event(**{**current_event.as_dict(), **challenge})
+                if self._hilo.appreciation > 0:
+                    updated_event.appreciation(self._hilo.appreciation)
+                if self._hilo.pre_cold > 0:
+                    updated_event.pre_cold(self._hilo.pre_cold)
+                self._events[event_id] = updated_event
         self._update_next_events()
 
     async def handle_challenge_details_update(self, challenge):
@@ -1154,7 +1153,7 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
     def state(self):
         """Return the current state based on next events."""
         if len(self._next_events) > 0:
-            event = Event(**{**{"id": 0}, **self._next_events[0]})
+            event = Event(**{"id": 0, **self._next_events[0]})
             return event.state
         return "off"
 
