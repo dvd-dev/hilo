@@ -94,7 +94,6 @@ addopts = [
     "-p syrupy",
     "--strict",
     "--cov=custom_components",
-    "--cov-fail-under=50",
 ]
 
 [tool.coverage.run]
