@@ -41,7 +41,7 @@ jobs:
 
       - name: Run unit tests
         run: |
-          uv run --python ${{ matrix.python-version }} pytest -v --cov-report=html:htmlcov
+          uv run --python ${{ matrix.python-version }} pytest -v --cov-report=html:htmlcov --cov-fail-under=50
 
       - name: Upload Test & Coverage Results
         if: always()

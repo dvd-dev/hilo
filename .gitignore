@@ -22,3 +22,4 @@ hilo_state.yaml
 !.vscode/launch.json
 .env
 /python-hilo
+doc/roadmap.md
