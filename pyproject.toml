@@ -4,7 +4,7 @@ version = "2026.10.2"
 description = "Home Assistant custom integration for Hilo energy systems"
 readme = "README.md"
 license = "MIT"
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 authors = [
     { name = "David Vallée Delisle", email = "me@dvd.dev" },
 ]
@@ -19,7 +19,6 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
     "Topic :: Home Automation",
@@ -64,7 +63,7 @@ test = [
 
 [tool.ruff]
 line-length = 88
-target-version = "py312"
+target-version = "py313"
 exclude = [
     ".venv",
     ".git",
@@ -95,6 +94,7 @@ addopts = [
     "-p syrupy",
     "--strict",
     "--cov=custom_components",
+    "--cov-fail-under=50",
 ]
 
 [tool.coverage.run]
