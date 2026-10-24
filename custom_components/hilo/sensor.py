@@ -13,7 +13,6 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorStateClass,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_SCAN_INTERVAL,
     CURRENCY_DOLLAR,
@@ -54,7 +53,7 @@ from pyhilo.util import from_utc_timestamp
 import yaml
 from yaml.scanner import ScannerError
 
-from . import Hilo
+from . import Hilo, HiloConfigEntry
 from .const import (
     CONF_ENERGY_METER_PERIOD,
     CONF_GENERATE_ENERGY_METERS,
@@ -143,10 +142,12 @@ def generate_entities_from_device(device, hilo, scan_interval):
 
 # noinspection GrazieInspection
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant,
+    entry: HiloConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Hilo sensors based on a config entry."""
-    hilo = hass.data[DOMAIN][entry.entry_id]
+    hilo = entry.runtime_data
     new_entities = []
     cost_entities = []
     hq_plan_name = entry.options.get(CONF_HQ_PLAN_NAME, DEFAULT_HQ_PLAN_NAME)

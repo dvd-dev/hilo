@@ -212,7 +212,7 @@ async def test_sensor_rates_flex_d_initialization(
     gateway.name = "Gateway"
     gateway.has_attribute.return_value = False
     hilo.devices = MagicMock(all=[gateway])
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = hilo
+    entry.runtime_data = hilo
 
     added_entities = []
 
