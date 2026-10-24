@@ -76,7 +76,7 @@ class HiloLight(HiloEntity, LightEntity):
         """Return the color mode."""
         if ColorMode.HS in self.supported_color_modes:
             return ColorMode.HS
-        elif ColorMode.BRIGHTNESS in self.supported_color_modes:
+        if ColorMode.BRIGHTNESS in self.supported_color_modes:
             return ColorMode.BRIGHTNESS
         return ColorMode.ONOFF
 
