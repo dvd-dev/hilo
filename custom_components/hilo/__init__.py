@@ -84,6 +84,8 @@ PLATFORMS = COORDINATOR_AWARE_PLATFORMS + [
     Platform.SWITCH,
 ]
 
+type HiloConfigEntry = ConfigEntry[Hilo]
+
 # Suffixes used when building gateway-attached entity unique_ids in sensor.py
 # (e.g. f"{device.identifier.lower()}-{suffix}"). Used to migrate those
 # unique_ids when the gateway's identifier changes from DSN-based to MAC-based.
@@ -307,7 +309,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiloConfigEntry) -> bool
         LOG.debug("HILO_DEBUG: log_traces is %s", log_traces)
         hass.bus.async_listen("hilo_debug", handle_debug_event)
 
-    async def async_reload_entry(_: HomeAssistant, updated_entry: ConfigEntry) -> None:
+    async def async_reload_entry(
+        _: HomeAssistant, updated_entry: HiloConfigEntry
+    ) -> None:
         """Handle an options update.
 
         This method will get called in two scenarios:
@@ -329,6 +333,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiloConfigEntry) -> bool
 async def async_unload_entry(hass: HomeAssistant, entry: HiloConfigEntry) -> bool:
     """Unload a Hilo config entry."""
     LOG.debug("Unloading Hilo Integration")
+
+    if not await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
+        return False
 
     hilo = entry.runtime_data
 
@@ -359,11 +366,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: HiloConfigEntry) -> boo
     except Exception as err:
         LOG.error("Error disconnecting challenge SignalR hub: %s", err)
 
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-    if unload_ok:
-        LOG.debug("Hilo Integration unloaded")
-
-    return unload_ok
+    LOG.debug("Hilo Integration unloaded")
+    return True
 
 
 async def async_migrate_entry(hass, config_entry: ConfigEntry):
@@ -1318,6 +1322,3 @@ class Hilo:
     def handle_subscription_result(self, hilo_id: str) -> None:
         """Handle subscription result by notifying entities."""
         async_dispatcher_send(self._hass, SIGNAL_UPDATE_ENTITY.format(hilo_id))
-
-
-type HiloConfigEntry = ConfigEntry[Hilo]
