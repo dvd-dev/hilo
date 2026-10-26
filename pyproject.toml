@@ -45,7 +45,7 @@ packages = ["custom_components/hilo"]
 
 [dependency-groups]
 dev = [
-    "ruff>=0.16.9",
+    "ruff>=0.17.2",
     "pre-commit>=4.7.0",
     "gitlint>=0.19.1",
 ]
@@ -55,7 +55,7 @@ test = [
     "pytest-homeassistant-custom-component>=0.13.0",
     "python-hilo==2026.10.1",
     "bandit>=1.7.1",
-    "ruff>=0.16.9",
+    "ruff>=0.17.2",
     "pre-commit>=4.7.0",
     "gitlint>=0.19.1",
     "pyflakes>=4.0.0",
