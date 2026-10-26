@@ -2554,7 +2554,7 @@ wheels = [
 
 [[package]]
 name = "hilo"
-version = "2026.10.2"
+version = "2026.10.3"
 source = { editable = "." }
 dependencies = [
     { name = "colorlog" },
