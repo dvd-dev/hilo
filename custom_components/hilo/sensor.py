@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 from datetime import UTC, datetime, timedelta
 from os.path import isfile
 
@@ -1429,10 +1430,8 @@ class HiloCostTotalSensor(HiloEntity, SensorEntity):
                     "unknown",
                     "unavailable",
                 ):
-                    try:
+                    with contextlib.suppress(ValueError, TypeError):
                         kwh = float(energy_state.state)
-                    except (ValueError, TypeError):
-                        pass
                 attrs[f"{tarif}_kwh"] = round(kwh, 3)
                 attrs[f"{tarif}_rate"] = rate
                 attrs[f"{tarif}_cost"] = round(kwh * rate, 2)
