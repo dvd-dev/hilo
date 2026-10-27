@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from collections import OrderedDict
 import contextlib
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 import traceback
 
 from aiohttp import CookieJar, client_exceptions
@@ -1193,7 +1193,7 @@ class Hilo:
                     {
                         "deviceId": 69420,
                         "locationId": self.devices.location_id,
-                        "timeStampUTC": datetime.utcnow().isoformat(),
+                        "timeStampUTC": datetime.now(UTC).isoformat(),
                         "attribute": "Power",
                         "value": unknown_power,
                         "valueType": "Watt",
