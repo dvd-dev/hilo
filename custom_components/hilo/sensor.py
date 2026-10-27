@@ -65,6 +65,7 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_UNTARIFICATED_DEVICES,
     DOMAIN,
+    EVENT_HISTORY_FILE,
     EVENT_SCAN_INTERVAL_REDUCTION,
     HILO_ENERGY_TOTAL,
     HILO_SENSOR_CLASSES,
@@ -109,9 +110,8 @@ def generate_entities_from_device(device, hilo, scan_interval):
     """Generate the entities from the device description."""
     entities = []
     if device.type == "Gateway":
-        entities.append(
-            HiloChallengeSensor(hilo, device, scan_interval),
-        )
+        hilo.challenge_sensor = HiloChallengeSensor(hilo, device, scan_interval)
+        entities.append(hilo.challenge_sensor)
         entities.append(
             HiloRewardSensor(hilo, device, scan_interval),
         )
@@ -170,11 +170,14 @@ async def async_setup_entry(
         energy_manager = await EnergyManager().init(hass, energy_meter_period)
         utility_manager = UtilityManager(hass, energy_meter_period, default_tariff_list)
 
+    total_meter_key = hilo.entity_object_id(HILO_ENERGY_TOTAL)
+    hilo.energy_meter_keys = []
+
     def create_energy_entity(hilo, device):
         device._energy_entity = EnergySensor(hilo, device, hass)
         new_entities.append(device._energy_entity)
-        energy_entity = f"{slugify(device.name)}_hilo_energy"
-        if energy_entity == HILO_ENERGY_TOTAL:
+        energy_entity = f"{hilo.entity_object_id(device.name)}_hilo_energy"
+        if energy_entity == total_meter_key:
             LOG.error(
                 "An hilo entity can't be named 'total' because it conflicts "
                 "with the generated name for the smart energy meter"
@@ -182,10 +185,11 @@ async def async_setup_entry(
             return
         tariff_list = default_tariff_list
         if device.type == "Meter":
-            energy_entity = HILO_ENERGY_TOTAL
+            energy_entity = total_meter_key
             tariff_list = validate_tariff_list(tariff_config)
         net_consumption = device.net_consumption
         utility_manager.add_meter(energy_entity, tariff_list, net_consumption)
+        hilo.energy_meter_keys.append(energy_entity)
 
     for d in hilo.devices.all:
         LOG.debug("Adding device %s", d)
@@ -323,7 +327,7 @@ class EnergySensor(IntegrationSensor):
     def __init__(self, hilo, device, hass):
         """Hilo Energy sensor initialization."""
         self._device = device
-        self._attr_name = f"{device.name} Hilo Energy"
+        self._attr_name = f"{hilo.name_prefix}{device.name} Hilo Energy"
         old_unique_id = f"hilo_energy_{slugify(device.name)}"
         self._attr_unique_id = f"{device.identifier.lower()}-energy"
         hilo.async_migrate_unique_id(
@@ -338,7 +342,9 @@ class EnergySensor(IntegrationSensor):
         self._suggested_display_precision = 2
 
         if device.type == "Meter":
-            self._attr_name = HILO_ENERGY_TOTAL
+            self._attr_name = f"{hilo.name_prefix}{HILO_ENERGY_TOTAL}"
+        # Utility meters use this entity_id as their source.
+        self.entity_id = f"sensor.{slugify(self._attr_name)}"
 
         power_unique_id = f"{device.identifier.lower()}-power"
         entity_registry = er.async_get(hass)
@@ -348,7 +354,7 @@ class EnergySensor(IntegrationSensor):
                 for entry in entity_registry.entities.values()
                 if entry.unique_id == power_unique_id and entry.platform == DOMAIN
             ),
-            f"sensor.{slugify(device.name)}_power",  # fallback
+            f"sensor.{hilo.entity_object_id(device.name)}_power",  # fallback
         )
         # ic-dev21: Set initial state and last_valid_state, removes log errors and unavailable states
         initial_state = 0
@@ -635,7 +641,6 @@ class HiloNotificationSensor(HiloEntity, RestoreEntity, SensorEntity):
     def __init__(self, hilo, device, scan_interval):
         """Hilo Notification sensor initialization."""
         self._attr_name = "Notifications Hilo"
-        super().__init__(hilo, name=self._attr_name, device=device)
         old_unique_id = slugify(self._attr_name)
         self._attr_unique_id = f"{device.identifier.lower()}-{slugify(self._attr_name)}"
         hilo.async_migrate_unique_id(
@@ -646,6 +651,7 @@ class HiloNotificationSensor(HiloEntity, RestoreEntity, SensorEntity):
             self._attr_unique_id,
             Platform.SENSOR,
         )
+        super().__init__(hilo, name=self._attr_name, device=device)
         LOG.debug("Setting up NotificationSensor entity: %s", self._attr_name)
         self.scan_interval = timedelta(seconds=NOTIFICATION_SCAN_INTERVAL)
         self._state = 0
@@ -728,7 +734,6 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
         else:
             self._attr_native_unit_of_measurement = "CAD"
 
-        super().__init__(hilo, name=self._attr_name, device=device)
         old_unique_id = slugify(self._attr_name)
         self._attr_unique_id = f"{device.identifier.lower()}-{slugify(self._attr_name)}"
         hilo.async_migrate_unique_id(
@@ -739,9 +744,10 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
             self._attr_unique_id,
             Platform.SENSOR,
         )
+        super().__init__(hilo, name=self._attr_name, device=device)
         LOG.debug("Setting up RewardSensor entity: %s", self._attr_name)
         self._history_state_yaml: str = hilo._hass.config.path(
-            "hilo_eventhistory_state.yaml"
+            EVENT_HISTORY_FILE.format(hilo.entry.entry_id)
         )
         self.scan_interval = timedelta(seconds=REWARD_SCAN_INTERVAL)
         self._state = 0
@@ -984,7 +990,6 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
             "completed",
             "unknown",
         ]
-        super().__init__(hilo, name=self._attr_name, device=device)
         old_unique_id = slugify(self._attr_name)
         self._attr_unique_id = f"{device.identifier.lower()}-{slugify(self._attr_name)}"
         hilo.async_migrate_unique_id(
@@ -995,6 +1000,7 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
             self._attr_unique_id,
             Platform.SENSOR,
         )
+        super().__init__(hilo, name=self._attr_name, device=device)
         LOG.debug("Setting up ChallengeSensor entity: %s", self._attr_name)
         self.scan_interval = timedelta(seconds=EVENT_SCAN_INTERVAL_REDUCTION)
         self._state = "off"
@@ -1187,7 +1193,12 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
     @property
     def extra_state_attributes(self):
         """Return the next events attribute."""
-        return {"next_events": self._next_events}
+        return {"next_events": self.next_events}
+
+    @property
+    def next_events(self) -> list[dict]:
+        """Return the scheduled and ongoing challenges."""
+        return self._next_events
 
     async def async_added_to_hass(self):
         """Handle entity about to be added to hass event."""
@@ -1382,7 +1393,9 @@ class HiloCostTotalSensor(HiloEntity, SensorEntity):
             rate = self.tariff_config.get(tarif, 0)
             if rate <= 0:
                 continue
-            energy_entity = f"sensor.{HILO_ENERGY_TOTAL}_{tarif}"
+            energy_entity = (
+                f"sensor.{self._hilo.entity_object_id(HILO_ENERGY_TOTAL)}_{tarif}"
+            )
             energy_state = self._hilo._hass.states.get(energy_entity)
             if energy_state is None or energy_state.state in ("unknown", "unavailable"):
                 continue
@@ -1422,7 +1435,9 @@ class HiloCostTotalSensor(HiloEntity, SensorEntity):
         for tarif in ["low", "medium", "high"]:
             rate = self.tariff_config.get(tarif, 0)
             if rate > 0:
-                energy_entity = f"sensor.{HILO_ENERGY_TOTAL}_{tarif}"
+                energy_entity = (
+                    f"sensor.{self._hilo.entity_object_id(HILO_ENERGY_TOTAL)}_{tarif}"
+                )
                 energy_state = self._hilo._hass.states.get(energy_entity)
                 kwh = 0.0
                 if energy_state is not None and energy_state.state not in (
@@ -1466,7 +1481,6 @@ class HiloOutdoorTempSensor(HiloEntity, SensorEntity):
     def __init__(self, hilo, device, scan_interval):
         """Initialize."""
         self._attr_name = "Outdoor Weather Hilo"
-        super().__init__(hilo, name=self._attr_name, device=device)
         old_unique_id = slugify(self._attr_name)
         self._attr_unique_id = f"{device.identifier.lower()}-{slugify(self._attr_name)}"
         hilo.async_migrate_unique_id(
@@ -1477,6 +1491,7 @@ class HiloOutdoorTempSensor(HiloEntity, SensorEntity):
             self._attr_unique_id,
             Platform.SENSOR,
         )
+        super().__init__(hilo, name=self._attr_name, device=device)
         LOG.debug("Setting up OutdoorWeatherSensor entity: %s", self._attr_name)
         self.scan_interval = timedelta(seconds=WEATHER_SCAN_INTERVAL)
         self._state = STATE_UNKNOWN

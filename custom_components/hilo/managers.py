@@ -7,6 +7,7 @@ from homeassistant.components.energy.data import async_get_manager
 from homeassistant.components.utility_meter import async_setup as utility_setup
 from homeassistant.components.utility_meter.const import (
     CONF_TARIFFS,
+    DATA_UTILITY,
     DOMAIN as UTILITY_DOMAIN,
 )
 from homeassistant.helpers import entity_registry as er
@@ -87,7 +88,10 @@ class UtilityManager:
         # Filter out entities that already exist
         filtered_configs = OrderedDict()
 
+        existing_meters = dict(self.hass.data.get(DATA_UTILITY, {}))
         for source_entity, config in self.meter_configs.items():
+            if source_entity in existing_meters:
+                continue
             # Check if any of the tariff entities for this source already exist
             name = config["name"]
             should_include = False
@@ -117,14 +121,19 @@ class UtilityManager:
 
         LOG.debug("Creating utility meter config for %d sources", len(filtered_configs))
         config = {
-            UTILITY_DOMAIN: OrderedDict(
-                {**self.hass.data.get("utility_meter_data", {}), **filtered_configs}
-            ),
+            UTILITY_DOMAIN: filtered_configs,
             CONF_TARIFFS: self.tariffs,
         }
 
-        # Replaced utility_setup_platform call
+        # utility_meter's async_setup replaces its registry of meters, which
+        # also holds the meters of other Hilo accounts. Only the new meters are
+        # passed in so existing ones aren't set up twice, then the rest are put
+        # back so their tariff selects and reset service keep working.
         await utility_setup(self.hass, config)
+        self.hass.data[DATA_UTILITY] = {
+            **existing_meters,
+            **self.hass.data[DATA_UTILITY],
+        }
         self.new_entities = 0
         LOG.debug("=== UtilityManager.update() completed ===")
 

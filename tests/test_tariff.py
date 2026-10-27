@@ -10,6 +10,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.hilo import Hilo
 from custom_components.hilo.const import (
+    CONF_ACCOUNT_LABEL,
     CONF_GENERATE_ENERGY_METERS,
     CONF_HQ_PLAN_NAME,
     CONF_TARIFF,
@@ -17,6 +18,8 @@ from custom_components.hilo.const import (
     HILO_ENERGY_TOTAL,
 )
 from custom_components.hilo.sensor import HiloCostTotalSensor, async_setup_entry
+
+from . import ACCOUNT_EMAIL, oauth_token
 
 
 class DummyCostSensor:
@@ -38,6 +41,9 @@ def create_mock_hilo(hass: HomeAssistant, hq_plan_name: str = "flex d") -> Hilo:
     hilo.generate_energy_meters = True
     hilo.untarificated_devices = False
     hilo.track_unknown_sources = False
+    hilo.name_prefix = ""
+    hilo.energy_meter_keys = []
+    hilo.challenge_sensor = None
     hilo.cost_sensors = {
         "low": DummyCostSensor(CONF_TARIFF["flex d"]["low"]),
         "medium": DummyCostSensor(CONF_TARIFF["flex d"]["medium"]),
@@ -149,7 +155,7 @@ def test_check_tarif_low_medium_selection(
 def test_check_tarif_high_tier_during_challenge(hass: HomeAssistant):
     """Test check_tarif selects high during a challenge reduction period."""
     hilo = create_mock_hilo(hass, "flex d")
-    hass.states.async_set("sensor.defi_hilo", "reduction")
+    hilo.challenge_sensor = MagicMock(state="reduction")
 
     with patch.object(hilo, "check_season", return_value=True):
         hilo.check_tarif()
@@ -184,13 +190,18 @@ async def test_sensor_rates_flex_d_initialization(
     """Test that flex d sensors initialize with correct seasonal rates right away."""
     entry = MockConfigEntry(
         domain=DOMAIN,
-        data={"auth_implementation": "hilo", "token": "123"},
+        data={
+            "auth_implementation": DOMAIN,
+            "token": oauth_token(ACCOUNT_EMAIL),
+            CONF_ACCOUNT_LABEL: "",
+        },
         options={
             CONF_GENERATE_ENERGY_METERS: True,
             CONF_HQ_PLAN_NAME: "flex d",
         },
-        unique_id="hilo",
+        unique_id=ACCOUNT_EMAIL,
         version=2,
+        minor_version=2,
     )
 
     expected_low = (
@@ -204,6 +215,7 @@ async def test_sensor_rates_flex_d_initialization(
     expected_high = CONF_TARIFF["flex d"]["high"]
 
     hilo = create_mock_hilo(hass, "flex d")
+    hilo.entry = entry
     hilo.coordinator = MagicMock()
     hilo.register_signalr_listener = MagicMock()
     gateway = MagicMock()

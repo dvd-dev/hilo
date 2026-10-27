@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import asyncio
-from collections import OrderedDict
 from datetime import datetime, timedelta
+from pathlib import Path
 import traceback
+from typing import TYPE_CHECKING
 
 from aiohttp import CookieJar, client_exceptions
 from homeassistant.components.select import (
@@ -13,11 +14,8 @@ from homeassistant.components.select import (
     DOMAIN as SELECT_DOMAIN,
     SERVICE_SELECT_OPTION,
 )
-from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
-    ATTR_DEVICE_CLASS,
-    ATTR_UNIT_OF_MEASUREMENT,
     CONF_SCAN_INTERVAL,
     CONF_USERNAME,
     EVENT_HOMEASSISTANT_STOP,
@@ -36,9 +34,10 @@ from homeassistant.helpers import (
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-from homeassistant.util import dt as dt_util
+from homeassistant.util import dt as dt_util, slugify
 from packaging.version import Version
 from pyhilo import API
+from pyhilo.const import UNMONITORED_DEVICES
 from pyhilo.device import HiloDevice
 from pyhilo.devices import Devices
 from pyhilo.event import Event
@@ -48,8 +47,10 @@ from pyhilo.signalr import SignalREvent, signalr_event_from_payload
 from pyhilo.util import from_utc_timestamp, time_diff
 from pysignalr.exceptions import ServerError as SignalRServerError
 
-from .config_flow import STEP_OPTION_SCHEMA, HiloFlowHandler
+from .config_flow import STEP_OPTION_SCHEMA, HiloFlowHandler, account_email
 from .const import (
+    ACCOUNT_FILES,
+    CONF_ACCOUNT_LABEL,
     CONF_APPRECIATION_PHASE,
     CONF_CHALLENGE_LOCK,
     CONF_GENERATE_ENERGY_METERS,
@@ -72,11 +73,15 @@ from .const import (
     HILO_ENERGY_TOTAL,
     LOG,
     MIN_SCAN_INTERVAL,
+    STATE_FILE,
 )
 from .oauth2 import AuthCodeWithPKCEImplementation
 
+if TYPE_CHECKING:
+    from .sensor import HiloChallengeSensor
+
 DISPATCHER_TOPIC_SIGNALR_EVENT = "pyhilo_signalr_event"
-SIGNAL_UPDATE_ENTITY = "pyhilo_device_update_{}"
+SIGNAL_UPDATE_ENTITY = "pyhilo_device_update_{}_{}"
 COORDINATOR_AWARE_PLATFORMS = [Platform.SENSOR]
 PLATFORMS = COORDINATOR_AWARE_PLATFORMS + [
     Platform.CLIMATE,
@@ -132,7 +137,7 @@ def _async_standardize_config_entry(hass: HomeAssistant, entry: ConfigEntry) -> 
 
 @callback
 def _async_register_custom_device(
-    hass: HomeAssistant, entry: ConfigEntry, device: HiloDevice
+    hass: HomeAssistant, entry: ConfigEntry, device: HiloDevice, name: str
 ) -> None:
     """Register a custom device.
 
@@ -145,7 +150,7 @@ def _async_register_custom_device(
         identifiers={(DOMAIN, device.identifier)},
         manufacturer=device.manufacturer,
         model=device.model,
-        name=device.name,
+        name=name,
     )
 
 
@@ -216,7 +221,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiloConfigEntry) -> bool
                 hass, entry, implementation
             ),
             log_traces=current_options.get(CONF_LOG_TRACES, DEFAULT_LOG_TRACES),
-            state_yaml=hass.config.path("hilo_state.yaml"),
+            state_yaml=hass.config.path(STATE_FILE.format(entry.entry_id)),
         )
 
     except (TimeoutError, client_exceptions.ClientConnectorError):
@@ -263,26 +268,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiloConfigEntry) -> bool
         "sensor.hilo_gateway_hilo_cost_total": "sensor.hilo_cost_total",
         "sensor.hilo_gateway": "sensor.hilo_gateway",
     }
-    for old_id, new_id in gateway_entity_renames.items():
-        if old_id == new_id or not entity_registry.async_get(old_id):
-            continue
-        if entity_registry.async_get(new_id):
-            LOG.info(
-                "Skipping migration %s -> %s, target entity ID already registered",
-                old_id,
-                new_id,
-            )
-
-            continue
-        entity_registry.async_update_entity(old_id, new_entity_id=new_id)
-        LOG.info("Migrated entity ID %s -> %s", old_id, new_id)
-
     # Note (ic-dev21): this new renaming by HA also breaks sensor.hilo_energy_total, which is used in check_tarif
     energy_entity_renames = {
         "sensor.meter00_hilo_energy_total": "sensor.hilo_energy_total"
     }
-    for old_id, new_id in energy_entity_renames.items():
-        if old_id == new_id or not entity_registry.async_get(old_id):
+    for old_id, new_id in {**gateway_entity_renames, **energy_entity_renames}.items():
+        old_entry = entity_registry.async_get(old_id)
+        if (
+            old_id == new_id
+            or not old_entry
+            or old_entry.config_entry_id != entry.entry_id
+        ):
             continue
         if entity_registry.async_get(new_id):
             LOG.info(
@@ -307,7 +303,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiloConfigEntry) -> bool
     log_traces = current_options.get(CONF_LOG_TRACES)
     if log_traces:
         LOG.debug("HILO_DEBUG: log_traces is %s", log_traces)
-        hass.bus.async_listen("hilo_debug", handle_debug_event)
+        entry.async_on_unload(hass.bus.async_listen("hilo_debug", handle_debug_event))
 
     async def async_reload_entry(
         _: HomeAssistant, updated_entry: HiloConfigEntry
@@ -370,21 +366,68 @@ async def async_unload_entry(hass: HomeAssistant, entry: HiloConfigEntry) -> boo
     return True
 
 
-async def async_migrate_entry(hass, config_entry: ConfigEntry):
-    """Migrate old entry."""
-    LOG.debug("Migrating from version %s", config_entry.version)
+def _delete_account_files(hass: HomeAssistant, entry_id: str) -> None:
+    """Delete the files holding a removed account's state."""
+    for account_file in ACCOUNT_FILES.values():
+        Path(hass.config.path(account_file.format(entry_id))).unlink(missing_ok=True)
 
-    if config_entry.version > 1:
+
+def _move_legacy_account_files(hass: HomeAssistant, entry_id: str) -> None:
+    """Hand the single-account files over to the migrated entry."""
+    for legacy_file, account_file in ACCOUNT_FILES.items():
+        legacy = Path(hass.config.path(legacy_file))
+        target = Path(hass.config.path(account_file.format(entry_id)))
+        if legacy.is_file() and not target.exists():
+            legacy.replace(target)
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Delete the files of a removed account."""
+    await hass.async_add_executor_job(_delete_account_files, hass, entry.entry_id)
+
+
+async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+    """Migrate old entry."""
+    LOG.debug(
+        "Migrating from version %s.%s",
+        config_entry.version,
+        config_entry.minor_version,
+    )
+
+    if config_entry.version > 2:
         # This means the user has downgraded from a future version
         return False
 
     if config_entry.version == 1:
-        config_entry.version = 2
         hass.config_entries.async_update_entry(
-            config_entry, unique_id="hilo", data={"auth_implementation": "hilo"}
+            config_entry,
+            unique_id=DOMAIN,
+            data={"auth_implementation": DOMAIN},
+            version=2,
+            minor_version=1,
         )
 
-    LOG.debug("Migration to version %s successful", config_entry.version)
+    if config_entry.minor_version < 2:
+        # Entries without a token (migrated from version 1) keep the legacy
+        # unique_id until reauth reveals which account they belong to.
+        unique_id = config_entry.unique_id
+        if token := config_entry.data.get("token"):
+            unique_id = account_email(token["access_token"])
+        await hass.async_add_executor_job(
+            _move_legacy_account_files, hass, config_entry.entry_id
+        )
+        hass.config_entries.async_update_entry(
+            config_entry,
+            unique_id=unique_id,
+            data={**config_entry.data, CONF_ACCOUNT_LABEL: ""},
+            minor_version=2,
+        )
+
+    LOG.debug(
+        "Migration to version %s.%s successful",
+        config_entry.version,
+        config_entry.minor_version,
+    )
 
     return True
 
@@ -396,8 +439,9 @@ class Hilo:
         """Initialize."""
         self._api = api
         self._hass = hass
-        self.find_meter(self._hass)
         self.entry = entry
+        account_label = entry.data[CONF_ACCOUNT_LABEL]
+        self.name_prefix = f"{account_label} " if account_label else ""
         self.devices: Devices = Devices(api)
         self.graphql_helper: GraphQlHelper = GraphQlHelper(api, self.devices)
         self.challenge_id = 0
@@ -423,6 +467,9 @@ class Hilo:
             CONF_GENERATE_ENERGY_METERS, DEFAULT_GENERATE_ENERGY_METERS
         )
         self.cost_sensors: dict = {}
+        # These get filled in by the sensor platform:
+        self.challenge_sensor: HiloChallengeSensor | None = None
+        self.energy_meter_keys: list[str] = []
         # This will get filled in by async_init:
         self.coordinator: DataUpdateCoordinator | None = None
         self.unknown_tracker_device: HiloDevice | None = None
@@ -430,6 +477,10 @@ class Hilo:
         if self.track_unknown_sources:
             self._api._get_device_callbacks = [self._get_unknown_source_tracker]
         self._signalr_listeners = []
+
+    def entity_object_id(self, name: str) -> str:
+        """Return the object_id Home Assistant derives from an entity name."""
+        return slugify(f"{self.name_prefix}{name}")
 
     async def _on_devices_connected(self) -> None:
         """Trigger device subscriptions after the device hub connects."""
@@ -568,7 +619,8 @@ class Hilo:
             # runs (scan_interval) to have updated data in the dashboard.
             for device in updated_devices:
                 async_dispatcher_send(
-                    self._hass, SIGNAL_UPDATE_ENTITY.format(device.id)
+                    self._hass,
+                    SIGNAL_UPDATE_ENTITY.format(self.entry.entry_id, device.id),
                 )
 
         elif event.target == "DeviceListInitialValuesReceived":
@@ -602,7 +654,8 @@ class Hilo:
             updated_devices = self.devices.parse_values_received(event.arguments[0])
             for device in updated_devices:
                 async_dispatcher_send(
-                    self._hass, SIGNAL_UPDATE_ENTITY.format(device.id)
+                    self._hass,
+                    SIGNAL_UPDATE_ENTITY.format(self.entry.entry_id, device.id),
                 )
 
     @callback
@@ -751,7 +804,7 @@ class Hilo:
             "settableAttributes": "",
             "id": 69420,
             "hilo_id": "AB-A2025",
-            "identifier": "hass-hilo-unknown_source_tracker",
+            "identifier": f"hass-hilo-{self.entity_object_id('unknown_source_tracker')}",
             "provider": 0,
             "model_number": "Hass-hilo-2025.5",
             "sw_version": "0.0.1",
@@ -801,13 +854,10 @@ class Hilo:
         returns its old DSN-based identifier if it exists. If it doesn't,
         it returns Noneto use the MAC address instead."""
         device_registry = dr.async_get(self._hass)
-        devices = device_registry.devices
-        device_iter = (
-            devices
-            if Version(current_version) >= Version("2026.9")
-            else devices.values()
-        )
-        for device in device_iter:
+        # Other accounts' gateways must never be mistaken for our legacy one.
+        for device in dr.async_entries_for_config_entry(
+            device_registry, self.entry.entry_id
+        ):
             if device.manufacturer != "Hilo" or device.model != "EQ000017":
                 continue
             for domain, identifier in device.identifiers:
@@ -876,7 +926,9 @@ class Hilo:
                     self._hass, self.entry, old_dsn, gateway.identifier
                 )
                 self.async_migrate_gateway_entities(old_dsn, gateway.identifier)
-        _async_register_custom_device(self._hass, self.entry, gateway)
+        _async_register_custom_device(
+            self._hass, self.entry, gateway, f"{self.name_prefix}{gateway.name}"
+        )
 
         if self.track_unknown_sources:
             if not self.unknown_tracker_device:
@@ -885,7 +937,10 @@ class Hilo:
                 )
                 self.unknown_tracker_device.net_consumption = True
             _async_register_custom_device(
-                self._hass, self.entry, self.unknown_tracker_device
+                self._hass,
+                self.entry,
+                self.unknown_tracker_device,
+                f"{self.name_prefix}{self.unknown_tracker_device.name}",
             )
 
         async def signalr_disconnect_listener(_: Event) -> None:
@@ -983,75 +1038,17 @@ class Hilo:
         if self.track_unknown_sources:
             self.handle_unknown_power()
 
-    def find_meter(self, hass):
-        """Find the smart meter entity in Home Assistant."""
-        entity_registry_dict = {}
-
-        registry = hass.data.get("entity_registry")
-
-        if registry is None:
-            return entity_registry_dict
-
-        # ic-dev21: Get names of all entities
-        for entity_id, entity_entry in registry.entities.items():
-            entity_registry_dict[entity_id] = {
-                "name": entity_entry.entity_id,
-            }
-
-        sorted_entity_registry_dict = OrderedDict(sorted(entity_registry_dict.items()))
-        LOG.debug("Entities Ordered dict is %s", sorted_entity_registry_dict)
-
-        # Initialize empty list to put meter name into
-        filtered_names = []
-
-        # ic-dev21: Let's grab the meter from our dict
-        for entity_id, entity_data in sorted_entity_registry_dict.items():
-            if all(
-                substring in entity_data["name"] for substring in ["meter", "_power"]
-            ):
-                filtered_names.append(entity_data["name"])
-
-        LOG.debug("Hilo Smart meter name is: %s", filtered_names)
-
-        # Format output to use in check_tarif
-        return ", ".join(filtered_names) if filtered_names else ""
-
-    def set_state(self, entity, state, new_attrs={}, keep_state=False, force=False):
-        """Set the state of an entity."""
-        params = f"{entity=} {state=} {new_attrs=} {keep_state=}"
-        current = self._hass.states.get(entity)
-        if not current:
-            if not force:
-                LOG.warning(
-                    "Unable to set state because there's no current: %s", params
-                )
-                return
-            attrs = {}
-        else:
-            attrs = dict(current.as_dict()["attributes"])
-        attrs["last_update"] = datetime.now()
-        attrs["hilo_update"] = True
-        attrs = {**attrs, **new_attrs}
-        if keep_state and current:
-            state = current.state
-        if "Cost" in attrs:
-            attrs["Cost"] = state
-        LOG.debug("Setting state %s current=%s attrs=%s", params, current, attrs)
-        self._hass.states.async_set(entity, state, attrs, force_update=force)
-
     @property
-    def high_times(self):
+    def high_times(self) -> bool:
         """Check if the current time is within high tariff periods."""
-        challenge_sensor = self._hass.states.get("sensor.defi_hilo")
-
-        if challenge_sensor is None:
+        if self.challenge_sensor is None:
             LOG.warning("high_times check tarif challenge sensor not found")
             return False
 
         LOG.debug(
-            "high_times check tarif challenge sensor is %s", challenge_sensor.state
+            "high_times check tarif challenge sensor is %s", self.challenge_sensor.state
         )
-        return challenge_sensor.state == "reduction"
+        return self.challenge_sensor.state == "reduction"
 
     def check_season(self, current_time: datetime | None = None) -> bool:
         """Determine if we are using a winter or summer rate."""
@@ -1111,7 +1108,7 @@ class Hilo:
                         )
 
         tarif = "low"
-        base_sensor = f"sensor.{HILO_ENERGY_TOTAL}_low"
+        base_sensor = f"sensor.{self.entity_object_id(HILO_ENERGY_TOTAL)}_low"
         energy_used = self._hass.states.get(base_sensor)
         if energy_used and energy_used.state not in (STATE_UNKNOWN, STATE_UNAVAILABLE):
             try:
@@ -1153,127 +1150,67 @@ class Hilo:
             self.high_times,
         )
 
-        # ic-dev21 : make sure the select for all meters still work by moving this here
-        for state in self._hass.states.async_all():
-            entity = state.entity_id
-            self.set_tarif(entity, state.state, tarif)
+        total_meter_key = self.entity_object_id(HILO_ENERGY_TOTAL)
+        for meter_key in self.energy_meter_keys:
+            if self.untarificated_devices and meter_key != total_meter_key:
+                continue
+            self.set_tarif(f"select.{meter_key}", tarif)
 
-    def handle_unknown_power(self):
+    def handle_unknown_power(self) -> None:
         """Take care of the unknown source meter."""
-        known_power = 0
-        smart_meter = self.find_meter(self._hass)
-        LOG.debug("Smart meter used currently is: %s", smart_meter)
-        unknown_source_tracker = "sensor.unknown_source_tracker_power"
-        for state in self._hass.states.async_all():
-            entity = state.entity_id
-            if entity.endswith("hilo_rate_current"):
-                continue
-
-            if entity.endswith("_power") and entity not in [
-                unknown_source_tracker,
-                smart_meter,
-            ]:
-                try:
-                    known_power += int(float(state.state))
-                except ValueError:
-                    pass
-            if not entity.endswith("_hilo_energy") or entity.endswith("_cost"):
-                continue
-            self.fix_utility_sensor(entity, state)
-        if self.track_unknown_sources:
-            total_power = self._hass.states.get(smart_meter)
-            try:
-                if known_power <= int(total_power.state):
-                    unknown_power = int(total_power.state) - known_power
-                else:
-                    unknown_power = 0
-            except ValueError:
-                unknown_power = known_power
-                LOG.warning(
-                    f"value of total_power ({total_power} not initialized correctly)"
-                )
-
-            self.devices.parse_values_received(
-                [
-                    {
-                        "deviceId": 69420,
-                        "locationId": self.devices.location_id,
-                        "timeStampUTC": datetime.utcnow().isoformat(),
-                        "attribute": "Power",
-                        "value": unknown_power,
-                        "valueType": "Watt",
-                    }
-                ]
-            )
-            LOG.debug(
-                "Currently in use: Total: %s Known sources: %s Unknown sources: %s",
-                total_power.state,
-                known_power,
-                unknown_power,
-            )
-
-    @callback
-    def fix_utility_sensor(self, entity, state):
-        """Not sure why this doesn't get created with a proper device_class."""
-        current_state = state.as_dict()
-        attrs = current_state.get("attributes", {})
-        if entity.startswith("select.") or entity.find("hilo_rate") > 0:
+        smart_meter = next((d for d in self.devices.all if d.type == "Meter"), None)
+        if smart_meter is None or not smart_meter.available:
+            LOG.debug("No smart meter reading available to track unknown sources")
             return
-        if not attrs.get("source"):
-            LOG.debug("No source entity defined on %s: %s", entity, current_state)
-            return
-
-        parent_unit_state = self._hass.states.get(attrs.get("source"))
-        parent_unit = (
-            "kWh"
-            if parent_unit_state is None
-            else parent_unit_state.attributes.get("unit_of_measurement")
+        known_power = sum(
+            int(device.get_value("power", 0) or 0)
+            for device in self.devices.all
+            if device.has_attribute("power")
+            and device.available
+            and device.model not in UNMONITORED_DEVICES
+            and device not in (smart_meter, self.unknown_tracker_device)
         )
-        if not parent_unit:
-            LOG.warning("Unable to find state for parent unit: %s", current_state)
-            return
+        total_power = int(smart_meter.get_value("power", 0) or 0)
+        unknown_power = max(total_power - known_power, 0)
 
-        new_attrs = {
-            ATTR_UNIT_OF_MEASUREMENT: parent_unit,  # note ic-dev21: now uses parent_unit directly
-            ATTR_DEVICE_CLASS: SensorDeviceClass.ENERGY,
-        }
-        if not all(a in attrs.keys() for a in new_attrs):
-            LOG.warning(
-                f"Fixing utility sensor: {entity} {current_state} new_attrs: {new_attrs}"
-            )
-            self.set_state(entity, None, new_attrs=new_attrs, keep_state=True)
+        self.devices.parse_values_received(
+            [
+                {
+                    "deviceId": self.unknown_tracker_device.id,
+                    "locationId": self.devices.location_id,
+                    "timeStampUTC": datetime.utcnow().isoformat(),
+                    "attribute": "Power",
+                    "value": unknown_power,
+                    "valueType": "Watt",
+                }
+            ]
+        )
+        LOG.debug(
+            "Currently in use: Total: %s Known sources: %s Unknown sources: %s",
+            total_power,
+            known_power,
+            unknown_power,
+        )
 
     @callback
-    def set_tarif(self, entity, current, new):
+    def set_tarif(self, entity_id: str, new: str) -> None:
         """Set the tarif on the select entity if needed."""
-        if self.untarificated_devices and entity != f"select.{HILO_ENERGY_TOTAL}":
+        if (current := self._hass.states.get(entity_id)) is None:
             return
-        if entity.startswith("select.hilo_energy") and current != new:
-            LOG.debug(
-                "check_tarif: Changing tarif of %s from %s to %s", entity, current, new
+        if current.state == new:
+            return
+        LOG.debug(
+            "check_tarif: Changing tarif of %s from %s to %s",
+            entity_id,
+            current.state,
+            new,
+        )
+        data = {ATTR_OPTION: new, "entity_id": entity_id}
+        self._hass.async_create_task(
+            self._hass.services.async_call(
+                SELECT_DOMAIN, SERVICE_SELECT_OPTION, data, context=Context()
             )
-            context = Context()
-            data = {ATTR_OPTION: new, "entity_id": entity}
-            self._hass.async_create_task(
-                self._hass.services.async_call(
-                    SELECT_DOMAIN, SERVICE_SELECT_OPTION, data, context=context
-                )
-            )
-        if (
-            entity.startswith("select.")
-            and entity.endswith("_hilo_energy")
-            and current != new
-        ):
-            LOG.debug(
-                "check_tarif: Changing tarif of %s from %s to %s", entity, current, new
-            )
-            context = Context()
-            data = {ATTR_OPTION: new, "entity_id": entity}
-            self._hass.async_create_task(
-                self._hass.services.async_call(
-                    SELECT_DOMAIN, SERVICE_SELECT_OPTION, data, context=context
-                )
-            )
+        )
 
     @callback
     def async_migrate_unique_id(
@@ -1298,6 +1235,11 @@ class Hilo:
         ) is None:
             LOG.debug("Unique ID %s does not need to be migrated", old_unique_id)
             return
+        # Legacy unique IDs were derived from names alone, so they can belong
+        # to another account's entry.
+        if entity_registry.async_get(entity_id).config_entry_id != self.entry.entry_id:
+            LOG.debug("Unique ID %s belongs to another account", old_unique_id)
+            return
         if new_entity_id := entity_registry.async_get_entity_id(
             platform, DOMAIN, new_unique_id
         ):
@@ -1321,4 +1263,6 @@ class Hilo:
     @callback
     def handle_subscription_result(self, hilo_id: str) -> None:
         """Handle subscription result by notifying entities."""
-        async_dispatcher_send(self._hass, SIGNAL_UPDATE_ENTITY.format(hilo_id))
+        async_dispatcher_send(
+            self._hass, SIGNAL_UPDATE_ENTITY.format(self.entry.entry_id, hilo_id)
+        )
