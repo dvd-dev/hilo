@@ -89,6 +89,8 @@ PLATFORMS = COORDINATOR_AWARE_PLATFORMS + [
     Platform.SWITCH,
 ]
 
+type HiloConfigEntry = ConfigEntry[Hilo]
+
 # Suffixes used when building gateway-attached entity unique_ids in sensor.py
 # (e.g. f"{device.identifier.lower()}-{suffix}"). Used to migrate those
 # unique_ids when the gateway's identifier changes from DSN-based to MAC-based.
@@ -196,7 +198,7 @@ def _async_migrate_gateway_device_identifier(
     LOG.info("Migrated gateway device identifier %s -> %s", old_dsn, new_mac)
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: HiloConfigEntry) -> bool:
     """Set up Hilo as config entry."""
     HiloFlowHandler.async_register_implementation(
         hass, AuthCodeWithPKCEImplementation(hass)
@@ -242,8 +244,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         LOG.debug("Timeout with API connection")
         raise ConfigEntryNotReady from err
 
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][entry.entry_id] = hilo
+    entry.runtime_data = hilo
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
@@ -304,7 +305,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         LOG.debug("HILO_DEBUG: log_traces is %s", log_traces)
         entry.async_on_unload(hass.bus.async_listen("hilo_debug", handle_debug_event))
 
-    async def async_reload_entry(_: HomeAssistant, updated_entry: ConfigEntry) -> None:
+    async def async_reload_entry(
+        _: HomeAssistant, updated_entry: HiloConfigEntry
+    ) -> None:
         """Handle an options update.
 
         This method will get called in two scenarios:
@@ -323,11 +326,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: HiloConfigEntry) -> bool:
     """Unload a Hilo config entry."""
     LOG.debug("Unloading Hilo Integration")
 
-    hilo = hass.data[DOMAIN][entry.entry_id]
+    if not await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
+        return False
+
+    hilo = entry.runtime_data
 
     hilo.should_signalr_reconnect = False
 
@@ -356,12 +362,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     except Exception as err:
         LOG.error("Error disconnecting challenge SignalR hub: %s", err)
 
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-    if unload_ok:
-        LOG.debug("Hilo Integration unloaded")
-        hass.data[DOMAIN].pop(entry.entry_id)
-
-    return unload_ok
+    LOG.debug("Hilo Integration unloaded")
+    return True
 
 
 def _delete_account_files(hass: HomeAssistant, entry_id: str) -> None:

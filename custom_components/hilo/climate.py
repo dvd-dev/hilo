@@ -8,7 +8,6 @@ from homeassistant.components.climate.const import (
     HVACAction,
     HVACMode,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_TEMPERATURE,
     PRECISION_TENTHS,
@@ -19,8 +18,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import slugify
 
-from . import Hilo
-from .const import CLIMATE_CLASSES, DOMAIN, LOG
+from . import Hilo, HiloConfigEntry
+from .const import CLIMATE_CLASSES, LOG
 from .entity import HiloEntity
 
 
@@ -45,10 +44,12 @@ def validate_reduction_phase(events, tag):
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant,
+    entry: HiloConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Hilo climate entities from a config entry."""
-    hilo = hass.data[DOMAIN][entry.entry_id]
+    hilo = entry.runtime_data
     entities = []
     for d in hilo.devices.all:
         if d.type in CLIMATE_CLASSES:

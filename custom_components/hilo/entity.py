@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.light import LightEntity
 from homeassistant.components.sensor import SensorEntity
@@ -98,7 +97,7 @@ class HiloEntity(CoordinatorEntity):
     @callback
     def async_update_from_signalr_event(self, event: SignalREvent) -> None:
         """Update the entity when new data comes from SignalR."""
-        raise NotImplementedError()
+        raise NotImplementedError
 
     async def async_added_to_hass(self):
         """Call when entity is added to hass."""
