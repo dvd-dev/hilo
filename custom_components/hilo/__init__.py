@@ -48,6 +48,7 @@ from pyhilo.signalr import SignalREvent, signalr_event_from_payload
 from pyhilo.util import from_utc_timestamp, time_diff
 from pysignalr.exceptions import ServerError as SignalRServerError
 
+from .api import HiloAuth
 from .config_flow import STEP_OPTION_SCHEMA, HiloFlowHandler
 from .const import (
     CONF_APPRECIATION_PHASE,
@@ -212,8 +213,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiloConfigEntry) -> bool
             session=async_create_clientsession(
                 hass, cookie_jar=CookieJar(quote_cookie=False)
             ),
-            oauth_session=config_entry_oauth2_flow.OAuth2Session(
-                hass, entry, implementation
+            auth=HiloAuth(
+                config_entry_oauth2_flow.OAuth2Session(hass, entry, implementation)
             ),
             log_traces=current_options.get(CONF_LOG_TRACES, DEFAULT_LOG_TRACES),
             state_yaml=hass.config.path("hilo_state.yaml"),
