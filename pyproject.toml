@@ -157,6 +157,10 @@ combine-as-imports = true
 [tool.ruff.lint.mccabe]
 max-complexity = 25
 
+[tool.ruff.lint.per-file-ignores]
+"scripts/*" = ["T201"]
+"tests/*" = ["S101"]
+
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
