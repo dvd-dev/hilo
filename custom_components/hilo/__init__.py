@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections import OrderedDict
+import contextlib
 from datetime import datetime, timedelta
 import traceback
 
@@ -344,18 +345,14 @@ async def async_unload_entry(hass: HomeAssistant, entry: HiloConfigEntry) -> boo
     for task in list(hilo._signalr_reconnect_tasks):
         if not task.done():
             task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await task
-            except asyncio.CancelledError:
-                pass
 
     for task in list(hilo.subscriptions):
         if task and not task.done():
             task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await task
-            except asyncio.CancelledError:
-                pass
 
     try:
         await hilo._api.signalr_devices.disconnect()
@@ -1173,10 +1170,8 @@ class Hilo:
                 unknown_source_tracker,
                 smart_meter,
             ]:
-                try:
+                with contextlib.suppress(ValueError):
                     known_power += int(float(state.state))
-                except ValueError:
-                    pass
             if not entity.endswith("_hilo_energy") or entity.endswith("_cost"):
                 continue
             self.fix_utility_sensor(entity, state)
@@ -1237,7 +1232,7 @@ class Hilo:
             ATTR_UNIT_OF_MEASUREMENT: parent_unit,  # note ic-dev21: now uses parent_unit directly
             ATTR_DEVICE_CLASS: SensorDeviceClass.ENERGY,
         }
-        if not all(a in attrs.keys() for a in new_attrs):
+        if not all(a in attrs for a in new_attrs):
             LOG.warning(
                 f"Fixing utility sensor: {entity} {current_state} new_attrs: {new_attrs}"
             )
