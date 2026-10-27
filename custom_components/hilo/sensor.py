@@ -926,8 +926,8 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
 
             self._history = new_history
             await self._save_history_debouncer.async_call()
-            for eventId in self._events_to_poll:
-                await self._hilo.subscribe_to_challenge(eventId)
+            for event_id in self._events_to_poll:
+                await self._hilo.subscribe_to_challenge(event_id)
 
     async def _load_history(self) -> list:
         history: list = []
@@ -1046,9 +1046,9 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
         for challenge in challenges:
             event_id = challenge.get("id")
             progress = challenge.get("progress")
-            baselinewH = challenge.get("baselineWh")
+            baseline_wh = challenge.get("baselineWh")
             LOG.debug("handle_challenge_list_update progress is %s", progress)
-            LOG.debug("handle_challenge_list_update baselineWh is %s", baselinewH)
+            LOG.debug("handle_challenge_list_update baselineWh is %s", baseline_wh)
             if event_id in self._events:
                 if challenge.get("progress") == "completed":
                     # Find the oldest event based on recovery_end datetime
@@ -1097,20 +1097,20 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
             consumption = challenge.get("consumption", {})
             baseline_points = consumption.get("cumulativeBaselinePoints", [])
         if baseline_points:
-            baselinewH = baseline_points[-1]["wh"]
+            baseline_wh = baseline_points[-1]["wh"]
         else:
-            baselinewH = 0
-        allowed_kwh = baselinewH / 1000 if baselinewH > 0 else 0
+            baseline_wh = 0
+        allowed_kwh = baseline_wh / 1000 if baseline_wh > 0 else 0
 
-        used_wH = challenge.get("currentWh", 0)
-        if used_wH is not None and used_wH > 0:
-            used_kWh = used_wH / 1000
+        used_wh = challenge.get("currentWh", 0)
+        if used_wh is not None and used_wh > 0:
+            used_kwh = used_wh / 1000
         else:
-            used_kWh = 0
+            used_kwh = 0
 
         LOG.debug("handle_challenge_details_update progress is %s", progress)
-        LOG.debug("handle_challenge_details_update baselineWh is %s", baselinewH)
-        LOG.debug("handle_challenge_details_update used_kwh is %s", used_kWh)
+        LOG.debug("handle_challenge_details_update baselineWh is %s", baseline_wh)
+        LOG.debug("handle_challenge_details_update used_kwh is %s", used_kwh)
         LOG.debug("handle_challenge_details_update allowed_kwh is %s", allowed_kwh)
 
         if event_id in self._events:
@@ -1120,11 +1120,11 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
                 self._events.pop(event_id, None)
 
             # Consumption update
-            elif used_wH is not None and used_wH > 0:
+            elif used_wh is not None and used_wh > 0:
                 current_event = self._events[event_id]
-                current_event.update_wh(used_wH)
-                if baselinewH > 0:
-                    current_event.update_allowed_wh(baselinewH)
+                current_event.update_wh(used_wh)
+                if baseline_wh > 0:
+                    current_event.update_allowed_wh(baseline_wh)
             # For non consumption updates, we need an event id
             elif event_has_id:
                 current_event = self._events[event_id]
@@ -1133,8 +1133,8 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
                     updated_event.appreciation(self._hilo.appreciation)
                 if self._hilo.pre_cold > 0:
                     updated_event.pre_cold(self._hilo.pre_cold)
-                if baselinewH > 0:
-                    updated_event.update_allowed_wh(baselinewH)
+                if baseline_wh > 0:
+                    updated_event.update_allowed_wh(baseline_wh)
                 elif current_event.allowed_kWh > 0:
                     updated_event.allowed_kWh = current_event.allowed_kWh
                 self._events[event_id] = updated_event
