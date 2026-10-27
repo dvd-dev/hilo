@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 from homeassistant.helpers.config_entry_oauth2_flow import OAuth2Session
 
-from custom_components.hilo.auth import HiloAuth
+from custom_components.hilo.api import HiloAuth
 
 
 async def test_access_token_refreshed_before_return() -> None:
