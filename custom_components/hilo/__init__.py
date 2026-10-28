@@ -6,7 +6,6 @@ import asyncio
 from collections import OrderedDict
 import contextlib
 from datetime import UTC, datetime, timedelta
-import traceback
 
 from aiohttp import CookieJar, client_exceptions
 from homeassistant.components.select import (
@@ -354,14 +353,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: HiloConfigEntry) -> boo
             with contextlib.suppress(asyncio.CancelledError):
                 await task
 
-    try:
-        await hilo._api.signalr_devices.disconnect()
-    except Exception as err:
-        LOG.error("Error disconnecting device SignalR hub: %s", err)
-    try:
-        await hilo._api.signalr_challenges.disconnect()
-    except Exception as err:
-        LOG.error("Error disconnecting challenge SignalR hub: %s", err)
+    await hilo._api.signalr_devices.disconnect()
+    await hilo._api.signalr_challenges.disconnect()
 
     LOG.debug("Hilo Integration unloaded")
     return True
@@ -502,9 +495,8 @@ class Hilo:
                     else:
                         LOG.warning(f"SHOULD NOT HAPPEN: Not SignalREvent: {msg_data}")
                         await handler(msg_data)
-                except Exception as e:
-                    LOG.error("Error in SignalR handler %s: %s", handler_name, e)
-                    LOG.error(traceback.format_exc())
+                except Exception:  # noqa: BLE001
+                    LOG.exception("Error in SignalR handler %s", handler_name)
 
     async def _handle_challenge_events(self, event: SignalREvent) -> None:
         """Handle all challenge-related SignalR events."""
@@ -928,7 +920,7 @@ class Hilo:
                     backoff,
                     err,
                 )
-            except Exception as err:  # pylint: disable=broad-except
+            except Exception as err:  # noqa: BLE001
                 LOG.warning(
                     "SignalRHub[%s]: connection error; reconnecting in %ss — %s",
                     id,
