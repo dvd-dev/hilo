@@ -367,6 +367,20 @@ async def async_unload_entry(hass: HomeAssistant, entry: HiloConfigEntry) -> boo
     return True
 
 
+async def async_remove_config_entry_device(
+    hass: HomeAssistant, entry: HiloConfigEntry, device_entry: dr.DeviceEntry
+) -> bool:
+    """Allow removing a device only once Hilo no longer reports it."""
+    hilo = entry.runtime_data
+    current = {device.identifier for device in hilo.devices.all}
+    if hilo.unknown_tracker_device:
+        current.add(hilo.unknown_tracker_device.identifier)
+    return not any(
+        domain == DOMAIN and identifier in current
+        for domain, identifier in device_entry.identifiers
+    )
+
+
 async def async_migrate_entry(hass, config_entry: ConfigEntry):
     """Migrate old entry."""
     LOG.debug("Migrating from version %s", config_entry.version)
