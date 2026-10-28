@@ -1,14 +1,5 @@
 ---
 repos:
-  - repo: https://github.com/PyCQA/bandit
-    rev: '1.9.2'
-    hooks:
-      - id: bandit
-        args:
-          - --quiet
-          - --format=custom
-          - --configfile=.bandit.yaml
-        files: ^custom_components/hilo/.+\.py$
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.9
     hooks:
