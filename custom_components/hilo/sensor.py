@@ -58,11 +58,9 @@ from . import Hilo, HiloConfigEntry
 from .const import (
     CONF_ENERGY_METER_PERIOD,
     CONF_GENERATE_ENERGY_METERS,
-    CONF_HQ_PLAN_NAME,
     CONF_UNTARIFICATED_DEVICES,
     DEFAULT_ENERGY_METER_PERIOD,
     DEFAULT_GENERATE_ENERGY_METERS,
-    DEFAULT_HQ_PLAN_NAME,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_UNTARIFICATED_DEVICES,
     DOMAIN,
@@ -151,7 +149,7 @@ async def async_setup_entry(
     hilo = entry.runtime_data
     new_entities = []
     cost_entities = []
-    hq_plan_name = entry.options.get(CONF_HQ_PLAN_NAME, DEFAULT_HQ_PLAN_NAME)
+    hq_plan_name = hilo.hq_plan_name
     untarificated_devices = entry.options.get(
         CONF_UNTARIFICATED_DEVICES, DEFAULT_UNTARIFICATED_DEVICES
     )

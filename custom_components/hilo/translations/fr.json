@@ -28,7 +28,6 @@
         "data": {
           "generate_energy_meters": "Générer compteurs de consommation électrique",
           "untarificated_devices": "Générer seulement les compteurs totaux",
-          "hq_plan_name": "Nom du tarif Hydro Québec",
           "scan_interval": "Intervalle de mise à jour (secondes)",
           "log_traces": "Enregistrer requêtes et messages websocket",
           "challenge_lock": "Vérouiller les entités climate lors de défis",
@@ -38,7 +37,6 @@
         },
         "data_description": {
           "untarificated_devices": "Générer seulement les compteurs totaux pour chaque appareil",
-          "hq_plan_name": "Sélectionnez 'rate d' ou 'flex d'",
           "scan_interval": "Minimum: 60 secondes",
           "log_traces": "Requiert le niveau de journalisation debug sur l'intégration et pyhilo",
           "challenge_lock": "Empêche tout changement lorsqu'un défi est en cours",

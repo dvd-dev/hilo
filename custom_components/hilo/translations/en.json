@@ -28,7 +28,6 @@
         "data": {
           "generate_energy_meters": "Generate energy meters",
           "untarificated_devices": "Generate only total meters for each devices",
-          "hq_plan_name": "Hydro Quebec rate plan name",
           "scan_interval": "Scan interval (seconds)",
           "log_traces": "Log request data and websocket messages",
           "challenge_lock": "Lock climate entities during challenges",
@@ -37,7 +36,6 @@
           "pre_cold_phase": "Cooldown phase (hours)"
         },
         "data_description": {
-          "hq_plan_name": "Select 'rate d' or 'flex d'",
           "scan_interval": "Minimum: 60 seconds",
           "log_traces": "Requires debug log level on both the integration and pyhilo",
           "challenge_lock": "Prevents any changes when a challenge is in progress",
