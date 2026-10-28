@@ -19,5 +19,6 @@ async def test_duplicate_event_details_are_ignored(hass: HomeAssistant) -> None:
 
     await sensor.handle_challenge_details_update(COMPLETED_EVENT)
     await sensor.handle_challenge_details_update(COMPLETED_EVENT)
+    sensor._save_history_debouncer.async_cancel()
 
     assert sensor._events_to_poll == {377: 2025}
