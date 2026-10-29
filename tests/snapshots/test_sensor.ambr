@@ -1,0 +1,2118 @@
+# serializer version: 1
+# name: test_energy_sensor_left_riemann_accumulation[smart_plug_energy_accumulated_state]
+  StateSnapshot({
+    'attributes': dict({
+      'device_class': 'energy',
+      'friendly_name': 'Smart Plug Hilo Energy',
+      'icon': 'mdi:lightning-bolt',
+      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+      'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.smart_plug_hilo_energy',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': '2.40',
+  })
+# ---
+# name: test_energy_sensor_unique_id_migration[device_name][hilo_energy_smart_plug-migrated-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.hilo_hilo_energy_smart_plug',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Smart Plug Hilo Energy',
+    'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 2,
+      }),
+    }),
+    'original_device_class': <SensorDeviceClass.ENERGY: 'energy'>,
+    'original_icon': 'mdi:lightning-bolt',
+    'original_name': 'Smart Plug Hilo Energy',
+    'platform': 'hilo',
+    'previous_unique_id': 'hilo_energy_smart_plug',
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '2a3b4c5d6e7f-energy',
+    'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
+  })
+# ---
+# name: test_energy_sensor_unique_id_migration[slugified_identifier][3a_4b_5c_6d_7e_8f-energy-migrated-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.hilo_3a_4b_5c_6d_7e_8f_energy',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Wall Switch Hilo Energy',
+    'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 2,
+      }),
+    }),
+    'original_device_class': <SensorDeviceClass.ENERGY: 'energy'>,
+    'original_icon': 'mdi:lightning-bolt',
+    'original_name': 'Wall Switch Hilo Energy',
+    'platform': 'hilo',
+    'previous_unique_id': '3a_4b_5c_6d_7e_8f-energy',
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '3a:4b:5c:6d:7e:8f-energy',
+    'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
+  })
+# ---
+# name: test_sensor_entities[sensor.calypso_water_heater_hilo_energy-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.calypso_water_heater_hilo_energy',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Calypso Water Heater Hilo Energy',
+    'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 2,
+      }),
+    }),
+    'original_device_class': <SensorDeviceClass.ENERGY: 'energy'>,
+    'original_icon': 'mdi:lightning-bolt',
+    'original_name': 'Calypso Water Heater Hilo Energy',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '5a6b7c8d9e0f-energy',
+    'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
+  })
+# ---
+# name: test_sensor_entities[sensor.calypso_water_heater_hilo_energy-state]
+  StateSnapshot({
+    'attributes': dict({
+      'device_class': 'energy',
+      'friendly_name': 'Calypso Water Heater Hilo Energy',
+      'icon': 'mdi:lightning-bolt',
+      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+      'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.calypso_water_heater_hilo_energy',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': '0.00',
+  })
+# ---
+# name: test_sensor_entities[sensor.calypso_water_heater_power-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.calypso_water_heater_power',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Calypso Water Heater Power',
+    'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 0,
+      }),
+    }),
+    'original_device_class': <SensorDeviceClass.POWER: 'power'>,
+    'original_icon': 'mdi:power-plug-off',
+    'original_name': 'Calypso Water Heater Power',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '5a6b7c8d9e0f-power',
+    'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
+  })
+# ---
+# name: test_sensor_entities[sensor.calypso_water_heater_power-state]
+  StateSnapshot({
+    'attributes': dict({
+      'device_class': 'power',
+      'friendly_name': 'Calypso Water Heater Power',
+      'icon': 'mdi:power-plug-off',
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+      'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.calypso_water_heater_power',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': '0',
+  })
+# ---
+# name: test_sensor_entities[sensor.defi_hilo-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'options': list([
+        'off',
+        'scheduled',
+        'pre_cold',
+        'appreciation',
+        'pre_heat',
+        'reduction',
+        'recovery',
+        'completed',
+        'unknown',
+      ]),
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.defi_hilo',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Defi Hilo',
+    'options': dict({
+    }),
+    'original_device_class': <SensorDeviceClass.ENUM: 'enum'>,
+    'original_icon': 'mdi:lightning-bolt',
+    'original_name': 'Defi Hilo',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '100000-defi_hilo',
+    'unit_of_measurement': None,
+  })
+# ---
+# name: test_sensor_entities[sensor.defi_hilo-state]
+  StateSnapshot({
+    'attributes': dict({
+      'device_class': 'enum',
+      'friendly_name': 'Hilo Gateway Defi Hilo',
+      'icon': 'mdi:lightning-bolt',
+      'next_events': list([
+      ]),
+      'options': list([
+        'off',
+        'scheduled',
+        'pre_cold',
+        'appreciation',
+        'pre_heat',
+        'reduction',
+        'recovery',
+        'completed',
+        'unknown',
+      ]),
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.defi_hilo',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'off',
+  })
+# ---
+# name: test_sensor_entities[sensor.hilo_cost_total-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.TOTAL: 'total'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.hilo_cost_total',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Hilo cost total',
+    'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 2,
+      }),
+    }),
+    'original_device_class': <SensorDeviceClass.MONETARY: 'monetary'>,
+    'original_icon': 'mdi:cash-register',
+    'original_name': 'Hilo cost total',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '100000-hilo_cost_total',
+    'unit_of_measurement': 'EUR',
+  })
+# ---
+# name: test_sensor_entities[sensor.hilo_cost_total-state]
+  StateSnapshot({
+    'attributes': dict({
+      'Access Rate ($/day)': 0.46154,
+      'Plan': 'rate d',
+      'access_cost_today': 0.0962,
+      'device_class': 'monetary',
+      'friendly_name': 'Hilo Gateway Hilo cost total',
+      'icon': 'mdi:cash-register',
+      'last_update': HAFakeDatetime(2026, 10, 28, 12, 0, tzinfo=datetime.timezone.utc),
+      'low_cost': 0.0,
+      'low_kwh': 0.0,
+      'low_rate': 0.07065,
+      'medium_cost': 0.0,
+      'medium_kwh': 0.0,
+      'medium_rate': 0.11142,
+      'state_class': <SensorStateClass.TOTAL: 'total'>,
+      'unit_of_measurement': 'EUR',
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.hilo_cost_total',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': '0.1',
+  })
+# ---
+# name: test_sensor_entities[sensor.hilo_gateway-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': None,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.hilo_gateway',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Hilo Gateway',
+    'options': dict({
+    }),
+    'original_device_class': None,
+    'original_icon': 'mdi:access-point-network',
+    'original_name': 'Hilo Gateway',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '100000-hilo_gateway',
+    'unit_of_measurement': None,
+  })
+# ---
+# name: test_sensor_entities[sensor.hilo_gateway-state]
+  StateSnapshot({
+    'attributes': dict({
+      'disconnected': False,
+      'firmware_version': '9.3.0',
+      'friendly_name': 'Hilo Gateway',
+      'icon': 'mdi:access-point-network',
+      'last_status_time': 'unknown',
+      'online_status': 'Online',
+      'zig_bee_channel': 25,
+      'zig_bee_pairing_activated': False,
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.hilo_gateway',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'on',
+  })
+# ---
+# name: test_sensor_entities[sensor.hilo_rate_access-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.TOTAL: 'total'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.hilo_rate_access',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Hilo rate access',
+    'options': dict({
+    }),
+    'original_device_class': <SensorDeviceClass.MONETARY: 'monetary'>,
+    'original_icon': 'mdi:cash',
+    'original_name': 'Hilo rate access',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '100000-hilo_rate_access',
+    'unit_of_measurement': '$/day',
+  })
+# ---
+# name: test_sensor_entities[sensor.hilo_rate_access-state]
+  StateSnapshot({
+    'attributes': dict({
+      'Cost': 0.46154,
+      'Plan': 'rate d',
+      'device_class': 'monetary',
+      'friendly_name': 'Hilo Gateway Hilo rate access',
+      'icon': 'mdi:cash',
+      'last_update': HAFakeDatetime(2026, 10, 28, 12, 0, tzinfo=datetime.timezone.utc),
+      'state_class': <SensorStateClass.TOTAL: 'total'>,
+      'unit_of_measurement': '$/day',
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.hilo_rate_access',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': '0.46154',
+  })
+# ---
+# name: test_sensor_entities[sensor.hilo_rate_current-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.TOTAL: 'total'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.hilo_rate_current',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Hilo rate current',
+    'options': dict({
+    }),
+    'original_device_class': <SensorDeviceClass.MONETARY: 'monetary'>,
+    'original_icon': 'mdi:cash',
+    'original_name': 'Hilo rate current',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '100000-hilo_rate_current',
+    'unit_of_measurement': '$/kWh',
+  })
+# ---
+# name: test_sensor_entities[sensor.hilo_rate_current-state]
+  StateSnapshot({
+    'attributes': dict({
+      'Cost': 0.07065,
+      'Plan': 'rate d',
+      'device_class': 'monetary',
+      'friendly_name': 'Hilo Gateway Hilo rate current',
+      'icon': 'mdi:cash',
+      'last_update': HAFakeDatetime(2026, 10, 28, 12, 0, tzinfo=datetime.timezone.utc),
+      'state_class': <SensorStateClass.TOTAL: 'total'>,
+      'unit_of_measurement': '$/kWh',
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.hilo_rate_current',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': '0.07065',
+  })
+# ---
+# name: test_sensor_entities[sensor.hilo_rate_low-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.TOTAL: 'total'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.hilo_rate_low',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Hilo rate low',
+    'options': dict({
+    }),
+    'original_device_class': <SensorDeviceClass.MONETARY: 'monetary'>,
+    'original_icon': 'mdi:cash',
+    'original_name': 'Hilo rate low',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '100000-hilo_rate_low',
+    'unit_of_measurement': '$/kWh',
+  })
+# ---
+# name: test_sensor_entities[sensor.hilo_rate_low-state]
+  StateSnapshot({
+    'attributes': dict({
+      'Cost': 0.07065,
+      'Plan': 'rate d',
+      'device_class': 'monetary',
+      'friendly_name': 'Hilo Gateway Hilo rate low',
+      'icon': 'mdi:cash',
+      'last_update': HAFakeDatetime(2026, 10, 28, 12, 0, tzinfo=datetime.timezone.utc),
+      'state_class': <SensorStateClass.TOTAL: 'total'>,
+      'unit_of_measurement': '$/kWh',
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.hilo_rate_low',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': '0.07065',
+  })
+# ---
+# name: test_sensor_entities[sensor.hilo_rate_low_threshold-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.TOTAL: 'total'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.hilo_rate_low_threshold',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Hilo rate low_threshold',
+    'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 2,
+      }),
+    }),
+    'original_device_class': <SensorDeviceClass.ENERGY: 'energy'>,
+    'original_icon': 'mdi:cash',
+    'original_name': 'Hilo rate low_threshold',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '100000-hilo_rate_low_threshold',
+    'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
+  })
+# ---
+# name: test_sensor_entities[sensor.hilo_rate_low_threshold-state]
+  StateSnapshot({
+    'attributes': dict({
+      'Cost': 40,
+      'Plan': 'rate d',
+      'device_class': 'energy',
+      'friendly_name': 'Hilo Gateway Hilo rate low_threshold',
+      'icon': 'mdi:cash',
+      'last_update': HAFakeDatetime(2026, 10, 28, 12, 0, tzinfo=datetime.timezone.utc),
+      'state_class': <SensorStateClass.TOTAL: 'total'>,
+      'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.hilo_rate_low_threshold',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': '40',
+  })
+# ---
+# name: test_sensor_entities[sensor.hilo_rate_medium-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.TOTAL: 'total'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.hilo_rate_medium',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Hilo rate medium',
+    'options': dict({
+    }),
+    'original_device_class': <SensorDeviceClass.MONETARY: 'monetary'>,
+    'original_icon': 'mdi:cash',
+    'original_name': 'Hilo rate medium',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '100000-hilo_rate_medium',
+    'unit_of_measurement': '$/kWh',
+  })
+# ---
+# name: test_sensor_entities[sensor.hilo_rate_medium-state]
+  StateSnapshot({
+    'attributes': dict({
+      'Cost': 0.11142,
+      'Plan': 'rate d',
+      'device_class': 'monetary',
+      'friendly_name': 'Hilo Gateway Hilo rate medium',
+      'icon': 'mdi:cash',
+      'last_update': HAFakeDatetime(2026, 10, 28, 12, 0, tzinfo=datetime.timezone.utc),
+      'state_class': <SensorStateClass.TOTAL: 'total'>,
+      'unit_of_measurement': '$/kWh',
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.hilo_rate_medium',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': '0.11142',
+  })
+# ---
+# name: test_sensor_entities[sensor.hilo_rate_reward_rate-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.TOTAL: 'total'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.hilo_rate_reward_rate',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Hilo rate reward_rate',
+    'options': dict({
+    }),
+    'original_device_class': <SensorDeviceClass.MONETARY: 'monetary'>,
+    'original_icon': 'mdi:cash',
+    'original_name': 'Hilo rate reward_rate',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '100000-hilo_rate_reward_rate',
+    'unit_of_measurement': '$/kWh',
+  })
+# ---
+# name: test_sensor_entities[sensor.hilo_rate_reward_rate-state]
+  StateSnapshot({
+    'attributes': dict({
+      'Cost': 0.5849,
+      'Plan': 'rate d',
+      'device_class': 'monetary',
+      'friendly_name': 'Hilo Gateway Hilo rate reward_rate',
+      'icon': 'mdi:cash',
+      'last_update': HAFakeDatetime(2026, 10, 28, 12, 0, tzinfo=datetime.timezone.utc),
+      'state_class': <SensorStateClass.TOTAL: 'total'>,
+      'unit_of_measurement': '$/kWh',
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.hilo_rate_reward_rate',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': '0.5849',
+  })
+# ---
+# name: test_sensor_entities[sensor.notifications_hilo-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': None,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.notifications_hilo',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Notifications Hilo',
+    'options': dict({
+    }),
+    'original_device_class': None,
+    'original_icon': 'mdi:bell-outline',
+    'original_name': 'Notifications Hilo',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '100000-notifications_hilo',
+    'unit_of_measurement': None,
+  })
+# ---
+# name: test_sensor_entities[sensor.notifications_hilo-state]
+  StateSnapshot({
+    'attributes': dict({
+      'friendly_name': 'Hilo Gateway Notifications Hilo',
+      'icon': 'mdi:bell-outline',
+      'notifications': list([
+      ]),
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.notifications_hilo',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': '0',
+  })
+# ---
+# name: test_sensor_entities[sensor.onelink_firstalert-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': None,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.onelink_firstalert',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'OneLink FirstAlert',
+    'options': dict({
+    }),
+    'original_device_class': None,
+    'original_icon': 'mdi:lan-disconnect',
+    'original_name': 'OneLink FirstAlert',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': 'email@test.com-onelink_firstalert',
+    'unit_of_measurement': None,
+  })
+# ---
+# name: test_sensor_entities[sensor.onelink_firstalert-state]
+  StateSnapshot({
+    'attributes': dict({
+      'friendly_name': 'OneLink FirstAlert',
+      'icon': 'mdi:lan-disconnect',
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.onelink_firstalert',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'unavailable',
+  })
+# ---
+# name: test_sensor_entities[sensor.outdoor_weather_hilo-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.outdoor_weather_hilo',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Outdoor Weather Hilo',
+    'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 1,
+      }),
+    }),
+    'original_device_class': <SensorDeviceClass.TEMPERATURE: 'temperature'>,
+    'original_icon': 'mdi:lan-disconnect',
+    'original_name': 'Outdoor Weather Hilo',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '100000-outdoor_weather_hilo',
+    'unit_of_measurement': <UnitOfTemperature.CELSIUS: '°C'>,
+  })
+# ---
+# name: test_sensor_entities[sensor.outdoor_weather_hilo-state]
+  StateSnapshot({
+    'attributes': dict({
+      'device_class': 'temperature',
+      'friendly_name': 'Hilo Gateway Outdoor Weather Hilo',
+      'icon': 'mdi:lan-disconnect',
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+      'unit_of_measurement': <UnitOfTemperature.CELSIUS: '°C'>,
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.outdoor_weather_hilo',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'unknown',
+  })
+# ---
+# name: test_sensor_entities[sensor.outside-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': None,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.outside',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'outside',
+    'options': dict({
+    }),
+    'original_device_class': None,
+    'original_icon': 'mdi:lan-disconnect',
+    'original_name': 'outside',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': 'bc:8e:b2:f2:d2:ca-outside',
+    'unit_of_measurement': None,
+  })
+# ---
+# name: test_sensor_entities[sensor.outside-state]
+  StateSnapshot({
+    'attributes': dict({
+      'friendly_name': 'outside',
+      'icon': 'mdi:lan-disconnect',
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.outside',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'unavailable',
+  })
+# ---
+# name: test_sensor_entities[sensor.outside_temperature-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.outside_temperature',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'outside Temperature',
+    'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 1,
+      }),
+    }),
+    'original_device_class': <SensorDeviceClass.TEMPERATURE: 'temperature'>,
+    'original_icon': 'mdi:thermometer-off',
+    'original_name': 'outside Temperature',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': 'bc:8e:b2:f2:d2:ca-temperature',
+    'unit_of_measurement': <UnitOfTemperature.CELSIUS: '°C'>,
+  })
+# ---
+# name: test_sensor_entities[sensor.outside_temperature-state]
+  StateSnapshot({
+    'attributes': dict({
+      'device_class': 'temperature',
+      'friendly_name': 'outside Temperature',
+      'icon': 'mdi:thermometer-off',
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+      'unit_of_measurement': <UnitOfTemperature.CELSIUS: '°C'>,
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.outside_temperature',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'unavailable',
+  })
+# ---
+# name: test_sensor_entities[sensor.recompenses_hilo-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.recompenses_hilo',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Recompenses Hilo',
+    'options': dict({
+    }),
+    'original_device_class': <SensorDeviceClass.MONETARY: 'monetary'>,
+    'original_icon': 'mdi:cash-plus',
+    'original_name': 'Recompenses Hilo',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '100000-recompenses_hilo',
+    'unit_of_measurement': 'EUR',
+  })
+# ---
+# name: test_sensor_entities[sensor.recompenses_hilo-state]
+  StateSnapshot({
+    'attributes': dict({
+      'device_class': 'monetary',
+      'friendly_name': 'Hilo Gateway Recompenses Hilo',
+      'history': list([
+      ]),
+      'icon': 'mdi:cash-plus',
+      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+      'unit_of_measurement': 'EUR',
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.recompenses_hilo',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': '0',
+  })
+# ---
+# name: test_sensor_entities[sensor.smart_plug_hilo_energy-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.smart_plug_hilo_energy',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Smart Plug Hilo Energy',
+    'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 2,
+      }),
+    }),
+    'original_device_class': <SensorDeviceClass.ENERGY: 'energy'>,
+    'original_icon': 'mdi:lightning-bolt',
+    'original_name': 'Smart Plug Hilo Energy',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '2a3b4c5d6e7f-energy',
+    'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
+  })
+# ---
+# name: test_sensor_entities[sensor.smart_plug_hilo_energy-state]
+  StateSnapshot({
+    'attributes': dict({
+      'device_class': 'energy',
+      'friendly_name': 'Smart Plug Hilo Energy',
+      'icon': 'mdi:lightning-bolt',
+      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+      'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.smart_plug_hilo_energy',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': '0.00',
+  })
+# ---
+# name: test_sensor_entities[sensor.smart_plug_power-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.smart_plug_power',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Smart Plug Power',
+    'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 0,
+      }),
+    }),
+    'original_device_class': <SensorDeviceClass.POWER: 'power'>,
+    'original_icon': 'mdi:power-plug-off',
+    'original_name': 'Smart Plug Power',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '2a3b4c5d6e7f-power',
+    'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
+  })
+# ---
+# name: test_sensor_entities[sensor.smart_plug_power-state]
+  StateSnapshot({
+    'attributes': dict({
+      'device_class': 'power',
+      'friendly_name': 'Smart Plug Power',
+      'icon': 'mdi:power-plug-off',
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+      'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.smart_plug_power',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': '0',
+  })
+# ---
+# name: test_sensor_entities[sensor.smartenergymeter_hilo_energy_total-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.smartenergymeter_hilo_energy_total',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'hilo_energy_total',
+    'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 2,
+      }),
+    }),
+    'original_device_class': <SensorDeviceClass.ENERGY: 'energy'>,
+    'original_icon': 'mdi:lightning-bolt',
+    'original_name': 'hilo_energy_total',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '0x006baa0000000001-smart_meter-energy',
+    'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
+  })
+# ---
+# name: test_sensor_entities[sensor.smartenergymeter_hilo_energy_total-state]
+  StateSnapshot({
+    'attributes': dict({
+      'device_class': 'energy',
+      'friendly_name': 'SmartEnergyMeter hilo_energy_total',
+      'icon': 'mdi:lightning-bolt',
+      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+      'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.smartenergymeter_hilo_energy_total',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'unavailable',
+  })
+# ---
+# name: test_sensor_entities[sensor.smartenergymeter_power-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.smartenergymeter_power',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'SmartEnergyMeter Power',
+    'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 0,
+      }),
+    }),
+    'original_device_class': <SensorDeviceClass.POWER: 'power'>,
+    'original_icon': 'mdi:lan-disconnect',
+    'original_name': 'SmartEnergyMeter Power',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '0x006baa0000000001-smart_meter-power',
+    'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
+  })
+# ---
+# name: test_sensor_entities[sensor.smartenergymeter_power-state]
+  StateSnapshot({
+    'attributes': dict({
+      'device_class': 'power',
+      'friendly_name': 'SmartEnergyMeter Power',
+      'icon': 'mdi:lan-disconnect',
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+      'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.smartenergymeter_power',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'unavailable',
+  })
+# ---
+# name: test_sensor_entities[sensor.station-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': None,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.station',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Station',
+    'options': dict({
+    }),
+    'original_device_class': None,
+    'original_icon': 'mdi:lan-disconnect',
+    'original_name': 'Station',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '36:2a:6e:4a:44:e5-station',
+    'unit_of_measurement': None,
+  })
+# ---
+# name: test_sensor_entities[sensor.station-state]
+  StateSnapshot({
+    'attributes': dict({
+      'friendly_name': 'Station',
+      'icon': 'mdi:lan-disconnect',
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.station',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'unavailable',
+  })
+# ---
+# name: test_sensor_entities[sensor.station_co2-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.station_co2',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Station CO2',
+    'options': dict({
+    }),
+    'original_device_class': <SensorDeviceClass.CO2: 'carbon_dioxide'>,
+    'original_icon': 'mdi:lan-disconnect',
+    'original_name': 'Station CO2',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '36:2a:6e:4a:44:e5-co2',
+    'unit_of_measurement': <UnitOfRatio.PARTS_PER_MILLION: 'ppm'>,
+  })
+# ---
+# name: test_sensor_entities[sensor.station_co2-state]
+  StateSnapshot({
+    'attributes': dict({
+      'device_class': 'carbon_dioxide',
+      'friendly_name': 'Station CO2',
+      'icon': 'mdi:lan-disconnect',
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+      'unit_of_measurement': <UnitOfRatio.PARTS_PER_MILLION: 'ppm'>,
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.station_co2',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'unavailable',
+  })
+# ---
+# name: test_sensor_entities[sensor.station_noise-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.station_noise',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Station Noise',
+    'options': dict({
+    }),
+    'original_device_class': None,
+    'original_icon': 'mdi:lan-disconnect',
+    'original_name': 'Station Noise',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '36:2a:6e:4a:44:e5-noise',
+    'unit_of_measurement': <UnitOfSoundPressure.DECIBEL: 'dB'>,
+  })
+# ---
+# name: test_sensor_entities[sensor.station_noise-state]
+  StateSnapshot({
+    'attributes': dict({
+      'friendly_name': 'Station Noise',
+      'icon': 'mdi:lan-disconnect',
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+      'unit_of_measurement': <UnitOfSoundPressure.DECIBEL: 'dB'>,
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.station_noise',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'unavailable',
+  })
+# ---
+# name: test_sensor_entities[sensor.station_temperature-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.station_temperature',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Station Temperature',
+    'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 1,
+      }),
+    }),
+    'original_device_class': <SensorDeviceClass.TEMPERATURE: 'temperature'>,
+    'original_icon': 'mdi:thermometer-off',
+    'original_name': 'Station Temperature',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '36:2a:6e:4a:44:e5-temperature',
+    'unit_of_measurement': <UnitOfTemperature.CELSIUS: '°C'>,
+  })
+# ---
+# name: test_sensor_entities[sensor.station_temperature-state]
+  StateSnapshot({
+    'attributes': dict({
+      'device_class': 'temperature',
+      'friendly_name': 'Station Temperature',
+      'icon': 'mdi:thermometer-off',
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+      'unit_of_measurement': <UnitOfTemperature.CELSIUS: '°C'>,
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.station_temperature',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'unavailable',
+  })
+# ---
+# name: test_sensor_entities[sensor.station_wifistrength-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.station_wifistrength',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Station WifiStrength',
+    'options': dict({
+    }),
+    'original_device_class': <SensorDeviceClass.SIGNAL_STRENGTH: 'signal_strength'>,
+    'original_icon': 'mdi:wifi-strength-off',
+    'original_name': 'Station WifiStrength',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '36:2a:6e:4a:44:e5-wifistrength',
+    'unit_of_measurement': 'dBm',
+  })
+# ---
+# name: test_sensor_entities[sensor.station_wifistrength-state]
+  StateSnapshot({
+    'attributes': dict({
+      'device_class': 'signal_strength',
+      'friendly_name': 'Station WifiStrength',
+      'icon': 'mdi:wifi-strength-off',
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+      'unit_of_measurement': 'dBm',
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.station_wifistrength',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'unavailable',
+  })
+# ---
+# name: test_sensor_entities[sensor.thermostat_1_hilo_energy-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.thermostat_1_hilo_energy',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Thermostat 1 Hilo Energy',
+    'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 2,
+      }),
+    }),
+    'original_device_class': <SensorDeviceClass.ENERGY: 'energy'>,
+    'original_icon': 'mdi:lightning-bolt',
+    'original_name': 'Thermostat 1 Hilo Energy',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '1a2b3c4d5e6f-energy',
+    'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
+  })
+# ---
+# name: test_sensor_entities[sensor.thermostat_1_hilo_energy-state]
+  StateSnapshot({
+    'attributes': dict({
+      'device_class': 'energy',
+      'friendly_name': 'Thermostat 1 Hilo Energy',
+      'icon': 'mdi:lightning-bolt',
+      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+      'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.thermostat_1_hilo_energy',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'unavailable',
+  })
+# ---
+# name: test_sensor_entities[sensor.thermostat_1_power-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.thermostat_1_power',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Thermostat 1 Power',
+    'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 0,
+      }),
+    }),
+    'original_device_class': <SensorDeviceClass.POWER: 'power'>,
+    'original_icon': 'mdi:lan-disconnect',
+    'original_name': 'Thermostat 1 Power',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '1a2b3c4d5e6f-power',
+    'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
+  })
+# ---
+# name: test_sensor_entities[sensor.thermostat_1_power-state]
+  StateSnapshot({
+    'attributes': dict({
+      'device_class': 'power',
+      'friendly_name': 'Thermostat 1 Power',
+      'icon': 'mdi:lan-disconnect',
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+      'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.thermostat_1_power',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'unavailable',
+  })
+# ---
+# name: test_sensor_entities[sensor.thermostat_1_target_temperature-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.thermostat_1_target_temperature',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Thermostat 1 Target Temperature',
+    'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 1,
+      }),
+    }),
+    'original_device_class': <SensorDeviceClass.TEMPERATURE: 'temperature'>,
+    'original_icon': 'mdi:thermometer-off',
+    'original_name': 'Thermostat 1 Target Temperature',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '1a2b3c4d5e6f-target-temperature',
+    'unit_of_measurement': <UnitOfTemperature.CELSIUS: '°C'>,
+  })
+# ---
+# name: test_sensor_entities[sensor.thermostat_1_target_temperature-state]
+  StateSnapshot({
+    'attributes': dict({
+      'device_class': 'temperature',
+      'friendly_name': 'Thermostat 1 Target Temperature',
+      'icon': 'mdi:thermometer-off',
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+      'unit_of_measurement': <UnitOfTemperature.CELSIUS: '°C'>,
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.thermostat_1_target_temperature',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'unavailable',
+  })
+# ---
+# name: test_sensor_entities[sensor.thermostat_1_temperature-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.thermostat_1_temperature',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Thermostat 1 Temperature',
+    'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 1,
+      }),
+    }),
+    'original_device_class': <SensorDeviceClass.TEMPERATURE: 'temperature'>,
+    'original_icon': 'mdi:thermometer-off',
+    'original_name': 'Thermostat 1 Temperature',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '1a2b3c4d5e6f-temperature',
+    'unit_of_measurement': <UnitOfTemperature.CELSIUS: '°C'>,
+  })
+# ---
+# name: test_sensor_entities[sensor.thermostat_1_temperature-state]
+  StateSnapshot({
+    'attributes': dict({
+      'device_class': 'temperature',
+      'friendly_name': 'Thermostat 1 Temperature',
+      'icon': 'mdi:thermometer-off',
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+      'unit_of_measurement': <UnitOfTemperature.CELSIUS: '°C'>,
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.thermostat_1_temperature',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'unavailable',
+  })
+# ---
+# name: test_sensor_entities[sensor.wall_switch_hilo_energy-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.wall_switch_hilo_energy',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Wall Switch Hilo Energy',
+    'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 2,
+      }),
+    }),
+    'original_device_class': <SensorDeviceClass.ENERGY: 'energy'>,
+    'original_icon': 'mdi:lightning-bolt',
+    'original_name': 'Wall Switch Hilo Energy',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '3a:4b:5c:6d:7e:8f-energy',
+    'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
+  })
+# ---
+# name: test_sensor_entities[sensor.wall_switch_hilo_energy-state]
+  StateSnapshot({
+    'attributes': dict({
+      'device_class': 'energy',
+      'friendly_name': 'Wall Switch Hilo Energy',
+      'icon': 'mdi:lightning-bolt',
+      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+      'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.wall_switch_hilo_energy',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': '0.00',
+  })
+# ---
+# name: test_sensor_entities[sensor.wall_switch_power-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.wall_switch_power',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Wall Switch Power',
+    'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 0,
+      }),
+    }),
+    'original_device_class': <SensorDeviceClass.POWER: 'power'>,
+    'original_icon': 'mdi:power-plug-off',
+    'original_name': 'Wall Switch Power',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '3a:4b:5c:6d:7e:8f-power',
+    'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
+  })
+# ---
+# name: test_sensor_entities[sensor.wall_switch_power-state]
+  StateSnapshot({
+    'attributes': dict({
+      'device_class': 'power',
+      'friendly_name': 'Wall Switch Power',
+      'icon': 'mdi:power-plug-off',
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+      'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.wall_switch_power',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': '0',
+  })
+# ---
+# name: test_sensor_entities[sensor.water_heater_controller_hilo_energy-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.water_heater_controller_hilo_energy',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Water Heater Controller Hilo Energy',
+    'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 2,
+      }),
+    }),
+    'original_device_class': <SensorDeviceClass.ENERGY: 'energy'>,
+    'original_icon': 'mdi:lightning-bolt',
+    'original_name': 'Water Heater Controller Hilo Energy',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '4a5b6c7d8e9f-energy',
+    'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
+  })
+# ---
+# name: test_sensor_entities[sensor.water_heater_controller_hilo_energy-state]
+  StateSnapshot({
+    'attributes': dict({
+      'device_class': 'energy',
+      'friendly_name': 'Water Heater Controller Hilo Energy',
+      'icon': 'mdi:lightning-bolt',
+      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+      'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.water_heater_controller_hilo_energy',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'unavailable',
+  })
+# ---
+# name: test_sensor_entities[sensor.water_heater_controller_power-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.water_heater_controller_power',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Water Heater Controller Power',
+    'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 0,
+      }),
+    }),
+    'original_device_class': <SensorDeviceClass.POWER: 'power'>,
+    'original_icon': 'mdi:lan-disconnect',
+    'original_name': 'Water Heater Controller Power',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '4a5b6c7d8e9f-power',
+    'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
+  })
+# ---
+# name: test_sensor_entities[sensor.water_heater_controller_power-state]
+  StateSnapshot({
+    'attributes': dict({
+      'device_class': 'power',
+      'friendly_name': 'Water Heater Controller Power',
+      'icon': 'mdi:lan-disconnect',
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+      'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.water_heater_controller_power',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'unavailable',
+  })
+# ---
+# name: test_sensor_entities[sensor.water_heater_controller_temperature-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.water_heater_controller_temperature',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Water Heater Controller Temperature',
+    'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 1,
+      }),
+    }),
+    'original_device_class': <SensorDeviceClass.TEMPERATURE: 'temperature'>,
+    'original_icon': 'mdi:thermometer-off',
+    'original_name': 'Water Heater Controller Temperature',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '4a5b6c7d8e9f-temperature',
+    'unit_of_measurement': <UnitOfTemperature.CELSIUS: '°C'>,
+  })
+# ---
+# name: test_sensor_entities[sensor.water_heater_controller_temperature-state]
+  StateSnapshot({
+    'attributes': dict({
+      'device_class': 'temperature',
+      'friendly_name': 'Water Heater Controller Temperature',
+      'icon': 'mdi:thermometer-off',
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+      'unit_of_measurement': <UnitOfTemperature.CELSIUS: '°C'>,
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.water_heater_controller_temperature',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'unavailable',
+  })
+# ---
