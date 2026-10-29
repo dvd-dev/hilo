@@ -2,9 +2,9 @@
 
 from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
-import pytest
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
+import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 
@@ -16,7 +16,8 @@ async def setup_with_selected_platforms(
     mock_api: MagicMock,
 ) -> None:
     """Set up the Hilo integration with the selected platforms."""
-    entry.add_to_hass(hass)
+    if not hass.config_entries.async_get_entry(entry.entry_id):
+        entry.add_to_hass(hass)
     with (
         patch("custom_components.hilo.PLATFORMS", platforms),
         patch("custom_components.hilo.API.async_create", return_value=mock_api),
@@ -24,7 +25,9 @@ async def setup_with_selected_platforms(
             "custom_components.hilo.Hilo.should_signalr_reconnect",
             new_callable=PropertyMock,
         ) as mock_should_signalr_reconnect,
-        patch("custom_components.hilo.GraphQlHelper.async_init", new_callable=AsyncMock),
+        patch(
+            "custom_components.hilo.GraphQlHelper.async_init", new_callable=AsyncMock
+        ),
         patch(
             "custom_components.hilo.GraphQlHelper.subscribe_to_device_updated",
             new_callable=AsyncMock,

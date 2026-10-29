@@ -126,8 +126,7 @@
       "LoadConnected",
       "LockKeypad",
       "BackLight"
-    ],
-    "Disconnected": false
+    ]
   },
   {
     "id": 111001,
@@ -231,6 +230,182 @@
   },
   {
     "id": 111004,
+    "assetId": "d5ec12ef-5b69-44f9-9c73-0e999d00f3b5",
+    "hiloId": "urn:hilo:philo:2a3b4c5d6e7f:0",
+    "identifier": "2a3b4c5d6e7f",
+    "gatewayId": 1001,
+    "gatewayExternalId": "100000",
+    "gatewayAssetId": "bff2b9f2-760f-4210-b9e6-686e12b407ae",
+    "name": "Smart Plug",
+    "type": "Outlet",
+    "groupId": 7836,
+    "category": "SmartPlug",
+    "icon": null,
+    "loadConnected": null,
+    "modelNumber": "42405",
+    "locationId": 123,
+    "parameters": null,
+    "externalGroup": "Plug",
+    "provider": 1,
+    "providerData": null,
+    "isFavorite": false,
+    "eTag": "",
+    "supportedAttributes": "OnOff,Disconnected,Power",
+    "supportedAttributesList": [
+      "OnOff",
+      "Disconnected",
+      "Power"
+    ],
+    "settableAttributes": "OnOff",
+    "settableAttributesList": [
+      "OnOff"
+    ],
+    "supportedParameters": "",
+    "supportedParametersList": [],
+    "OnOff": {
+      "value": false
+    },
+    "Disconnected": {
+      "value": false
+    }
+  },
+  {
+    "id": 111005,
+    "assetId": "e5ec12ef-5b69-44f9-9c73-0e999d00f3b6",
+    "hiloId": "urn:hilo:philo:3a:4b:5c:6d:7e:8f:0",
+    "identifier": "3a:4b:5c:6d:7e:8f",
+    "gatewayId": 1001,
+    "gatewayExternalId": "100000",
+    "gatewayAssetId": "bff2b9f2-760f-4210-b9e6-686e12b407ae",
+    "name": "Wall Switch",
+    "type": "Ccr",
+    "groupId": 7837,
+    "category": "Switch",
+    "icon": null,
+    "loadConnected": null,
+    "modelNumber": "CCR-01",
+    "locationId": 123,
+    "parameters": null,
+    "externalGroup": "Switch",
+    "provider": 1,
+    "providerData": null,
+    "isFavorite": false,
+    "eTag": "",
+    "supportedAttributes": "OnOff,Disconnected,Power",
+    "supportedAttributesList": [
+      "OnOff",
+      "Disconnected",
+      "Power"
+    ],
+    "settableAttributes": "OnOff",
+    "settableAttributesList": [
+      "OnOff"
+    ],
+    "supportedParameters": "",
+    "supportedParametersList": [],
+    "OnOff": {
+      "value": true
+    },
+    "Disconnected": {
+      "value": false
+    }
+  },
+  {
+    "id": 111006,
+    "assetId": "f5ec12ef-5b69-44f9-9c73-0e999d00f3b7",
+    "hiloId": "urn:hilo:philo:4a5b6c7d8e9f:0",
+    "identifier": "4a5b6c7d8e9f",
+    "gatewayId": 1001,
+    "gatewayExternalId": "100000",
+    "gatewayAssetId": "bff2b9f2-760f-4210-b9e6-686e12b407ae",
+    "name": "Water Heater Controller",
+    "type": "Cee",
+    "groupId": 7838,
+    "category": "Water",
+    "icon": null,
+    "loadConnected": null,
+    "modelNumber": "STLO-23",
+    "locationId": 123,
+    "parameters": null,
+    "externalGroup": "Water",
+    "provider": 1,
+    "providerData": null,
+    "isFavorite": false,
+    "eTag": "",
+    "supportedAttributes": "OnOff, Power, Disconnected, DrmsState, GdState, DrmsStateReason, Version, ZigbeeVersion, Unpaired, Heating, AbnormalTemperature, CurrentTemperature, CcrMode, CcrAllowedModes",
+    "supportedAttributesList": [
+      "OnOff",
+      "Power",
+      "Disconnected",
+      "DrmsState",
+      "GdState",
+      "DrmsStateReason",
+      "Version",
+      "ZigbeeVersion",
+      "Unpaired",
+      "Heating",
+      "AbnormalTemperature",
+      "CurrentTemperature",
+      "CcrMode",
+      "CcrAllowedModes"
+    ],
+    "settableAttributes": "OnOff, CcrMode",
+    "settableAttributesList": [
+      "OnOff",
+      "CcrMode"
+    ],
+    "supportedParameters": "",
+    "supportedParametersList": [],
+    "OnOff": {
+      "value": false
+    },
+    "Disconnected": {
+      "value": true
+    }
+  },
+  {
+    "id": 111007,
+    "assetId": "a5ec12ef-5b69-44f9-9c73-0e999d00f3b8",
+    "hiloId": "urn:hilo:philo:5a6b7c8d9e0f:0",
+    "identifier": "5a6b7c8d9e0f",
+    "gatewayId": 1001,
+    "gatewayExternalId": "100000",
+    "gatewayAssetId": "bff2b9f2-760f-4210-b9e6-686e12b407ae",
+    "name": "Calypso Water Heater",
+    "type": "SinopeWaterHeater",
+    "groupId": 7839,
+    "category": "WaterHeater",
+    "icon": null,
+    "loadConnected": null,
+    "modelNumber": "RM3500ZB",
+    "locationId": 123,
+    "parameters": null,
+    "externalGroup": "WaterHeater",
+    "provider": 9,
+    "providerData": null,
+    "isFavorite": false,
+    "eTag": "",
+    "supportedAttributes": "OnOff,Disconnected,Power",
+    "supportedAttributesList": [
+      "OnOff",
+      "Disconnected",
+      "Power"
+    ],
+    "settableAttributes": "OnOff",
+    "settableAttributesList": [
+      "OnOff"
+    ],
+    "supportedParameters": "",
+    "supportedParametersList": [],
+    "OnOff": {
+      "value": false
+    },
+    "Disconnected": {
+      "value": false
+    }
+  },
+  {
+    "id": 111008,
     "assetId": "d6fd23f0-6c7a-45aa-8d84-1f000e11a4b5",
     "hiloId": "urn:hilo:philo:2b3c4d5e6f70:0",
     "identifier": "2b3c4d5e6f70",

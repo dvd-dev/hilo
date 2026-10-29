@@ -1,0 +1,229 @@
+# serializer version: 1
+# name: test_switch_entities[switch.calypso_water_heater-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': None,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'switch',
+    'entity_category': None,
+    'entity_id': 'switch.calypso_water_heater',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Calypso Water Heater',
+    'options': dict({
+    }),
+    'original_device_class': None,
+    'original_icon': 'mdi:power-plug-off',
+    'original_name': 'Calypso Water Heater',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '5a6b7c8d9e0f-switch',
+    'unit_of_measurement': None,
+  })
+# ---
+# name: test_switch_entities[switch.calypso_water_heater-state]
+  StateSnapshot({
+    'attributes': dict({
+      'friendly_name': 'Calypso Water Heater',
+      'icon': 'mdi:power-plug-off',
+    }),
+    'context': <ANY>,
+    'entity_id': 'switch.calypso_water_heater',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'off',
+  })
+# ---
+# name: test_switch_entities[switch.smart_plug-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': None,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'switch',
+    'entity_category': None,
+    'entity_id': 'switch.smart_plug',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Smart Plug',
+    'options': dict({
+    }),
+    'original_device_class': None,
+    'original_icon': 'mdi:power-plug-off',
+    'original_name': 'Smart Plug',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '2a3b4c5d6e7f-switch',
+    'unit_of_measurement': None,
+  })
+# ---
+# name: test_switch_entities[switch.smart_plug-state]
+  StateSnapshot({
+    'attributes': dict({
+      'friendly_name': 'Smart Plug',
+      'icon': 'mdi:power-plug-off',
+    }),
+    'context': <ANY>,
+    'entity_id': 'switch.smart_plug',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'off',
+  })
+# ---
+# name: test_switch_entities[switch.wall_switch-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': None,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'switch',
+    'entity_category': None,
+    'entity_id': 'switch.wall_switch',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Wall Switch',
+    'options': dict({
+    }),
+    'original_device_class': None,
+    'original_icon': 'mdi:power-plug',
+    'original_name': 'Wall Switch',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '3a:4b:5c:6d:7e:8f-switch',
+    'unit_of_measurement': None,
+  })
+# ---
+# name: test_switch_entities[switch.wall_switch-state]
+  StateSnapshot({
+    'attributes': dict({
+      'friendly_name': 'Wall Switch',
+      'icon': 'mdi:power-plug',
+    }),
+    'context': <ANY>,
+    'entity_id': 'switch.wall_switch',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'on',
+  })
+# ---
+# name: test_switch_entities[switch.water_heater_controller-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+    ]),
+    'area_id': None,
+    'capabilities': None,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'switch',
+    'entity_category': None,
+    'entity_id': 'switch.water_heater_controller',
+    'has_entity_name': False,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Water Heater Controller',
+    'options': dict({
+    }),
+    'original_device_class': None,
+    'original_icon': 'mdi:lan-disconnect',
+    'original_name': 'Water Heater Controller',
+    'platform': 'hilo',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': '4a5b6c7d8e9f-switch',
+    'unit_of_measurement': None,
+  })
+# ---
+# name: test_switch_entities[switch.water_heater_controller-state]
+  StateSnapshot({
+    'attributes': dict({
+      'friendly_name': 'Water Heater Controller',
+      'icon': 'mdi:lan-disconnect',
+    }),
+    'context': <ANY>,
+    'entity_id': 'switch.water_heater_controller',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'unavailable',
+  })
+# ---
+# name: test_switch_turn_on_and_off[switch.smart_plug-turned-off-state]
+  StateSnapshot({
+    'attributes': dict({
+      'friendly_name': 'Smart Plug',
+      'icon': 'mdi:power-plug-off',
+    }),
+    'context': <ANY>,
+    'entity_id': 'switch.smart_plug',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'off',
+  })
+# ---
+# name: test_switch_turn_on_and_off[switch.smart_plug-turned-on-state]
+  StateSnapshot({
+    'attributes': dict({
+      'friendly_name': 'Smart Plug',
+      'icon': 'mdi:power-plug',
+    }),
+    'context': <ANY>,
+    'entity_id': 'switch.smart_plug',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'on',
+  })
+# ---

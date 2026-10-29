@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import asyncio
 from collections import OrderedDict
-from datetime import datetime, timedelta
+import contextlib
+from datetime import UTC, datetime, timedelta
 import traceback
-from typing import List, Optional
 
 from aiohttp import CookieJar, client_exceptions
 from homeassistant.components.select import (
@@ -22,6 +22,8 @@ from homeassistant.const import (
     CONF_SCAN_INTERVAL,
     CONF_USERNAME,
     EVENT_HOMEASSISTANT_STOP,
+    STATE_UNAVAILABLE,
+    STATE_UNKNOWN,
     Platform,
     __short_version__ as current_version,
 )
@@ -35,6 +37,7 @@ from homeassistant.helpers import (
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.util import dt as dt_util
 from packaging.version import Version
 from pyhilo import API
 from pyhilo.device import HiloDevice
@@ -46,12 +49,12 @@ from pyhilo.signalr import SignalREvent, signalr_event_from_payload
 from pyhilo.util import from_utc_timestamp, time_diff
 from pysignalr.exceptions import ServerError as SignalRServerError
 
+from .api import HiloAuth
 from .config_flow import STEP_OPTION_SCHEMA, HiloFlowHandler
 from .const import (
     CONF_APPRECIATION_PHASE,
     CONF_CHALLENGE_LOCK,
     CONF_GENERATE_ENERGY_METERS,
-    CONF_HQ_PLAN_NAME,
     CONF_LOG_TRACES,
     CONF_PRE_COLD_PHASE,
     CONF_TARIFF,
@@ -81,6 +84,8 @@ PLATFORMS = COORDINATOR_AWARE_PLATFORMS + [
     Platform.LIGHT,
     Platform.SWITCH,
 ]
+
+type HiloConfigEntry = ConfigEntry[Hilo]
 
 # Suffixes used when building gateway-attached entity unique_ids in sensor.py
 # (e.g. f"{device.identifier.lower()}-{suffix}"). Used to migrate those
@@ -189,7 +194,7 @@ def _async_migrate_gateway_device_identifier(
     LOG.info("Migrated gateway device identifier %s -> %s", old_dsn, new_mac)
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: HiloConfigEntry) -> bool:
     """Set up Hilo as config entry."""
     HiloFlowHandler.async_register_implementation(
         hass, AuthCodeWithPKCEImplementation(hass)
@@ -208,10 +213,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             session=async_create_clientsession(
                 hass, cookie_jar=CookieJar(quote_cookie=False)
             ),
-            oauth_session=config_entry_oauth2_flow.OAuth2Session(
-                hass, entry, implementation
+            auth=HiloAuth(
+                config_entry_oauth2_flow.OAuth2Session(hass, entry, implementation)
             ),
             log_traces=current_options.get(CONF_LOG_TRACES, DEFAULT_LOG_TRACES),
+            state_yaml=hass.config.path("hilo_state.yaml"),
         )
 
     except (TimeoutError, client_exceptions.ClientConnectorError):
@@ -234,8 +240,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         LOG.debug("Timeout with API connection")
         raise ConfigEntryNotReady from err
 
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][entry.entry_id] = hilo
+    entry.runtime_data = hilo
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
@@ -305,7 +310,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         LOG.debug("HILO_DEBUG: log_traces is %s", log_traces)
         hass.bus.async_listen("hilo_debug", handle_debug_event)
 
-    async def async_reload_entry(_: HomeAssistant, updated_entry: ConfigEntry) -> None:
+    async def async_reload_entry(
+        _: HomeAssistant, updated_entry: HiloConfigEntry
+    ) -> None:
         """Handle an options update.
 
         This method will get called in two scenarios:
@@ -324,29 +331,28 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: HiloConfigEntry) -> bool:
     """Unload a Hilo config entry."""
     LOG.debug("Unloading Hilo Integration")
 
-    hilo = hass.data[DOMAIN][entry.entry_id]
+    if not await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
+        return False
+
+    hilo = entry.runtime_data
 
     hilo.should_signalr_reconnect = False
 
     for task in list(hilo._signalr_reconnect_tasks):
         if not task.done():
             task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await task
-            except asyncio.CancelledError:
-                pass
 
     for task in list(hilo.subscriptions):
         if task and not task.done():
             task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await task
-            except asyncio.CancelledError:
-                pass
 
     try:
         await hilo._api.signalr_devices.disconnect()
@@ -357,12 +363,22 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     except Exception as err:
         LOG.error("Error disconnecting challenge SignalR hub: %s", err)
 
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-    if unload_ok:
-        LOG.debug("Hilo Integration unloaded")
-        hass.data[DOMAIN].pop(entry.entry_id)
+    LOG.debug("Hilo Integration unloaded")
+    return True
 
-    return unload_ok
+
+async def async_remove_config_entry_device(
+    hass: HomeAssistant, entry: HiloConfigEntry, device_entry: dr.DeviceEntry
+) -> bool:
+    """Allow removing a device only once Hilo no longer reports it."""
+    hilo = entry.runtime_data
+    current = {device.identifier for device in hilo.devices.all}
+    if hilo.unknown_tracker_device:
+        current.add(hilo.unknown_tracker_device.identifier)
+    return not any(
+        domain == DOMAIN and identifier in current
+        for domain, identifier in device_entry.identifiers
+    )
 
 
 async def async_migrate_entry(hass, config_entry: ConfigEntry):
@@ -399,8 +415,8 @@ class Hilo:
         self._should_signalr_reconnect = True
         self._signalr_reconnect_tasks: list[asyncio.Task | None] = [None, None]
         self._update_task: list[asyncio.Task | None] = [None, None]
-        self.subscriptions: List[Optional[asyncio.Task]] = [None]
-        self.hq_plan_name = entry.options.get(CONF_HQ_PLAN_NAME, DEFAULT_HQ_PLAN_NAME)
+        self.subscriptions: list[asyncio.Task | None] = [None]
+        self.hq_plan_name = DEFAULT_HQ_PLAN_NAME
         self.appreciation = entry.options.get(
             CONF_APPRECIATION_PHASE, DEFAULT_APPRECIATION_PHASE
         )
@@ -417,6 +433,7 @@ class Hilo:
         self.generate_energy_meters = entry.options.get(
             CONF_GENERATE_ENERGY_METERS, DEFAULT_GENERATE_ENERGY_METERS
         )
+        self.cost_sensors: dict = {}
         # This will get filled in by async_init:
         self.coordinator: DataUpdateCoordinator | None = None
         self.unknown_tracker_device: HiloDevice | None = None
@@ -819,6 +836,18 @@ class Hilo:
             new_unique_id = f"{new_mac.lower()}-{suffix}"
             self.async_migrate_unique_id(old_unique_id, new_unique_id, Platform.SENSOR)
 
+    async def _async_update_plan_name(self) -> None:
+        """Set the plan name from the rate plan reported by Hilo."""
+        try:
+            rate_plan = await self._api.get_rate_plan(self.devices.location_id)
+        except (HiloError, KeyError) as err:
+            LOG.warning(
+                "Unable to fetch rate plan, using %s: %s", self.hq_plan_name, err
+            )
+            return
+        self.hq_plan_name = "flex d" if rate_plan.lower() == "flex" else "rate d"
+        LOG.debug("Rate plan %s mapped to %s", rate_plan, self.hq_plan_name)
+
     async def async_init(self, scan_interval: int) -> None:
         """Initialize the Hilo "manager" class.
 
@@ -832,6 +861,7 @@ class Hilo:
         """
         # Step 1: Get location IDs (still REST)
         await self.devices.async_init()
+        await self._async_update_plan_name()
 
         # Step 2: Register SignalR callbacks and start connections
         self._api.signalr_devices.add_connect_callback(self._on_devices_connected)
@@ -1047,42 +1077,56 @@ class Hilo:
         )
         return challenge_sensor.state == "reduction"
 
-    def check_season(self):
+    def check_season(self, current_time: datetime | None = None) -> bool:
         """Determine if we are using a winter or summer rate."""
-        current_month = datetime.now().month
+        if current_time is None:
+            current_time = dt_util.now()
+        current_month = current_time.month
         LOG.debug("check_season current month is %s", current_month)
         return current_month in [12, 1, 2, 3]
 
+    @property
+    def plan_name(self) -> str:
+        """Determine which plan is active depending on season and user-selected rate."""
+        if self.hq_plan_name == "flex d":
+            if self.check_season():
+                return "flex d"
+            return "rate d"
+        return self.hq_plan_name
+
+    def get_tariff_config(self) -> dict[str, float]:
+        """Return the active tariff configuration based on plan and season.
+
+        For Flex D in non-winter (summer) months, Hydro-Québec bills at Rate D
+        rates for baseline consumption, while peak events do not occur. We keep
+        the high rate and reward rate from Flex D so that the utility-meter
+        tariff lists and dashboard entities remain consistent across seasons,
+        only swapping in Rate D's low and medium rates.
+        """
+        if self.hq_plan_name == "flex d":
+            config = CONF_TARIFF["flex d"].copy()
+            if not self.check_season():
+                rate_d = CONF_TARIFF["rate d"]
+                config["low"] = rate_d["low"]
+                config["medium"] = rate_d["medium"]
+            return config
+        return CONF_TARIFF.get(self.hq_plan_name, CONF_TARIFF["rate d"]).copy()
+
     def check_tarif(self):
         """Determine which tarif to select depending on season and user-selected rate."""
-        if self.generate_energy_meters:
-            season = self.check_season()
-            LOG.debug("check_tarif current season state is %s", season)
-            tarif = "low"
-            base_sensor = f"sensor.{HILO_ENERGY_TOTAL}_low"
-            energy_used = self._hass.states.get(base_sensor)
-            if not energy_used:
-                LOG.warning("check_tarif: Unable to find state for %s", base_sensor)
-                return tarif
-            user_selected_plan_name = self.hq_plan_name
+        if not self.generate_energy_meters:
+            return
 
-            if user_selected_plan_name == "flex d":
-                if season:
-                    plan_name = "flex d"
-                else:
-                    plan_name = "rate d"
-            else:
-                plan_name = user_selected_plan_name
-
-            tarif_config = CONF_TARIFF.get(plan_name)
+        tarif_config = self.get_tariff_config()
 
         for tarif_name, rate in tarif_config.items():
             if rate > 0 and tarif_name in ["low", "medium", "high"]:
-                if hasattr(self, "cost_sensors") and tarif_name in self.cost_sensors:
+                if tarif_name in self.cost_sensors:
                     sensor = self.cost_sensors[tarif_name]
                     if sensor._cost != rate:
                         sensor._cost = rate
-                        sensor.async_write_ha_state()
+                        if sensor.hass is not None:
+                            sensor.async_write_ha_state()
                         LOG.debug(
                             "check_tarif Updated %s sensor from %s to %s",
                             tarif_name,
@@ -1090,47 +1134,46 @@ class Hilo:
                             rate,
                         )
 
-        current_cost = self._hass.states.get("sensor.hilo_rate_current")
-
-        if not current_cost:
-            LOG.warning(
-                "check_tarif: Unable to find state for sensor.hilo_rate_current"
-            )
-            return
-
-        try:
-            if float(energy_used.state) >= tarif_config.get("low_threshold"):
-                tarif = "medium"
-        except ValueError:
-            LOG.warning(
-                "Unable to restore a valid state of %s: %s",
+        tarif = "low"
+        base_sensor = f"sensor.{HILO_ENERGY_TOTAL}_low"
+        energy_used = self._hass.states.get(base_sensor)
+        if energy_used and energy_used.state not in (STATE_UNKNOWN, STATE_UNAVAILABLE):
+            try:
+                if float(energy_used.state) >= tarif_config["low_threshold"]:
+                    tarif = "medium"
+            except (ValueError, TypeError):
+                LOG.warning(
+                    "Unable to restore a valid state of %s: %s",
+                    base_sensor,
+                    energy_used.state,
+                )
+        else:
+            LOG.debug(
+                "check_tarif: %s state not available yet, defaulting to low",
                 base_sensor,
-                energy_used.state,
             )
 
         if tarif_config.get("high", 0) > 0 and self.high_times:
             tarif = "high"
-        target_cost = self._hass.states.get(f"sensor.hilo_rate_{tarif}")
 
-        if not target_cost:
-            LOG.warning("check_tarif: sensor.hilo_rate_%s not available yet", tarif)
-            return
-
-        if target_cost.state != current_cost.state:
-            LOG.debug(
-                "check_tarif: Updating current cost, was %s now %s",
-                current_cost.state,
-                target_cost.state,
-            )
-            self.set_state("sensor.hilo_rate_current", target_cost.state)
-            if "current" in self.cost_sensors:
-                self.cost_sensors["current"]._cost = target_cost.state
+        target_cost_rate = tarif_config[tarif]
+        if "current" in self.cost_sensors:
+            sensor = self.cost_sensors["current"]
+            if sensor._cost != target_cost_rate:
+                LOG.debug(
+                    "check_tarif: Updating current cost, was %s now %s",
+                    sensor._cost,
+                    target_cost_rate,
+                )
+                sensor._cost = target_cost_rate
+                if sensor.hass is not None:
+                    sensor.async_write_ha_state()
 
         LOG.debug(
             "check_tarif: Current plan: %s Target Tarif: %s Energy used: %s Peak: %s",
-            plan_name,
+            self.plan_name,
             tarif,
-            energy_used.state,
+            energy_used.state if energy_used else "N/A",
             self.high_times,
         )
 
@@ -1154,10 +1197,8 @@ class Hilo:
                 unknown_source_tracker,
                 smart_meter,
             ]:
-                try:
+                with contextlib.suppress(ValueError):
                     known_power += int(float(state.state))
-                except ValueError:
-                    pass
             if not entity.endswith("_hilo_energy") or entity.endswith("_cost"):
                 continue
             self.fix_utility_sensor(entity, state)
@@ -1179,7 +1220,7 @@ class Hilo:
                     {
                         "deviceId": 69420,
                         "locationId": self.devices.location_id,
-                        "timeStampUTC": datetime.utcnow().isoformat(),
+                        "timeStampUTC": datetime.now(UTC).isoformat(),
                         "attribute": "Power",
                         "value": unknown_power,
                         "valueType": "Watt",
@@ -1218,7 +1259,7 @@ class Hilo:
             ATTR_UNIT_OF_MEASUREMENT: parent_unit,  # note ic-dev21: now uses parent_unit directly
             ATTR_DEVICE_CLASS: SensorDeviceClass.ENERGY,
         }
-        if not all(a in attrs.keys() for a in new_attrs):
+        if not all(a in attrs for a in new_attrs):
             LOG.warning(
                 f"Fixing utility sensor: {entity} {current_state} new_attrs: {new_attrs}"
             )

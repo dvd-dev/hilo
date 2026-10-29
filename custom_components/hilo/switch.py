@@ -1,23 +1,24 @@
 """Support for Hilo switches."""
 
 from homeassistant.components.switch import SwitchEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import slugify
 from pyhilo.device.switch import Switch
 
-from . import Hilo
-from .const import DOMAIN, LOG, SWITCH_CLASSES
+from . import Hilo, HiloConfigEntry
+from .const import LOG, SWITCH_CLASSES
 from .entity import HiloEntity
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant,
+    entry: HiloConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Hilo switches based on a config entry."""
-    hilo = hass.data[DOMAIN][entry.entry_id]
+    hilo = entry.runtime_data
     entities = []
 
     for d in hilo.devices.all:

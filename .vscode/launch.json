@@ -10,6 +10,9 @@
       "request": "launch",
       "module": "homeassistant",
       "justMyCode": false,
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      },
       "args": ["--debug", "-c", "config", "--skip-pip-packages", "python-hilo"]
     },
     {
@@ -18,6 +21,9 @@
       "request": "launch",
       "module": "homeassistant",
       "justMyCode": false,
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      },
       "args": ["--debug", "-c", "config"]
     }
   ]

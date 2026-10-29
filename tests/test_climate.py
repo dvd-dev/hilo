@@ -1,8 +1,7 @@
-"""Tests for the Hilo switch platform."""
+"""Tests for the Hilo climate platform."""
 
 from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
-import pytest
 from homeassistant.components.climate.const import ATTR_HVAC_MODE, HVACMode
 from homeassistant.const import (
     ATTR_TEMPERATURE,
@@ -11,11 +10,10 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 from pyhilo.device import HiloDevice
+import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
-from syrupy.assertion import SnapshotAssertion
 
 from custom_components.hilo.climate import HiloClimate
-from custom_components.hilo.const import DOMAIN
 
 from . import setup_with_selected_platforms
 
@@ -23,7 +21,6 @@ from . import setup_with_selected_platforms
 @pytest.mark.usefixtures("entity_registry_enabled_by_default", "mock_api")
 async def test_climate(
     hass: HomeAssistant,
-    snapshot: SnapshotAssertion,
     mock_config_entry: MockConfigEntry,
     entity_registry: er.EntityRegistry,
     mock_api: MagicMock,
@@ -33,22 +30,66 @@ async def test_climate(
         hass, mock_config_entry, [Platform.CLIMATE], mock_api
     )
 
-    entity_entries = er.async_entries_for_config_entry(
-        entity_registry, mock_config_entry.entry_id
-    )
+    entity_entries = {
+        entry.unique_id: entry
+        for entry in er.async_entries_for_config_entry(
+            entity_registry, mock_config_entry.entry_id
+        )
+    }
+    assert set(entity_entries) == {"1a2b3c4d5e6f-climate", "2b3c4d5e6f70-climate"}
 
-    assert entity_entries
-    for entity_entry in entity_entries:
-        assert entity_entry == snapshot(name=f"{entity_entry.entity_id}-entry")
-        assert (state := hass.states.get(entity_entry.entity_id))
-        assert state == snapshot(name=f"{entity_entry.entity_id}-state")
+    # TODO: Consider reverting to syrupy snapshot testing once support for
+    # Python 3.13 (Home Assistant < 2026.3) is dropped. In HA 2026.3+, internal
+    # EntityRegistryEntry capability dictionary keys changed from strings
+    # ('hvac_modes') to enum members (ClimateEntityCapabilityAttribute.HVAC_MODES),
+    # causing snapshot comparisons to diverge across supported HA versions.
+    # Direct property assertions test the integration behavior reliably across both.
+    entity_entry = entity_entries["1a2b3c4d5e6f-climate"]
+    assert entity_entry.domain == "climate"
+    assert entity_entry.platform == "hilo"
+    assert entity_entry.original_name == "Thermostat 1"
+    assert entity_entry.original_icon == "mdi:radiator-disabled"
+
+    state = hass.states.get(entity_entry.entity_id)
+    assert state is not None
+    assert state.state == "unavailable"
+    assert state.attributes.get("friendly_name") == "Thermostat 1"
+    assert state.attributes.get("icon") == "mdi:radiator-disabled"
+    assert state.attributes.get("min_temp") == 5.0
+    assert state.attributes.get("max_temp") == 36.0
+
+    entity_entry = entity_entries["2b3c4d5e6f70-climate"]
+    assert entity_entry.domain == "climate"
+    assert entity_entry.platform == "hilo"
+    assert entity_entry.original_name == "Thermostat 24V"
+    assert entity_entry.original_icon == "mdi:snowflake"
+
+    state = hass.states.get(entity_entry.entity_id)
+    assert state is not None
+    assert state.state == HVACMode.COOL
+    assert state.attributes.get("friendly_name") == "Thermostat 24V"
+    assert state.attributes.get("icon") == "mdi:snowflake"
+    assert state.attributes.get("hvac_action") == "idle"
+    assert state.attributes.get("hvac_modes") == [
+        HVACMode.HEAT,
+        HVACMode.OFF,
+        HVACMode.COOL,
+        HVACMode.HEAT_COOL,
+    ]
+    assert state.attributes.get("fan_mode") == "ON"
+    assert state.attributes.get("fan_modes") == ["ON", "AUTO", "CIRCULATE"]
+    assert state.attributes.get("current_temperature") == 24
+    assert state.attributes.get("current_humidity") == 57
+    assert state.attributes.get("temperature") == 24.0
+    assert state.attributes.get("min_temp") == 10.0
+    assert state.attributes.get("max_temp") == 32.0
 
 
 def _get_climate_entity(
     hass: HomeAssistant, config_entry: MockConfigEntry, device_name: str
 ) -> HiloClimate:
     """Return the HiloClimate entity backing the named test fixture device."""
-    hilo = hass.data[DOMAIN][config_entry.entry_id]
+    hilo = config_entry.runtime_data
     device: HiloDevice = next(d for d in hilo.devices.all if d.name == device_name)
     assert isinstance(device._entity, HiloClimate)
     return device._entity

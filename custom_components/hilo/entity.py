@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Union
+import contextlib
 
 from homeassistant.const import ATTR_CONNECTIONS
 from homeassistant.core import callback
@@ -23,7 +23,7 @@ class HiloEntity(CoordinatorEntity):
     def __init__(
         self,
         hilo: Hilo,
-        name: Union[str, None] = None,
+        name: str | None = None,
         *,
         device: HiloDevice,
     ) -> None:
@@ -36,11 +36,9 @@ class HiloEntity(CoordinatorEntity):
             "model": device.model,
             "name": device.name,
         }
-        try:
+        # If a device doesn't have a gateway_external_id, it's most likely the gateway itself.
+        with contextlib.suppress(AttributeError):
             device_info_args["via_device"] = (DOMAIN, device.gateway_external_id)
-        except AttributeError:
-            # If a device doesn't have a gateway_external_id, it's most likely the gateway itself.
-            pass  # Do nothing.
         self._attr_device_info = DeviceInfo(**device_info_args)
         try:
             mac_address = dr.format_mac(device.sdi)
@@ -49,10 +47,8 @@ class HiloEntity(CoordinatorEntity):
             }
         except AttributeError:
             pass
-        try:
+        with contextlib.suppress(AttributeError):
             self._attr_device_info["sw_version"] = device.sw_version
-        except AttributeError:
-            pass
         if not name:
             name = device.name
         self._attr_name = name
@@ -77,7 +73,7 @@ class HiloEntity(CoordinatorEntity):
     @callback
     def async_update_from_signalr_event(self, event: SignalREvent) -> None:
         """Update the entity when new data comes from SignalR."""
-        raise NotImplementedError()
+        raise NotImplementedError
 
     async def async_added_to_hass(self):
         """Call when entity is added to hass."""

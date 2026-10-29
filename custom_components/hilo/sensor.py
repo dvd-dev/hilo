@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timedelta, timezone
+import contextlib
+from datetime import UTC, datetime, timedelta
 from os.path import isfile
 
 import aiofiles
@@ -13,7 +14,6 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorStateClass,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_SCAN_INTERVAL,
     CURRENCY_DOLLAR,
@@ -43,7 +43,6 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.debounce import Debouncer
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import Throttle, slugify
 import homeassistant.util.dt as dt_util
@@ -55,16 +54,13 @@ from pyhilo.util import from_utc_timestamp
 import yaml
 from yaml.scanner import ScannerError
 
-from . import Hilo
+from . import Hilo, HiloConfigEntry
 from .const import (
     CONF_ENERGY_METER_PERIOD,
     CONF_GENERATE_ENERGY_METERS,
-    CONF_HQ_PLAN_NAME,
-    CONF_TARIFF,
     CONF_UNTARIFICATED_DEVICES,
     DEFAULT_ENERGY_METER_PERIOD,
     DEFAULT_GENERATE_ENERGY_METERS,
-    DEFAULT_HQ_PLAN_NAME,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_UNTARIFICATED_DEVICES,
     DOMAIN,
@@ -145,13 +141,15 @@ def generate_entities_from_device(device, hilo, scan_interval):
 
 # noinspection GrazieInspection
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant,
+    entry: HiloConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Hilo sensors based on a config entry."""
-    hilo = hass.data[DOMAIN][entry.entry_id]
+    hilo = entry.runtime_data
     new_entities = []
     cost_entities = []
-    hq_plan_name = entry.options.get(CONF_HQ_PLAN_NAME, DEFAULT_HQ_PLAN_NAME)
+    hq_plan_name = hilo.hq_plan_name
     untarificated_devices = entry.options.get(
         CONF_UNTARIFICATED_DEVICES, DEFAULT_UNTARIFICATED_DEVICES
     )
@@ -162,7 +160,7 @@ async def async_setup_entry(
     generate_energy_meters = entry.options.get(
         CONF_GENERATE_ENERGY_METERS, DEFAULT_GENERATE_ENERGY_METERS
     )
-    tariff_config = CONF_TARIFF.get(hq_plan_name)
+    tariff_config = hilo.get_tariff_config()
     if untarificated_devices:
         default_tariff_list = ["total"]
     else:
@@ -210,7 +208,10 @@ async def async_setup_entry(
             cost_entities.append(sensor)
             hilo.cost_sensors[tarif] = sensor  # Stores reference for check_tarif
 
-    hilo_rate_current = HiloCostSensor(hilo, "Hilo rate current", hq_plan_name)
+    initial_current_cost = tariff_config.get("low", 0)
+    hilo_rate_current = HiloCostSensor(
+        hilo, "Hilo rate current", hq_plan_name, initial_current_cost
+    )
     cost_entities.append(hilo_rate_current)
 
     # Create hilo_rate_current_total sensor that includes access rate per hour
@@ -227,9 +228,6 @@ async def async_setup_entry(
 
     hilo.cost_sensors["current"] = hilo_rate_current
     async_add_entities(cost_entities)
-    async_track_state_change_event(
-        hilo._hass, ["sensor.hilo_rate_current"], hilo_rate_current._handle_state_change
-    )
 
     # This setups the utility_meter platform
     await utility_manager.update(async_add_entities)
@@ -359,7 +357,20 @@ class EnergySensor(IntegrationSensor):
             identifiers={(DOMAIN, self._device.identifier)},
         )
 
-        if Version(current_version) >= Version("2026.8"):
+        if Version(current_version) >= Version("2026.11"):
+            super().__init__(
+                integration_method=METHOD_LEFT,
+                device_class=SensorDeviceClass.ENERGY,
+                max_sub_interval=timedelta(seconds=MAX_SUB_INTERVAL),
+                name=self._attr_name,
+                round_digits=2,
+                source_entity=self._source,
+                unique_id=self._attr_unique_id,
+                unit_prefix="k",
+                unit_time="h",
+            )
+        # TODO: Remove once support for Home Assistant <2026.11 is dropped
+        elif Version(current_version) >= Version("2026.8"):
             super().__init__(
                 integration_method=METHOD_LEFT,
                 max_sub_interval=timedelta(seconds=MAX_SUB_INTERVAL),
@@ -741,7 +752,9 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
             Platform.SENSOR,
         )
         LOG.debug("Setting up RewardSensor entity: %s", self._attr_name)
-        self._history_state_yaml: str = "hilo_eventhistory_state.yaml"
+        self._history_state_yaml: str = hilo._hass.config.path(
+            "hilo_eventhistory_state.yaml"
+        )
         self.scan_interval = timedelta(seconds=REWARD_SCAN_INTERVAL)
         self._state = 0
         self._history = []
@@ -821,8 +834,9 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
             return
 
         event = Event(**challenge).as_dict()
-        corresponding_season = self._events_to_poll[event["event_id"]]
-        del self._events_to_poll[event["event_id"]]
+        corresponding_season = self._events_to_poll.pop(event["event_id"], None)
+        if corresponding_season is None:
+            return
 
         for season in self._history:
             if season.get("season") == corresponding_season:
@@ -900,7 +914,7 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
                         )
 
                     start_date_utc = datetime.fromisoformat(raw_event["startDateUtc"])
-                    event_age = datetime.now(timezone.utc) - start_date_utc
+                    event_age = datetime.now(UTC) - start_date_utc
                     if (
                         current_history_event
                         and current_history_event.get("state") == "off"
@@ -924,13 +938,13 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
 
             self._history = new_history
             await self._save_history_debouncer.async_call()
-            for eventId in self._events_to_poll:
-                await self._hilo.subscribe_to_challenge(eventId)
+            for event_id in self._events_to_poll:
+                await self._hilo.subscribe_to_challenge(event_id)
 
     async def _load_history(self) -> list:
         history: list = []
         if isfile(self._history_state_yaml):
-            async with aiofiles.open(self._history_state_yaml, mode="r") as yaml_file:
+            async with aiofiles.open(self._history_state_yaml) as yaml_file:
                 LOG.debug("Loading history state from yaml")
                 content = await yaml_file.read()
                 try:
@@ -1044,9 +1058,9 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
         for challenge in challenges:
             event_id = challenge.get("id")
             progress = challenge.get("progress")
-            baselinewH = challenge.get("baselineWh")
+            baseline_wh = challenge.get("baselineWh")
             LOG.debug("handle_challenge_list_update progress is %s", progress)
-            LOG.debug("handle_challenge_list_update baselineWh is %s", baselinewH)
+            LOG.debug("handle_challenge_list_update baselineWh is %s", baseline_wh)
             if event_id in self._events:
                 if challenge.get("progress") == "completed":
                     # Find the oldest event based on recovery_end datetime
@@ -1062,18 +1076,17 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
                     await asyncio.sleep(300)
                     del self._events[oldest_event_id]
                     break
-                else:
-                    current_event = self._events[event_id]
-                    LOG.debug(
-                        "handle_challenge_list_update current event is: %s",
-                        current_event,
-                    )
-                    updated_event = Event(**{**current_event.as_dict(), **challenge})
-                    if self._hilo.appreciation > 0:
-                        updated_event.appreciation(self._hilo.appreciation)
-                    if self._hilo.pre_cold > 0:
-                        updated_event.pre_cold(self._hilo.pre_cold)
-                    self._events[event_id] = updated_event
+                current_event = self._events[event_id]
+                LOG.debug(
+                    "handle_challenge_list_update current event is: %s",
+                    current_event,
+                )
+                updated_event = Event(**{**current_event.as_dict(), **challenge})
+                if self._hilo.appreciation > 0:
+                    updated_event.appreciation(self._hilo.appreciation)
+                if self._hilo.pre_cold > 0:
+                    updated_event.pre_cold(self._hilo.pre_cold)
+                self._events[event_id] = updated_event
         self._update_next_events()
 
     async def handle_challenge_details_update(self, challenge):
@@ -1096,20 +1109,20 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
             consumption = challenge.get("consumption", {})
             baseline_points = consumption.get("cumulativeBaselinePoints", [])
         if baseline_points:
-            baselinewH = baseline_points[-1]["wh"]
+            baseline_wh = baseline_points[-1]["wh"]
         else:
-            baselinewH = 0
-        allowed_kwh = baselinewH / 1000 if baselinewH > 0 else 0
+            baseline_wh = 0
+        allowed_kwh = baseline_wh / 1000 if baseline_wh > 0 else 0
 
-        used_wH = challenge.get("currentWh", 0)
-        if used_wH is not None and used_wH > 0:
-            used_kWh = used_wH / 1000
+        used_wh = challenge.get("currentWh", 0)
+        if used_wh is not None and used_wh > 0:
+            used_kwh = used_wh / 1000
         else:
-            used_kWh = 0
+            used_kwh = 0
 
         LOG.debug("handle_challenge_details_update progress is %s", progress)
-        LOG.debug("handle_challenge_details_update baselineWh is %s", baselinewH)
-        LOG.debug("handle_challenge_details_update used_kwh is %s", used_kWh)
+        LOG.debug("handle_challenge_details_update baselineWh is %s", baseline_wh)
+        LOG.debug("handle_challenge_details_update used_kwh is %s", used_kwh)
         LOG.debug("handle_challenge_details_update allowed_kwh is %s", allowed_kwh)
 
         if event_id in self._events:
@@ -1119,11 +1132,11 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
                 self._events.pop(event_id, None)
 
             # Consumption update
-            elif used_wH is not None and used_wH > 0:
+            elif used_wh is not None and used_wh > 0:
                 current_event = self._events[event_id]
-                current_event.update_wh(used_wH)
-                if baselinewH > 0:
-                    current_event.update_allowed_wh(baselinewH)
+                current_event.update_wh(used_wh)
+                if baseline_wh > 0:
+                    current_event.update_allowed_wh(baseline_wh)
             # For non consumption updates, we need an event id
             elif event_has_id:
                 current_event = self._events[event_id]
@@ -1132,8 +1145,8 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
                     updated_event.appreciation(self._hilo.appreciation)
                 if self._hilo.pre_cold > 0:
                     updated_event.pre_cold(self._hilo.pre_cold)
-                if baselinewH > 0:
-                    updated_event.update_allowed_wh(baselinewH)
+                if baseline_wh > 0:
+                    updated_event.update_allowed_wh(baseline_wh)
                 elif current_event.allowed_kWh > 0:
                     updated_event.allowed_kWh = current_event.allowed_kWh
                 self._events[event_id] = updated_event
@@ -1154,7 +1167,7 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
     def state(self):
         """Return the current state based on next events."""
         if len(self._next_events) > 0:
-            event = Event(**{**{"id": 0}, **self._next_events[0]})
+            event = Event(**{"id": 0, **self._next_events[0]})
             return event.state
         return "off"
 
@@ -1294,30 +1307,6 @@ class HiloCostSensor(HiloEntity, SensorEntity):
             "Initializing energy cost sensor %s %s Amount: %s", name, plan_name, amount
         )
 
-    def _handle_state_change(self, event):
-        LOG.debug("_handle_state_change() %s | %s ", self, self._last_update)
-        if (state := event.data.get("new_state")) is None:
-            return
-
-        now = dt_util.utcnow()
-        try:
-            if (
-                state.attributes.get("hilo_update")
-                and self._last_update + timedelta(seconds=30) < now
-            ):
-                LOG.debug(
-                    "Setting new state %s state=%s state.attributes=%s",
-                    state.state,
-                    state,
-                    state.attributes,
-                )
-                self._cost = state.state
-                self._last_update = now
-        except ValueError:
-            LOG.error(
-                "Invalidate state received for %s: %s", self._attr_unique_id, state
-            )
-
     @property
     def state(self):
         """Return the cost."""
@@ -1372,7 +1361,6 @@ class HiloCostTotalSensor(HiloEntity, SensorEntity):
             self._attr_native_unit_of_measurement = "CAD"
         self._attr_name = name
         self.plan_name = plan_name
-        self._tariff_config = tariff_config
         self._access_rate = tariff_config.get("access", 0)
         self._last_update = dt_util.utcnow()
         old_unique_id = slugify(self._attr_name)
@@ -1395,11 +1383,16 @@ class HiloCostTotalSensor(HiloEntity, SensorEntity):
         return
 
     @property
+    def tariff_config(self):
+        """Return the active tariff configuration."""
+        return self._hilo.get_tariff_config()
+
+    @property
     def state(self):
         """Return the total cost in dollars."""
         total = 0.0
         for tarif in ["low", "medium", "high"]:
-            rate = self._tariff_config.get(tarif, 0)
+            rate = self.tariff_config.get(tarif, 0)
             if rate <= 0:
                 continue
             energy_entity = f"sensor.{HILO_ENERGY_TOTAL}_{tarif}"
@@ -1440,7 +1433,7 @@ class HiloCostTotalSensor(HiloEntity, SensorEntity):
             "last_update": self._last_update,
         }
         for tarif in ["low", "medium", "high"]:
-            rate = self._tariff_config.get(tarif, 0)
+            rate = self.tariff_config.get(tarif, 0)
             if rate > 0:
                 energy_entity = f"sensor.{HILO_ENERGY_TOTAL}_{tarif}"
                 energy_state = self._hilo._hass.states.get(energy_entity)
@@ -1449,10 +1442,8 @@ class HiloCostTotalSensor(HiloEntity, SensorEntity):
                     "unknown",
                     "unavailable",
                 ):
-                    try:
+                    with contextlib.suppress(ValueError, TypeError):
                         kwh = float(energy_state.state)
-                    except (ValueError, TypeError):
-                        pass
                 attrs[f"{tarif}_kwh"] = round(kwh, 3)
                 attrs[f"{tarif}_rate"] = rate
                 attrs[f"{tarif}_cost"] = round(kwh * rate, 2)
