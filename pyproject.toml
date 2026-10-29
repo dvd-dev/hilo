@@ -54,7 +54,7 @@ test = [
     "pytest-cov",
     "pytest-homeassistant-custom-component>=0.13.0",
     "python-hilo==2026.10.2",
-    "bandit>=1.7.1",
+
     "ruff>=0.17.2",
     "pre-commit>=4.7.0",
     "gitlint>=0.19.1",
@@ -105,6 +105,25 @@ select = [
     "PYI",    # flake8-pyi
     "RET",    # flake8-return
     "RSE",    # flake8-raise
+    "S102",   # Use of exec detected
+    "S103",   # bad-file-permissions
+    "S107",   # Possible hardcoded password assigned to function default
+    "S108",   # hardcoded-temp-file
+    "S301",   # suspicious-pickle-usage
+    "S306",   # suspicious-mktemp-usage
+    "S307",   # suspicious-eval-usage
+    "S313",   # suspicious-xmlc-element-tree-usage
+    "S314",   # suspicious-xml-element-tree-usage
+    "S315",   # suspicious-xml-expat-reader-usage
+    "S316",   # suspicious-xml-expat-builder-usage
+    "S317",   # suspicious-xml-sax-usage
+    "S318",   # suspicious-xml-mini-dom-usage
+    "S319",   # suspicious-xml-pull-dom-usage
+    "S601",   # paramiko-call
+    "S602",   # subprocess-popen-with-shell-equals-true
+    "S604",   # call-with-shell-equals-true
+    "S608",   # hardcoded-sql-expression
+    "S609",   # unix-command-wildcard-injection
     "SIM",    # flake8-simplify
     "UP",     # pyupgrade
     "W",      # pycodestyle
