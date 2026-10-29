@@ -55,7 +55,6 @@ from .const import (
     CONF_APPRECIATION_PHASE,
     CONF_CHALLENGE_LOCK,
     CONF_GENERATE_ENERGY_METERS,
-    CONF_HQ_PLAN_NAME,
     CONF_LOG_TRACES,
     CONF_PRE_COLD_PHASE,
     CONF_TARIFF,
@@ -417,7 +416,7 @@ class Hilo:
         self._signalr_reconnect_tasks: list[asyncio.Task | None] = [None, None]
         self._update_task: list[asyncio.Task | None] = [None, None]
         self.subscriptions: list[asyncio.Task | None] = [None]
-        self.hq_plan_name = entry.options.get(CONF_HQ_PLAN_NAME, DEFAULT_HQ_PLAN_NAME)
+        self.hq_plan_name = DEFAULT_HQ_PLAN_NAME
         self.appreciation = entry.options.get(
             CONF_APPRECIATION_PHASE, DEFAULT_APPRECIATION_PHASE
         )
@@ -837,6 +836,18 @@ class Hilo:
             new_unique_id = f"{new_mac.lower()}-{suffix}"
             self.async_migrate_unique_id(old_unique_id, new_unique_id, Platform.SENSOR)
 
+    async def _async_update_plan_name(self) -> None:
+        """Set the plan name from the rate plan reported by Hilo."""
+        try:
+            rate_plan = await self._api.get_rate_plan(self.devices.location_id)
+        except (HiloError, KeyError) as err:
+            LOG.warning(
+                "Unable to fetch rate plan, using %s: %s", self.hq_plan_name, err
+            )
+            return
+        self.hq_plan_name = "flex d" if rate_plan.lower() == "flex" else "rate d"
+        LOG.debug("Rate plan %s mapped to %s", rate_plan, self.hq_plan_name)
+
     async def async_init(self, scan_interval: int) -> None:
         """Initialize the Hilo "manager" class.
 
@@ -850,6 +861,7 @@ class Hilo:
         """
         # Step 1: Get location IDs (still REST)
         await self.devices.async_init()
+        await self._async_update_plan_name()
 
         # Step 2: Register SignalR callbacks and start connections
         self._api.signalr_devices.add_connect_callback(self._on_devices_connected)
