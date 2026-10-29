@@ -5,11 +5,12 @@ from __future__ import annotations
 import asyncio
 import contextlib
 from datetime import UTC, datetime, timedelta
+from decimal import Decimal, InvalidOperation
 from os.path import isfile
 
 import aiofiles
-from homeassistant.components.integration.sensor import METHOD_LEFT, IntegrationSensor
 from homeassistant.components.sensor import (
+    RestoreSensor,
     SensorDeviceClass,
     SensorEntity,
     SensorStateClass,
@@ -25,7 +26,6 @@ from homeassistant.const import (
     UnitOfPower,
     UnitOfSoundPressure,
     UnitOfTemperature,
-    __short_version__ as current_version,
 )
 
 # This is to add backward compatibility
@@ -38,15 +38,13 @@ except ImportError:
 
     _PARTS_PER_MILLION = CONCENTRATION_PARTS_PER_MILLION
 
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers import entity_registry as er
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.debounce import Debouncer
-from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import Throttle, slugify
 import homeassistant.util.dt as dt_util
-from packaging.version import Version
 from pyhilo.const import UNMONITORED_DEVICES
 from pyhilo.device import HiloDevice
 from pyhilo.event import Event
@@ -63,7 +61,6 @@ from .const import (
     DEFAULT_GENERATE_ENERGY_METERS,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_UNTARIFICATED_DEVICES,
-    DOMAIN,
     EVENT_SCAN_INTERVAL_REDUCTION,
     HILO_ENERGY_TOTAL,
     HILO_SENSOR_CLASSES,
@@ -169,8 +166,8 @@ async def async_setup_entry(
         energy_manager = await EnergyManager().init(hass, energy_meter_period)
         utility_manager = UtilityManager(hass, energy_meter_period, default_tariff_list)
 
-    def create_energy_entity(hilo, device):
-        device._energy_entity = EnergySensor(hilo, device, hass)
+    def create_energy_entity(hilo: Hilo, device: HiloDevice) -> None:
+        device._energy_entity = EnergySensor(hilo, device)
         new_entities.append(device._energy_entity)
         energy_entity = f"{slugify(device.name)}_hilo_energy"
         if energy_entity == HILO_ENERGY_TOTAL:
@@ -309,20 +306,27 @@ class Co2Sensor(HiloEntity, SensorEntity):
         return "mdi:molecule-co2"
 
 
-class EnergySensor(IntegrationSensor):
+_WATT_SECONDS_PER_KWH = Decimal(3_600_000)
+
+
+class EnergySensor(HiloEntity, RestoreSensor):
     """Define a Hilo energy sensor entity."""
 
+    # TODO: Move Left-Riemann power-to-energy accumulation into pyhilo (HiloDevice)
     _attr_device_class = SensorDeviceClass.ENERGY
     _attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
-    _attr_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
     _attr_suggested_display_precision = 2
     _attr_icon = "mdi:lightning-bolt"
 
-    def __init__(self, hilo, device, hass):
+    def __init__(self, hilo: Hilo, device: HiloDevice) -> None:
         """Hilo Energy sensor initialization."""
-        self._device = device
-        self._attr_name = f"{device.name} Hilo Energy"
+        name = (
+            HILO_ENERGY_TOTAL
+            if device.type == "Meter"
+            else f"{device.name} Hilo Energy"
+        )
+        super().__init__(hilo, name=name, device=device)
         old_unique_id = f"hilo_energy_{slugify(device.name)}"
         self._attr_unique_id = f"{device.identifier.lower()}-energy"
         hilo.async_migrate_unique_id(
@@ -333,113 +337,97 @@ class EnergySensor(IntegrationSensor):
             self._attr_unique_id,
             Platform.SENSOR,
         )
-        self._unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
-        self._suggested_display_precision = 2
-
-        if device.type == "Meter":
-            self._attr_name = HILO_ENERGY_TOTAL
-
-        power_unique_id = f"{device.identifier.lower()}-power"
-        entity_registry = er.async_get(hass)
-        self._source = next(
-            (
-                entry.entity_id
-                for entry in entity_registry.entities.values()
-                if entry.unique_id == power_unique_id and entry.platform == DOMAIN
-            ),
-            f"sensor.{slugify(device.name)}_power",  # fallback
-        )
-        # ic-dev21: Set initial state and last_valid_state, removes log errors and unavailable states
-        initial_state = 0
-        self._attr_native_value = initial_state
-        self._attr_last_valid_state = initial_state
-        self._device_info = DeviceInfo(
-            identifiers={(DOMAIN, self._device.identifier)},
-        )
-
-        if Version(current_version) >= Version("2026.11"):
-            super().__init__(
-                integration_method=METHOD_LEFT,
-                device_class=SensorDeviceClass.ENERGY,
-                max_sub_interval=timedelta(seconds=MAX_SUB_INTERVAL),
-                name=self._attr_name,
-                round_digits=2,
-                source_entity=self._source,
-                unique_id=self._attr_unique_id,
-                unit_prefix="k",
-                unit_time="h",
-            )
-        # TODO: Remove once support for Home Assistant <2026.11 is dropped
-        elif Version(current_version) >= Version("2026.8"):
-            super().__init__(
-                integration_method=METHOD_LEFT,
-                max_sub_interval=timedelta(seconds=MAX_SUB_INTERVAL),
-                name=self._attr_name,
-                round_digits=2,
-                source_entity=self._source,
-                unique_id=self._attr_unique_id,
-                unit_prefix="k",
-                unit_time="h",
-            )
-        elif Version(current_version) >= Version("2025.8"):
-            super().__init__(
-                hass,
-                integration_method=METHOD_LEFT,
-                max_sub_interval=timedelta(seconds=MAX_SUB_INTERVAL),
-                name=self._attr_name,
-                round_digits=2,
-                source_entity=self._source,
-                unique_id=self._attr_unique_id,
-                unit_prefix="k",
-                unit_time="h",
-            )
-        elif Version(current_version) >= Version("2024.7"):
-            super().__init__(
-                integration_method=METHOD_LEFT,
-                max_sub_interval=timedelta(seconds=MAX_SUB_INTERVAL),
-                name=self._attr_name,
-                round_digits=2,
-                source_entity=self._source,
-                unique_id=self._attr_unique_id,
-                unit_prefix="k",
-                unit_time="h",
-                device_info=self._device_info,
-            )
-        else:
-            super().__init__(
-                integration_method=METHOD_LEFT,
-                name=self._attr_name,
-                round_digits=2,
-                source_entity=self._source,
-                unique_id=self._attr_unique_id,
-                unit_prefix="k",
-                unit_time="h",
-                device_info=self._device_info,
-            )
-        self._unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
-        self._suggested_display_precision = 2
-
-        self._attr_icon = "mdi:lightning-bolt"
-        LOG.debug(
-            "Setting up EnergySensor entity: %s with source %s",
-            self._attr_name,
-            self._source,
-        )
+        self._state: Decimal = Decimal(0)
+        self._last_power: Decimal | None = None
+        self._last_integration_time: datetime | None = None
+        LOG.debug("Setting up EnergySensor entity: %s", self._attr_name)
 
     @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement."""
-        return self._attr_unit_of_measurement
+    def native_value(self) -> Decimal:
+        """Return the cumulative energy in kWh."""
+        return round(self._state, 2)
 
-    @property
-    def suggested_display_precision(self):
-        """Return the suggested display precision."""
-        return self._attr_suggested_display_precision
+    def _get_current_power(self) -> Decimal | None:
+        """Return the current device power in Watts, or None if unavailable/invalid."""
+        if not self._device.available:
+            return None
+        raw_power = self._device.get_value("power", None)
+        if (
+            raw_power is None
+            or raw_power == STATE_UNKNOWN
+            or isinstance(raw_power, bool)
+        ):
+            return None
+        try:
+            return Decimal(str(raw_power))
+        except (InvalidOperation, TypeError, ValueError):
+            return None
+
+    @callback
+    def _integrate(self, now: datetime | None = None) -> None:
+        """Accumulate energy using Left-Riemann integration since the last update."""
+        current_time = now if now is not None else dt_util.utcnow()
+        current_power = self._get_current_power()
+        if (
+            current_power is not None
+            and self._last_power is not None
+            and self._last_integration_time is not None
+        ):
+            elapsed_seconds = Decimal(
+                str((current_time - self._last_integration_time).total_seconds())
+            )
+            if elapsed_seconds > 0 and self._last_power > 0:
+                self._state += (
+                    self._last_power * elapsed_seconds
+                ) / _WATT_SECONDS_PER_KWH
+
+        self._last_power = current_power
+        self._last_integration_time = current_time
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._integrate()
+        super()._handle_coordinator_update()
+
+    @callback
+    def _update_callback(self) -> None:
+        """Handle real-time device updates from SignalR or GraphQL."""
+        self._integrate()
+        self.async_write_ha_state()
+
+    @callback
+    def _async_integrate_on_timer(self, now: datetime) -> None:
+        """Integrate periodically so constant loads flush within MAX_SUB_INTERVAL."""
+        self._integrate(now)
+        self.async_write_ha_state()
 
     async def async_added_to_hass(self) -> None:
         """Handle entity which will be added."""
         LOG.debug("Added to hass: %s", self._attr_name)
         await super().async_added_to_hass()
+
+        if (last_sensor_data := await self.async_get_last_sensor_data()) is not None:
+            if last_sensor_data.native_value is not None:
+                with contextlib.suppress(InvalidOperation, TypeError, ValueError):
+                    self._state = Decimal(str(last_sensor_data.native_value))
+            elif (last_extra := await self.async_get_last_extra_data()) is not None:
+                last_valid = last_extra.as_dict().get("last_valid_state")
+                if last_valid is not None:
+                    with contextlib.suppress(InvalidOperation, TypeError, ValueError):
+                        self._state = Decimal(str(last_valid))
+
+        self._last_power = self._get_current_power()
+        self._last_integration_time = dt_util.utcnow()
+
+        self.async_on_remove(
+            async_track_time_interval(
+                self.hass,
+                self._async_integrate_on_timer,
+                timedelta(seconds=MAX_SUB_INTERVAL),
+                cancel_on_shutdown=True,
+            )
+        )
 
 
 class NoiseSensor(HiloEntity, SensorEntity):
