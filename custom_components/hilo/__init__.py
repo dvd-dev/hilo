@@ -49,6 +49,7 @@ from pyhilo.signalr import SignalREvent, signalr_event_from_payload
 from pyhilo.util import from_utc_timestamp, time_diff
 from pysignalr.exceptions import ServerError as SignalRServerError
 
+from .api import HiloAuth
 from .config_flow import STEP_OPTION_SCHEMA, HiloFlowHandler
 from .const import (
     CONF_APPRECIATION_PHASE,
@@ -212,8 +213,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiloConfigEntry) -> bool
             session=async_create_clientsession(
                 hass, cookie_jar=CookieJar(quote_cookie=False)
             ),
-            oauth_session=config_entry_oauth2_flow.OAuth2Session(
-                hass, entry, implementation
+            auth=HiloAuth(
+                config_entry_oauth2_flow.OAuth2Session(hass, entry, implementation)
             ),
             log_traces=current_options.get(CONF_LOG_TRACES, DEFAULT_LOG_TRACES),
             state_yaml=hass.config.path("hilo_state.yaml"),
@@ -364,6 +365,20 @@ async def async_unload_entry(hass: HomeAssistant, entry: HiloConfigEntry) -> boo
 
     LOG.debug("Hilo Integration unloaded")
     return True
+
+
+async def async_remove_config_entry_device(
+    hass: HomeAssistant, entry: HiloConfigEntry, device_entry: dr.DeviceEntry
+) -> bool:
+    """Allow removing a device only once Hilo no longer reports it."""
+    hilo = entry.runtime_data
+    current = {device.identifier for device in hilo.devices.all}
+    if hilo.unknown_tracker_device:
+        current.add(hilo.unknown_tracker_device.identifier)
+    return not any(
+        domain == DOMAIN and identifier in current
+        for domain, identifier in device_entry.identifiers
+    )
 
 
 async def async_migrate_entry(hass, config_entry: ConfigEntry):
