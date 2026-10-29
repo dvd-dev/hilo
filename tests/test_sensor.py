@@ -21,7 +21,6 @@ from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
     async_fire_time_changed,
     mock_restore_cache_with_extra_data,
-    snapshot_platform,
 )
 from syrupy.assertion import SnapshotAssertion
 
@@ -29,6 +28,7 @@ from custom_components.hilo import SIGNAL_UPDATE_ENTITY
 from custom_components.hilo.const import (
     CONF_GENERATE_ENERGY_METERS,
     DOMAIN,
+    HILO_ENERGY_TOTAL,
     MAX_SUB_INTERVAL,
 )
 
@@ -36,6 +36,13 @@ from . import setup_with_selected_platforms
 
 SMART_PLUG_ENERGY_ENTITY_ID = "sensor.smart_plug_hilo_energy"
 SMART_PLUG_DEVICE_ID = 111004
+ENERGY_SENSOR_ENTITY_IDS = (
+    "sensor.thermostat_1_hilo_energy",
+    "sensor.smart_plug_hilo_energy",
+    "sensor.wall_switch_hilo_energy",
+    "sensor.water_heater_controller_hilo_energy",
+    "sensor.calypso_water_heater_hilo_energy",
+)
 
 
 @pytest.fixture(autouse=True)
@@ -76,18 +83,31 @@ def mock_config_entry() -> MockConfigEntry:
 
 
 @pytest.mark.usefixtures("entity_registry_enabled_by_default")
-async def test_sensor_entities(
+async def test_energy_sensor_entities(
     hass: HomeAssistant,
     snapshot: SnapshotAssertion,
     mock_config_entry: MockConfigEntry,
     entity_registry: er.EntityRegistry,
     mock_api: MagicMock,
 ) -> None:
-    """Test the creation, registry entries, and initial states of Hilo sensor entities."""
+    """Test the creation, registry entries, and initial states of Hilo energy sensors."""
     await setup_with_selected_platforms(
         hass, mock_config_entry, [Platform.SENSOR], mock_api
     )
-    await snapshot_platform(hass, entity_registry, snapshot, mock_config_entry.entry_id)
+    for entity_id in ENERGY_SENSOR_ENTITY_IDS:
+        entity_entry = entity_registry.async_get(entity_id)
+        assert entity_entry == snapshot(name=f"{entity_id}-entry")
+        state = hass.states.get(entity_id)
+        assert state == snapshot(name=f"{entity_id}-state")
+
+    meter_entity_id = entity_registry.async_get_entity_id(
+        SENSOR_DOMAIN, DOMAIN, "0x006baa0000000001-smart_meter-energy"
+    )
+    assert meter_entity_id is not None
+    meter_device = mock_config_entry.runtime_data.devices.find_device(110999)
+    assert meter_device is not None
+    assert meter_device._energy_entity.name == HILO_ENERGY_TOTAL
+    assert meter_device._energy_entity.native_value == Decimal("0.00")
 
 
 @pytest.mark.parametrize(
@@ -311,3 +331,4 @@ async def test_energy_sensor_unavailable_or_invalid_power(
     device._energy_entity._handle_coordinator_update()
 
     assert device._energy_entity.native_value == Decimal("0.00")
+    device.update(Disconnected={"value": False}, Power={"value": 0})
