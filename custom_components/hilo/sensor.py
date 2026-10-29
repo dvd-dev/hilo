@@ -823,8 +823,9 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
             return
 
         event = Event(**challenge).as_dict()
-        corresponding_season = self._events_to_poll[event["event_id"]]
-        del self._events_to_poll[event["event_id"]]
+        corresponding_season = self._events_to_poll.pop(event["event_id"], None)
+        if corresponding_season is None:
+            return
 
         for season in self._history:
             if season.get("season") == corresponding_season:
