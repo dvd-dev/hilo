@@ -41,6 +41,8 @@ Cette intégration non-officielle HACS permet d'utiliser [Hilo](https://www.hilo
 
 ✅ Contrôle des thermostats et lecture des températures
 
+✅ Support des thermostats basse tension 24 V (ex. : Honeywell T10), incluant mode et ventilateur
+
 ✅ Suivi de la consommation énergétique des appareils Hilo
 
 ✅ Sensor pour les défis et la passerelle Hilo
