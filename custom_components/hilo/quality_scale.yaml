@@ -14,9 +14,7 @@ rules:
     comment: entity.py exists; coordinator.py does not.
   config-flow-test-coverage: todo
   config-flow: done
-  dependency-transparency:
-    status: todo
-    comment: python-hilo imports homeassistant; fixed by python-hilo PR 460.
+  dependency-transparency: done
   docs-actions:
     status: exempt
     comment: The integration does not register actions.
