@@ -80,6 +80,7 @@ exclude = [
 select = [
     "A001",   # Variable {name} is shadowing a Python builtin
     "ASYNC",  # flake8-async
+    "B",      # flake8-bugbear
     "COM818", # Trailing comma on bare tuple prohibited
     "DTZ003", # Use datetime.now(tz=) instead of datetime.utcnow()
     "DTZ004", # Use datetime.fromtimestamp(ts, tz=) instead of datetime.utcfromtimestamp(ts)

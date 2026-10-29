@@ -220,9 +220,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiloConfigEntry) -> bool
             state_yaml=hass.config.path("hilo_state.yaml"),
         )
 
-    except (TimeoutError, client_exceptions.ClientConnectorError):
+    except (TimeoutError, client_exceptions.ClientConnectorError) as err:
         LOG.debug("Timeout")
-        raise ConfigEntryNotReady
+        raise ConfigEntryNotReady from err
 
     except Exception as err:
         raise ConfigEntryAuthFailed(err) from err
@@ -1025,23 +1025,24 @@ class Hilo:
         sorted_entity_registry_dict = OrderedDict(sorted(entity_registry_dict.items()))
         LOG.debug("Entities Ordered dict is %s", sorted_entity_registry_dict)
 
-        # Initialize empty list to put meter name into
-        filtered_names = []
-
         # ic-dev21: Let's grab the meter from our dict
-        for entity_id, entity_data in sorted_entity_registry_dict.items():
+        filtered_names = [
+            entity_data["name"]
+            for entity_data in sorted_entity_registry_dict.values()
             if all(
                 substring in entity_data["name"] for substring in ["meter", "_power"]
-            ):
-                filtered_names.append(entity_data["name"])
+            )
+        ]
 
         LOG.debug("Hilo Smart meter name is: %s", filtered_names)
 
         # Format output to use in check_tarif
         return ", ".join(filtered_names) if filtered_names else ""
 
-    def set_state(self, entity, state, new_attrs={}, keep_state=False, force=False):
+    def set_state(self, entity, state, new_attrs=None, keep_state=False, force=False):
         """Set the state of an entity."""
+        if new_attrs is None:
+            new_attrs = {}
         params = f"{entity=} {state=} {new_attrs=} {keep_state=}"
         current = self._hass.states.get(entity)
         if not current:
