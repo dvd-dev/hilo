@@ -2577,7 +2577,7 @@ test = [
 requires-dist = [
     { name = "colorlog", specifier = ">=6.12.0" },
     { name = "homeassistant", specifier = ">=2024.4.1" },
-    { name = "pip", specifier = ">=26.2.1" },
+    { name = "pip", specifier = ">=26.2.2" },
     { name = "pyyaml", specifier = ">=6.0.2" },
 ]
 
@@ -2594,7 +2594,7 @@ test = [
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "pytest-homeassistant-custom-component", specifier = ">=0.13.0" },
-    { name = "python-hilo", specifier = "==2026.10.1" },
+    { name = "python-hilo", specifier = "==2026.10.2" },
     { name = "ruff", specifier = ">=0.17.2" },
 ]
 
@@ -3916,11 +3916,11 @@ wheels = [
 
 [[package]]
 name = "pip"
-version = "26.2.1"
+version = "26.2.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/ae/15/4500e320e6b101ec3b719ae85b697d9940b6cda672bc555bd6016fc60c6f/pip-26.2.1.tar.gz", hash = "sha256:f6ad667e89a1fe78046c8f13232b247200f5258d7828f3f7883d660878e0813f", size = 1848877, upload-time = "2026-08-04T22:51:14.148Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/fa/e8/0842d757e483e895e670f655084cfe8b8c72580c6769a76b30b2789a0608/pip-26.2.2.tar.gz", hash = "sha256:3a8e5c800492787f33a4114ef54444546c340df428974ebba17e0fd47e11af2f", size = 1863336, upload-time = "2026-10-20T16:36:29.008Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f3/6e/1736e5b4ae2b778ef2f81c47d797de9f891d4d8acb047a24ca37a60294dd/pip-26.2.1-py3-none-any.whl", hash = "sha256:71138adf1f4ca900cdb7d289c21b7494329f2332b6d85f0e1c42108c0384ed3e", size = 1816632, upload-time = "2026-08-04T22:51:12.472Z" },
+    { url = "https://files.pythonhosted.org/packages/3f/06/3e4420302363fbb71be3c7f35ce042f54bfca330e3e66b3a2e3c4cca579f/pip-26.2.2-py3-none-any.whl", hash = "sha256:fd7f4dfa8190e014013b9f08f3e973f4e4c26ffd179a204895533a7254813a70", size = 1819850, upload-time = "2026-10-20T16:36:27.046Z" },
 ]
 
 [[package]]
@@ -5451,7 +5451,7 @@ wheels = [
 
 [[package]]
 name = "python-hilo"
-version = "2026.10.1"
+version = "2026.10.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -5466,9 +5466,9 @@ dependencies = [
     { name = "pyyaml", version = "6.0.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.13.2'" },
     { name = "pyyaml", version = "6.0.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.13.2'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/23/e4/0d43bb9bc2804c3e475dfba843580c0567ee6ef95eb00b8bfc9f15c62aa0/python_hilo-2026.10.1.tar.gz", hash = "sha256:a4f625874449c99220b435a497fd3694259c9555d4a0f128d24812111e928adf", size = 170699, upload-time = "2026-10-12T01:16:33.943Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/5b/88/e6f4c7126053ef19773dd6281a05d687067a1df0b315c86b36a999f65836/python_hilo-2026.10.2.tar.gz", hash = "sha256:1b94d492c6330f6028f8b899bba1c16c7ddb2560be3aefb8e5215e064ec24a6f", size = 139070, upload-time = "2026-10-27T23:23:13.219Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/22/2f/693f5ed2d07ff0e04ea0155157bfeb238c39c5d6dc82786b9fc76a727916/python_hilo-2026.10.1-py3-none-any.whl", hash = "sha256:218043d7a37c541686f9491acdf1c2e40f6868fb5b8310cb20d04f974145ba6e", size = 39657, upload-time = "2026-10-12T01:16:32.794Z" },
+    { url = "https://files.pythonhosted.org/packages/03/63/52b5b96a493c5580da58572ea49a386c34e4f0f5b963eeb6e9eee11c8309/python_hilo-2026.10.2-py3-none-any.whl", hash = "sha256:356707e875bf5a190ba07a3d4d697e011a781dbd3cec8ba4d3c865b64127887f", size = 40610, upload-time = "2026-10-27T23:23:12.14Z" },
 ]
 
 [[package]]

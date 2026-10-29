@@ -11,7 +11,6 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.hilo import Hilo
 from custom_components.hilo.const import (
     CONF_GENERATE_ENERGY_METERS,
-    CONF_HQ_PLAN_NAME,
     CONF_TARIFF,
     DOMAIN,
     HILO_ENERGY_TOTAL,
@@ -187,7 +186,6 @@ async def test_sensor_rates_flex_d_initialization(
         data={"auth_implementation": "hilo", "token": "123"},
         options={
             CONF_GENERATE_ENERGY_METERS: True,
-            CONF_HQ_PLAN_NAME: "flex d",
         },
         unique_id="hilo",
         version=2,
@@ -240,6 +238,27 @@ async def test_sensor_rates_flex_d_initialization(
     assert hilo.cost_sensors["medium"]._cost == expected_med
     assert hilo.cost_sensors["high"]._cost == expected_high
     assert hilo.cost_sensors["current"]._cost == expected_low
+
+
+@pytest.mark.parametrize(
+    ("rate_plan", "expected"),
+    [
+        pytest.param("Flex", "flex d", id="flex"),
+        pytest.param("D", "rate d", id="d"),
+        pytest.param("CH", "rate d", id="ch"),
+    ],
+)
+async def test_plan_name_from_api(
+    hass: HomeAssistant, rate_plan: str, expected: str
+) -> None:
+    """The plan name is derived from the rate plan reported by Hilo."""
+    hilo = create_mock_hilo(hass, "rate d")
+    hilo._api = MagicMock(get_rate_plan=AsyncMock(return_value=rate_plan))
+    hilo.devices = MagicMock(location_id=123)
+
+    await hilo._async_update_plan_name()
+
+    assert hilo.hq_plan_name == expected
 
 
 def test_hilo_cost_total_sensor_tariff_config():

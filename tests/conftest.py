@@ -140,6 +140,7 @@ def mock_api(device_fixture: str) -> Generator[MagicMock]:
         api_mock.wait_for_device_cache = AsyncMock(return_value=None)
         api_mock.get_device_cache.return_value = all_devices
         api_mock.get_location_ids = AsyncMock(return_value=(123, "urn:test:hilo:id"))
+        api_mock.get_rate_plan = AsyncMock(return_value="D")
         api_mock.get_gateway = AsyncMock(
             return_value=next(d for d in all_devices if d.get("type") == "Gateway")
         )
