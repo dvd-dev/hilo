@@ -37,6 +37,7 @@ from . import setup_with_selected_platforms
 SMART_PLUG_ENERGY_ENTITY_ID = "sensor.smart_plug_hilo_energy"
 SMART_PLUG_DEVICE_ID = 111004
 ENERGY_SENSOR_ENTITY_IDS = (
+    f"sensor.{HILO_ENERGY_TOTAL}",
     "sensor.thermostat_1_hilo_energy",
     "sensor.smart_plug_hilo_energy",
     "sensor.wall_switch_hilo_energy",
@@ -100,14 +101,40 @@ async def test_energy_sensor_entities(
         state = hass.states.get(entity_id)
         assert state == snapshot(name=f"{entity_id}-state")
 
-    meter_entity_id = entity_registry.async_get_entity_id(
-        SENSOR_DOMAIN, DOMAIN, "0x006baa0000000001-smart_meter-energy"
+
+@pytest.mark.parametrize(
+    "legacy_object_id",
+    [
+        pytest.param("meter00_hilo_energy_total", id="meter00_prefix"),
+        pytest.param("smartenergymeter_hilo_energy_total", id="device_name_prefix"),
+    ],
+)
+@pytest.mark.usefixtures("entity_registry_enabled_by_default")
+async def test_meter_energy_sensor_entity_id_migration(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    entity_registry: er.EntityRegistry,
+    mock_api: MagicMock,
+    legacy_object_id: str,
+) -> None:
+    """Test migration of device-prefixed meter energy sensor entity IDs to sensor.hilo_energy_total."""
+    mock_config_entry.add_to_hass(hass)
+    entity_registry.async_get_or_create(
+        domain=SENSOR_DOMAIN,
+        platform=DOMAIN,
+        unique_id="0x006baa0000000001-smart_meter-energy",
+        config_entry=mock_config_entry,
+        suggested_object_id=legacy_object_id,
     )
-    assert meter_entity_id is not None
-    meter_device = mock_config_entry.runtime_data.devices.find_device(110999)
-    assert meter_device is not None
-    assert meter_device._energy_entity.name == HILO_ENERGY_TOTAL
-    assert meter_device._energy_entity.native_value == Decimal("0.00")
+
+    await setup_with_selected_platforms(
+        hass, mock_config_entry, [Platform.SENSOR], mock_api
+    )
+
+    assert entity_registry.async_get(f"sensor.{legacy_object_id}") is None
+    migrated_entry = entity_registry.async_get(f"sensor.{HILO_ENERGY_TOTAL}")
+    assert migrated_entry is not None
+    assert migrated_entry.unique_id == "0x006baa0000000001-smart_meter-energy"
 
 
 @pytest.mark.parametrize(

@@ -321,12 +321,9 @@ class EnergySensor(HiloEntity, RestoreSensor):
 
     def __init__(self, hilo: Hilo, device: HiloDevice) -> None:
         """Hilo Energy sensor initialization."""
-        name = (
-            HILO_ENERGY_TOTAL
-            if device.type == "Meter"
-            else f"{device.name} Hilo Energy"
-        )
-        super().__init__(hilo, name=name, device=device)
+        super().__init__(hilo, name=f"{device.name} Hilo Energy", device=device)
+        if device.type == "Meter":
+            self.entity_id = f"sensor.{HILO_ENERGY_TOTAL}"
         old_unique_id = f"hilo_energy_{slugify(device.name)}"
         self._attr_unique_id = f"{device.identifier.lower()}-energy"
         hilo.async_migrate_unique_id(
