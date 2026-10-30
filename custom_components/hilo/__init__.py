@@ -37,7 +37,7 @@ from homeassistant.helpers import (
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-from homeassistant.util import dt as dt_util
+from homeassistant.util import dt as dt_util, slugify
 from packaging.version import Version
 from pyhilo import API
 from pyhilo.device import HiloDevice
@@ -242,6 +242,31 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiloConfigEntry) -> bool
 
     entry.runtime_data = hilo
 
+    entity_registry = er.async_get(hass)
+    # Migrate pre-existing device-prefixed meter energy entity IDs before platform
+    # setup so UtilityManager and check_tarif find sensor.hilo_energy_total immediately.
+    energy_entity_renames = {
+        f"sensor.meter00_{HILO_ENERGY_TOTAL}": f"sensor.{HILO_ENERGY_TOTAL}",
+        **{
+            f"sensor.{slugify(d.name)}_{HILO_ENERGY_TOTAL}": f"sensor.{HILO_ENERGY_TOTAL}"
+            for d in hilo.devices.all
+            if d.type == "Meter"
+        },
+    }
+    for old_id, new_id in energy_entity_renames.items():
+        if old_id == new_id or not entity_registry.async_get(old_id):
+            continue
+        if entity_registry.async_get(new_id):
+            LOG.info(
+                "Skipping migration %s -> %s, target entity ID already registered",
+                old_id,
+                new_id,
+            )
+
+            continue
+        entity_registry.async_update_entity(old_id, new_entity_id=new_id)
+        LOG.info("Migrated entity ID %s -> %s", old_id, new_id)
+
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     # Note (ic-dev21): This is a bit of a hack to rename some entities that were created with non-standard names in early versions
@@ -249,7 +274,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiloConfigEntry) -> bool
     # If we let the HA default behaviour, all gateway entities (such as challenge sensor) will be prefixed with "hilo_gateway_",
     # This code will check for the old entity IDs and rename them to the new format if they exist.
 
-    entity_registry = er.async_get(hass)
     gateway_entity_renames = {
         "sensor.hilo_gateway_defi_hilo": "sensor.defi_hilo",
         "sensor.hilo_gateway_notifications_hilo": "sensor.notifications_hilo",
@@ -265,24 +289,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiloConfigEntry) -> bool
         "sensor.hilo_gateway": "sensor.hilo_gateway",
     }
     for old_id, new_id in gateway_entity_renames.items():
-        if old_id == new_id or not entity_registry.async_get(old_id):
-            continue
-        if entity_registry.async_get(new_id):
-            LOG.info(
-                "Skipping migration %s -> %s, target entity ID already registered",
-                old_id,
-                new_id,
-            )
-
-            continue
-        entity_registry.async_update_entity(old_id, new_entity_id=new_id)
-        LOG.info("Migrated entity ID %s -> %s", old_id, new_id)
-
-    # Note (ic-dev21): this new renaming by HA also breaks sensor.hilo_energy_total, which is used in check_tarif
-    energy_entity_renames = {
-        "sensor.meter00_hilo_energy_total": "sensor.hilo_energy_total"
-    }
-    for old_id, new_id in energy_entity_renames.items():
         if old_id == new_id or not entity_registry.async_get(old_id):
             continue
         if entity_registry.async_get(new_id):
