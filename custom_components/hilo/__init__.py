@@ -810,15 +810,11 @@ class Hilo:
     async def _fetch_legacy_gateway_dsn(self, new_mac: str) -> str | None:
         """This function looks up the Hilo gateway device in the device registry and
         returns its old DSN-based identifier if it exists. If it doesn't,
-        it returns Noneto use the MAC address instead."""
+        it returns None to use the MAC address instead."""
         device_registry = dr.async_get(self._hass)
-        devices = device_registry.devices
-        device_iter = (
-            devices
-            if Version(current_version) >= Version("2026.9")
-            else devices.values()
-        )
-        for device in device_iter:
+        for device in dr.async_entries_for_config_entry(
+            device_registry, self.entry.entry_id
+        ):
             if device.manufacturer != "Hilo" or device.model != "EQ000017":
                 continue
             for domain, identifier in device.identifiers:
