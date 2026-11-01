@@ -308,7 +308,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiloConfigEntry) -> bool
     log_traces = current_options.get(CONF_LOG_TRACES)
     if log_traces:
         LOG.debug("HILO_DEBUG: log_traces is %s", log_traces)
-        hass.bus.async_listen("hilo_debug", handle_debug_event)
+        entry.async_on_unload(hass.bus.async_listen("hilo_debug", handle_debug_event))
 
     async def async_reload_entry(
         _: HomeAssistant, updated_entry: HiloConfigEntry
