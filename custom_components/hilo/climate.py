@@ -111,9 +111,6 @@ class HiloClimate(HiloEntity, ClimateEntity):
         """Whether the device is a 24 V thermostat reporting a real mode."""
         return self._device.is_low_voltage
 
-    # ------------------------------------------------------------------
-    # Temperature
-    # ------------------------------------------------------------------
     @property
     def current_temperature(self):
         """Return the current temperature."""
@@ -173,9 +170,6 @@ class HiloClimate(HiloEntity, ClimateEntity):
                 return min_cool
         return self._device.min_temp
 
-    # ------------------------------------------------------------------
-    # HVAC mode
-    # ------------------------------------------------------------------
     @property
     def hvac_modes(self):
         """Return the HVAC modes advertised by the device."""
@@ -226,9 +220,6 @@ class HiloClimate(HiloEntity, ClimateEntity):
             return HVACAction.OFF
         return self._device.hvac_action
 
-    # ------------------------------------------------------------------
-    # Fan
-    # ------------------------------------------------------------------
     @property
     def fan_modes(self):
         """Return the fan modes advertised by the device, if any."""
@@ -268,9 +259,6 @@ class HiloClimate(HiloEntity, ClimateEntity):
             return "mdi:radiator"
         return "mdi:radiator-disabled"
 
-    # ------------------------------------------------------------------
-    # Commands
-    # ------------------------------------------------------------------
     def _check_challenge_lock(self) -> None:
         """Block setpoint changes during a Hilo challenge reduction phase."""
         if self._hilo.challenge_lock:
