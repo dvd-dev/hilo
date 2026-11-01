@@ -108,12 +108,8 @@ class HiloClimate(HiloEntity, ClimateEntity):
 
     @property
     def _is_low_voltage(self) -> bool:
-        """Whether the device is a 24 V thermostat reporting a real mode.
-
-        getattr() keeps the platform working against an older python-hilo: the
-        entity then simply behaves as it did before, heating only.
-        """
-        return getattr(self._device, "is_low_voltage", False)
+        """Whether the device is a 24 V thermostat reporting a real mode."""
+        return self._device.is_low_voltage
 
     # ------------------------------------------------------------------
     # Temperature
