@@ -1,0 +1,47 @@
+{
+  "getLocation": {
+    "devices": [
+      {
+        "deviceType": "Tstat",
+        "hiloId": "urn:hilo:philo:1a2b3c4d5e6f:0",
+        "physicalAddress": "1A2B3C4D5E6F",
+        "connectionStatus": "CONNECTED",
+        "ambientHumidity": 0,
+        "gDState": "EXCLUDED",
+        "version": "21",
+        "zigbeeVersion": "22",
+        "ambientTemperature": {
+          "value": 18,
+          "kind": "DEGREE_CELSIUS"
+        },
+        "ambientTempSetpoint": {
+          "value": 15,
+          "kind": "DEGREE_CELSIUS"
+        },
+        "maxAmbientTempSetpoint": {
+          "value": 30,
+          "kind": "DEGREE_CELSIUS"
+        },
+        "minAmbientTempSetpoint": {
+          "value": 5,
+          "kind": "DEGREE_CELSIUS"
+        },
+        "maxAmbientTempSetpointLimit": {
+          "value": 30,
+          "kind": "DEGREE_CELSIUS"
+        },
+        "minAmbientTempSetpointLimit": {
+          "value": 5,
+          "kind": "DEGREE_CELSIUS"
+        },
+        "heatDemand": 0,
+        "power": {
+          "value": null,
+          "kind": "WATT"
+        },
+        "mode": "UNKNOWN",
+        "allowedModes": []
+      }
+    ]
+  }
+}

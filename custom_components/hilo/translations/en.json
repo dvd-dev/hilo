@@ -45,5 +45,12 @@
         }
       }
     }
+  },
+  "entity": {
+    "sensor": {
+      "humidity": {
+        "name": "Humidity"
+      }
+    }
   }
 }
