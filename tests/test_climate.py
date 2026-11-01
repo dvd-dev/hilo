@@ -52,9 +52,14 @@ async def test_climate(
 
     state = hass.states.get(entity_entry.entity_id)
     assert state is not None
-    assert state.state == "unavailable"
+    assert state.state == HVACMode.HEAT
     assert state.attributes.get("friendly_name") == "Thermostat 1"
     assert state.attributes.get("icon") == "mdi:radiator-disabled"
+    assert state.attributes.get("hvac_action") == "idle"
+    assert state.attributes.get("hvac_modes") == [HVACMode.HEAT]
+    assert state.attributes.get("supported_features") == 1
+    assert state.attributes.get("current_temperature") == 0
+    assert state.attributes.get("temperature") == 0
     assert state.attributes.get("min_temp") == 5.0
     assert state.attributes.get("max_temp") == 36.0
 
