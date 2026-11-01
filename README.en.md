@@ -41,6 +41,8 @@ This unofficial HACS integration allows you to use [Hilo](https://www.hiloenergi
 
 ✅ Thermostat control and temperature reading
 
+✅ Support for 24 V low-voltage thermostats (e.g. Honeywell T10), including mode and fan
+
 ✅ Energy consumption monitoring of Hilo devices
 
 ✅ Sensor for Hilo challenges and gateway
