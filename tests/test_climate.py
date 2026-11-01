@@ -270,3 +270,44 @@ async def test_async_set_hvac_mode_cool_on_baseboard_still_warns(
     await entity.async_set_hvac_mode(HVACMode.COOL)
 
     assert "Only heating is available" in caplog.text
+
+
+@pytest.mark.usefixtures("mock_api")
+async def test_line_voltage_thermostat_reports_humidity(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_api: MagicMock,
+) -> None:
+    """A line-voltage thermostat with a humidity sensor exposes its reading.
+
+    Models such as the SMT402AD report ambient humidity without being 24 V
+    thermostats, so humidity must not be gated on the low voltage check.
+    """
+    await setup_with_selected_platforms(
+        hass, mock_config_entry, [Platform.CLIMATE], mock_api
+    )
+    entity = _get_climate_entity(hass, mock_config_entry, "Thermostat 1")
+
+    entity._device.update(Humidity=45)
+    entity.async_write_ha_state()
+
+    state = hass.states.get(entity.entity_id)
+    assert state is not None
+    assert state.attributes.get("current_humidity") == 45
+
+
+@pytest.mark.usefixtures("mock_api")
+async def test_ht402_reports_no_humidity(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_api: MagicMock,
+) -> None:
+    """The HT402 has no humidity sensor, so no humidity attribute is shown."""
+    await setup_with_selected_platforms(
+        hass, mock_config_entry, [Platform.CLIMATE], mock_api
+    )
+    entity = _get_climate_entity(hass, mock_config_entry, "Thermostat 1")
+
+    state = hass.states.get(entity.entity_id)
+    assert state is not None
+    assert "current_humidity" not in state.attributes

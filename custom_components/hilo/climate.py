@@ -122,8 +122,6 @@ class HiloClimate(HiloEntity, ClimateEntity):
     @property
     def current_humidity(self):
         """Return the ambient humidity, on devices that report it."""
-        if not self._is_low_voltage:
-            return None
         return self._device.current_humidity
 
     @property
