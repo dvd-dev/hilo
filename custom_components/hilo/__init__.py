@@ -571,7 +571,7 @@ class Hilo:
             # runs (scan_interval) to have updated data in the dashboard.
             for device in updated_devices:
                 async_dispatcher_send(
-                    self._hass, SIGNAL_UPDATE_ENTITY.format(device.id)
+                    self._hass, SIGNAL_UPDATE_ENTITY.format(device.hilo_id)
                 )
 
         elif event.target == "DeviceListInitialValuesReceived":
@@ -605,7 +605,7 @@ class Hilo:
             updated_devices = self.devices.parse_values_received(event.arguments[0])
             for device in updated_devices:
                 async_dispatcher_send(
-                    self._hass, SIGNAL_UPDATE_ENTITY.format(device.id)
+                    self._hass, SIGNAL_UPDATE_ENTITY.format(device.hilo_id)
                 )
 
     @callback
