@@ -156,16 +156,13 @@ Vous pouvez configurer des options supplémentaires en cliquant sur `Configurer`
 - Toutes les sources **non Hilo** sont regroupées dans un capteur dédié.
 - Utilise la lecture du **compteur intelligent** de la maison.
 
-### 📌 **Nom du tarif Hydro-Québec** (`rate d` ou `flex d`)
-- Définissez le **nom du plan tarifaire**.
-- **Valeurs supportées** :
-  - `'rate d'`
-  - `'flex d'`
+### 📌 **Tarif Hydro-Québec**
+- Depuis **2026.11.1**, le tarif est **détecté automatiquement** à partir de votre compte Hilo; il n'y a plus d'option à configurer.
+- Le tarif Flex D utilise les prix `flex d`; tous les autres tarifs (incluant le tarif D avec crédits hivernaux) utilisent les prix `rate d`.
 
 ### ⏳ **Intervalle de mise à jour (min : 60s)**
 - Définit le **nombre de secondes** entre chaque mise à jour.
-- **Valeur par défaut** : `60s`.
-- **Ne pas descendre sous 30s** pour éviter une suspension de Hilo.
+- **Valeur par défaut** : `300s`.
 - Depuis **2023.11.1**, le minimum est passé de **15s à 60s**.
 
 
