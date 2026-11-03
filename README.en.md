@@ -156,16 +156,13 @@ You can configure additional options by clicking `Configure` in Home Assistant:
 - All **non-Hilo** sources are grouped in a dedicated sensor.
 - Uses the house's **smart meter** reading.
 
-### 📌 **Hydro-Québec rate name** (`rate d` or `flex d`)
-- Define the **rate plan name**.
-- **Supported values**:
-  - `'rate d'`
-  - `'flex d'`
+### 📌 **Hydro-Québec rate plan**
+- Since **2026.11.1**, the rate plan is **detected automatically** from your Hilo account; there is no option to set anymore.
+- Flex D uses the `flex d` rates; every other plan (including Rate D with winter credits) uses the `rate d` rates.
 
 ### ⏳ **Update interval (min: 60s)**
 - Sets the **number of seconds** between each update.
-- **Default value**: `60s`.
-- **Don't go below 30s** to avoid suspension from Hilo.
+- **Default value**: `300s`.
 - Since **2023.11.1**, the minimum has increased from **15s to 60s**.
 
 ## 📌 FAQ and Support
