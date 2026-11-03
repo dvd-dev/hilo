@@ -26,6 +26,10 @@ from . import Hilo, HiloConfigEntry
 from .const import CLIMATE_CLASSES, LOG
 from .entity import HiloEntity
 
+# Area and group actions write to several thermostats at once, each through its
+# own device endpoint.
+PARALLEL_UPDATES = 0
+
 # Hilo mode vocabulary -> Home Assistant HVAC modes. Keys are normalized
 # (lowercase, no separator) so a casing change upstream is tolerated: Hilo
 # spells them EMERGENCY_HEAT, HEAT, OFF, COOL and AUTO.

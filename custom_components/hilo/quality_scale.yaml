@@ -53,7 +53,7 @@ rules:
   entity-unavailable: todo
   integration-owner: done
   log-when-unavailable: todo
-  parallel-updates: todo
+  parallel-updates: done
   reauthentication-flow:
     status: done
     comment: Flow exists; no tests and no same-account check yet.
