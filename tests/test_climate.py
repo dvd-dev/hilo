@@ -17,6 +17,8 @@ from custom_components.hilo.climate import HiloClimate
 
 from . import setup_with_selected_platforms
 
+THERMOSTAT_1_ENTITY_ID = "climate.thermostat_1"
+
 
 @pytest.mark.usefixtures("entity_registry_enabled_by_default", "mock_api")
 async def test_climate(
@@ -272,42 +274,38 @@ async def test_async_set_hvac_mode_cool_on_baseboard_still_warns(
     assert "Only heating is available" in caplog.text
 
 
-@pytest.mark.usefixtures("mock_api")
+@pytest.mark.parametrize("ambient_humidity", [45])
 async def test_line_voltage_thermostat_reports_humidity(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_api: MagicMock,
+    graphql_location: dict[str, dict[str, list[dict[str, object]]]],
 ) -> None:
-    """A line-voltage thermostat with a humidity sensor exposes its reading.
+    """A line-voltage thermostat with a GraphQL humidity reading exposes it.
 
     Models such as the SMT402AD report ambient humidity without being 24 V
     thermostats, so humidity must not be gated on the low voltage check.
     """
     await setup_with_selected_platforms(
-        hass, mock_config_entry, [Platform.CLIMATE], mock_api
+        hass, mock_config_entry, [Platform.CLIMATE], mock_api, graphql_location
     )
-    entity = _get_climate_entity(hass, mock_config_entry, "Thermostat 1")
 
-    entity._device.update(Humidity=45)
-    entity.async_write_ha_state()
-
-    state = hass.states.get(entity.entity_id)
+    state = hass.states.get(THERMOSTAT_1_ENTITY_ID)
     assert state is not None
     assert state.attributes.get("current_humidity") == 45
 
 
-@pytest.mark.usefixtures("mock_api")
-async def test_ht402_reports_no_humidity(
+async def test_thermostat_without_humidity_reading_reports_no_humidity(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_api: MagicMock,
+    graphql_location: dict[str, dict[str, list[dict[str, object]]]],
 ) -> None:
-    """The HT402 has no humidity sensor, so no humidity attribute is shown."""
+    """A thermostat reporting 0 humidity (no sensor, e.g. HT402) shows none."""
     await setup_with_selected_platforms(
-        hass, mock_config_entry, [Platform.CLIMATE], mock_api
+        hass, mock_config_entry, [Platform.CLIMATE], mock_api, graphql_location
     )
-    entity = _get_climate_entity(hass, mock_config_entry, "Thermostat 1")
 
-    state = hass.states.get(entity.entity_id)
+    state = hass.states.get(THERMOSTAT_1_ENTITY_ID)
     assert state is not None
     assert "current_humidity" not in state.attributes
