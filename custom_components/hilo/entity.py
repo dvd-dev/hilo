@@ -49,9 +49,9 @@ class HiloEntity(CoordinatorEntity):
             pass
         with contextlib.suppress(AttributeError):
             self._attr_device_info["sw_version"] = device.sw_version
-        if not name:
-            name = device.name
-        self._attr_name = name
+        # _attr_name would take precedence over a translation_key name.
+        if not self.has_entity_name:
+            self._attr_name = name or device.name
         self._device = device
         self._hilo = hilo
         self._device._entity = self
