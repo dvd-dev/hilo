@@ -8,6 +8,10 @@ LOG = logging.getLogger(__package__)
 DOMAIN = "hilo"
 HILO_ENERGY_TOTAL = "hilo_energy_total"
 
+# Prefixes entity names of every account added after the first one, so that
+# name-derived entity_ids (energy meters, cost sensors) never collide.
+CONF_ACCOUNT_LABEL = "account_label"
+
 # Configurations
 CONF_APPRECIATION_PHASE = "appreciation_phase"
 DEFAULT_APPRECIATION_PHASE = 0
@@ -35,6 +39,17 @@ DEFAULT_TRACK_UNKNOWN_SOURCES = False
 
 CONF_UNTARIFICATED_DEVICES = "untarificated_devices"
 DEFAULT_UNTARIFICATED_DEVICES = False
+
+# Per-account files, formatted with the config entry ID. The legacy names
+# predate multi-account support and are handed over to the migrated entry.
+STATE_FILE = "hilo_state_{}.yaml"
+LEGACY_STATE_FILE = "hilo_state.yaml"
+EVENT_HISTORY_FILE = "hilo_eventhistory_state_{}.yaml"
+LEGACY_EVENT_HISTORY_FILE = "hilo_eventhistory_state.yaml"
+ACCOUNT_FILES = {
+    LEGACY_STATE_FILE: STATE_FILE,
+    LEGACY_EVENT_HISTORY_FILE: EVENT_HISTORY_FILE,
+}
 
 DEFAULT_SCAN_INTERVAL = 300
 EVENT_SCAN_INTERVAL = 1800

@@ -129,7 +129,10 @@ class UtilityManager:
             CONF_TARIFFS: self.tariffs,
         }
 
-        # Replaced utility_setup_platform call
+        # utility_meter's async_setup replaces its registry of meters, which
+        # also holds the meters of other Hilo accounts. Only the new meters are
+        # passed in so existing ones aren't set up twice, then the rest are put
+        # back so their tariff selects and reset service keep working.
         await utility_setup(self.hass, config)
         for meter, meter_info in existing_meters.items():
             self.hass.data[DATA_UTILITY].setdefault(meter, meter_info)

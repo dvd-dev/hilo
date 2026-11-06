@@ -20,7 +20,7 @@
     'labels': set({
     }),
     'name': None,
-    'object_id_base': 'Calypso Water Heater',
+    'object_id_base': None,
     'options': dict({
     }),
     'original_device_class': None,
@@ -28,7 +28,7 @@
     'original_name': 'Calypso Water Heater',
     'platform': 'hilo',
     'previous_unique_id': None,
-    'suggested_object_id': None,
+    'suggested_object_id': 'calypso_water_heater',
     'supported_features': 0,
     'translation_key': None,
     'unique_id': '5a6b7c8d9e0f-switch',
@@ -70,7 +70,7 @@
     'labels': set({
     }),
     'name': None,
-    'object_id_base': 'Smart Plug',
+    'object_id_base': None,
     'options': dict({
     }),
     'original_device_class': None,
@@ -78,7 +78,7 @@
     'original_name': 'Smart Plug',
     'platform': 'hilo',
     'previous_unique_id': None,
-    'suggested_object_id': None,
+    'suggested_object_id': 'smart_plug',
     'supported_features': 0,
     'translation_key': None,
     'unique_id': '2a3b4c5d6e7f-switch',
@@ -120,7 +120,7 @@
     'labels': set({
     }),
     'name': None,
-    'object_id_base': 'Wall Switch',
+    'object_id_base': None,
     'options': dict({
     }),
     'original_device_class': None,
@@ -128,7 +128,7 @@
     'original_name': 'Wall Switch',
     'platform': 'hilo',
     'previous_unique_id': None,
-    'suggested_object_id': None,
+    'suggested_object_id': 'wall_switch',
     'supported_features': 0,
     'translation_key': None,
     'unique_id': '3a:4b:5c:6d:7e:8f-switch',
@@ -170,7 +170,7 @@
     'labels': set({
     }),
     'name': None,
-    'object_id_base': 'Water Heater Controller',
+    'object_id_base': None,
     'options': dict({
     }),
     'original_device_class': None,
@@ -178,7 +178,7 @@
     'original_name': 'Water Heater Controller',
     'platform': 'hilo',
     'previous_unique_id': None,
-    'suggested_object_id': None,
+    'suggested_object_id': 'water_heater_controller',
     'supported_features': 0,
     'translation_key': None,
     'unique_id': '4a5b6c7d8e9f-switch',

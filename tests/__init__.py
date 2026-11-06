@@ -4,8 +4,22 @@ from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
+import jwt
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+ACCOUNT_EMAIL = "first.account@example.com"
+
+
+def oauth_token(email: str) -> dict[str, str | int]:
+    """Return an OAuth token whose access token identifies the given account."""
+    return {
+        "access_token": jwt.encode({"email": email}, "secret", algorithm="HS256"),
+        "refresh_token": "mock-refresh-token",
+        "token_type": "Bearer",
+        "expires_in": 3600,
+        "expires_at": 4102444800,
+    }
 
 
 @pytest.mark.usefixtures("mock_api")

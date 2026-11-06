@@ -1,0 +1,174 @@
+[
+  {
+    "name": "Hilo Gateway",
+    "Disconnected": {
+      "value": false
+    },
+    "type": "Gateway",
+    "category": "Gateway",
+    "supportedAttributes": "zigBeePairingActivated, zigBeeChannel, firmwareVersion, onlineStatus, lastStatusTime, disconnected",
+    "settableAttributes": "",
+    "id": 1,
+    "identifier": "200000",
+    "sdi": "c456def654",
+    "provider": 1,
+    "model_number": "EQ000017",
+    "sw_version": "9.3.0",
+    "zigBeePairingActivated": {
+      "value": false
+    },
+    "zigBeeChannel": {
+      "value": 25
+    },
+    "firmwareVersion": {
+      "value": "9.3.0"
+    },
+    "onlineStatus": {
+      "value": "Online"
+    },
+    "lastStatusTime": {
+      "value": null
+    },
+    "disconnected": {
+      "value": null
+    }
+  },
+  {
+    "id": 210999,
+    "assetId": "213d5ac6-ce89-4793-ab7c-5bea6d21270c",
+    "hiloId": "urn:hilo:philo:0x006bbb0000000002-smart_meter:0",
+    "identifier": "0x006bbb0000000002-smart_meter",
+    "gatewayId": 9999,
+    "gatewayExternalId": "200000",
+    "gatewayAssetId": "bff2b9f2-760f-4210-b9e6-686e12b407ae",
+    "name": "SmartEnergyMeter",
+    "type": "Meter",
+    "groupId": null,
+    "category": "Other",
+    "icon": null,
+    "loadConnected": null,
+    "modelNumber": "SmartMeter",
+    "locationId": 456,
+    "parameters": null,
+    "externalGroup": "SmartMeter",
+    "provider": 1,
+    "providerData": null,
+    "isFavorite": false,
+    "eTag": "",
+    "supportedAttributes": "Power,ZigbeeChannel,LastUpdate,Disconnected",
+    "supportedAttributesList": [
+      "Power",
+      "ZigbeeChannel",
+      "LastUpdate",
+      "Disconnected"
+    ],
+    "settableAttributes": "Power",
+    "settableAttributesList": [
+      "Power"
+    ],
+    "supportedParameters": "",
+    "supportedParametersList": []
+  },
+  {
+    "id": 211000,
+    "assetId": "c5ec12ef-5b69-44f9-9c73-0e999d00f3b4",
+    "hiloId": "urn:hilo:philo:6f5e4d3c2b1a:0",
+    "identifier": "6f5e4d3c2b1a",
+    "gatewayId": 1001,
+    "gatewayExternalId": "200000",
+    "gatewayAssetId": "bff2b9f2-760f-4210-b9e6-686e12b407ae",
+    "name": "Thermostat 1",
+    "type": "Thermostat",
+    "groupId": 7833,
+    "category": "Heating",
+    "icon": null,
+    "loadConnected": null,
+    "modelNumber": "HT402",
+    "locationId": 456,
+    "parameters": null,
+    "externalGroup": "Tstat",
+    "provider": 1,
+    "providerData": null,
+    "isFavorite": false,
+    "eTag": "",
+    "supportedAttributes": "CurrentTemperature,TargetTemperature,HeatDemand,Heating,Humidity,Power,DrmsState,GdState,MaxTempSetpoint,MinTempSetpoint,MaxTempSetpointLimit,MinTempSetpointLimit,Disconnected,Version,ZigbeeVersion,Unpaired,ThermostatMode,ThermostatAllowedModes",
+    "supportedAttributesList": [
+      "CurrentTemperature",
+      "TargetTemperature",
+      "HeatDemand",
+      "Heating",
+      "Humidity",
+      "Power",
+      "DrmsState",
+      "GdState",
+      "MaxTempSetpoint",
+      "MinTempSetpoint",
+      "MaxTempSetpointLimit",
+      "MinTempSetpointLimit",
+      "Disconnected",
+      "Version",
+      "ZigbeeVersion",
+      "Unpaired",
+      "ThermostatMode",
+      "ThermostatAllowedModes"
+    ],
+    "settableAttributes": "TargetTemperature,GrapState,MaxTempSetpoint,MinTempSetpoint,ThermostatMode",
+    "settableAttributesList": [
+      "TargetTemperature",
+      "GrapState",
+      "MaxTempSetpoint",
+      "MinTempSetpoint",
+      "ThermostatMode"
+    ],
+    "supportedParameters": "MaxTempSetpoint,MinTempSetpoint,StateTemperatures,LoadConnected,LockKeypad,BackLight",
+    "supportedParametersList": [
+      "MaxTempSetpoint",
+      "MinTempSetpoint",
+      "StateTemperatures",
+      "LoadConnected",
+      "LockKeypad",
+      "BackLight"
+    ]
+  },
+  {
+    "id": 211004,
+    "assetId": "d5ec12ef-5b69-44f9-9c73-0e999d00f3b5",
+    "hiloId": "urn:hilo:philo:7f6e5d4c3b2a:0",
+    "identifier": "7f6e5d4c3b2a",
+    "gatewayId": 1001,
+    "gatewayExternalId": "200000",
+    "gatewayAssetId": "bff2b9f2-760f-4210-b9e6-686e12b407ae",
+    "name": "Smart Plug",
+    "type": "Outlet",
+    "groupId": 7836,
+    "category": "SmartPlug",
+    "icon": null,
+    "loadConnected": null,
+    "modelNumber": "42405",
+    "locationId": 456,
+    "parameters": null,
+    "externalGroup": "Plug",
+    "provider": 1,
+    "providerData": null,
+    "isFavorite": false,
+    "eTag": "",
+    "supportedAttributes": "OnOff,Disconnected,Power",
+    "supportedAttributesList": [
+      "OnOff",
+      "Disconnected",
+      "Power"
+    ],
+    "settableAttributes": "OnOff",
+    "settableAttributesList": [
+      "OnOff"
+    ],
+    "supportedParameters": "",
+    "supportedParametersList": [],
+    "OnOff": {
+      "value": false
+    },
+    "Disconnected": {
+      "value": false
+    }
+  }
+]

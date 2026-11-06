@@ -7,18 +7,27 @@
       "reauth_confirm": {
         "title": "Reauthenticate integration",
         "description": "The integration needs to re-authenticate your account"
+      },
+      "account_label": {
+        "title": "Name this home",
+        "description": "Another Hilo account is already configured. This name prefixes the entity names and IDs of this account (e.g. \"Chalet\" gives `climate.chalet_living_room`). It cannot be changed later.",
+        "data": {
+          "account_label": "Home name"
+        }
       }
     },
     "error": {
       "identifier_exists": "Account already registered",
       "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
-      "unknown": "[%key:common::config_flow::error::unknown%]"
+      "unknown": "[%key:common::config_flow::error::unknown%]",
+      "invalid_account_label": "The name must contain at least one letter or digit.",
+      "account_label_taken": "This name is already used by another Hilo account."
     },
     "abort": {
       "already_configured": "This Hilo account is already in use.",
       "reauth_successful": "Re-authentication successful",
       "user_rejected_authorize": "Account linking rejected",
-      "single_instance_allowed": "Already configured. Only a single configuration is possible."
+      "wrong_account": "This Hilo account does not match the one being re-authenticated."
     }
   },
   "options": {
