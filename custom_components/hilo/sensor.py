@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 from datetime import UTC, datetime, timedelta
 from os.path import isfile
 
@@ -57,11 +58,9 @@ from . import Hilo, HiloConfigEntry
 from .const import (
     CONF_ENERGY_METER_PERIOD,
     CONF_GENERATE_ENERGY_METERS,
-    CONF_HQ_PLAN_NAME,
     CONF_UNTARIFICATED_DEVICES,
     DEFAULT_ENERGY_METER_PERIOD,
     DEFAULT_GENERATE_ENERGY_METERS,
-    DEFAULT_HQ_PLAN_NAME,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_UNTARIFICATED_DEVICES,
     DOMAIN,
@@ -80,6 +79,8 @@ from .const import (
 )
 from .entity import HiloEntity
 from .managers import EnergyManager, UtilityManager
+
+PARALLEL_UPDATES = 0
 
 WIFI_STRENGTH = {
     "Low": 1,
@@ -150,7 +151,7 @@ async def async_setup_entry(
     hilo = entry.runtime_data
     new_entities = []
     cost_entities = []
-    hq_plan_name = entry.options.get(CONF_HQ_PLAN_NAME, DEFAULT_HQ_PLAN_NAME)
+    hq_plan_name = hilo.hq_plan_name
     untarificated_devices = entry.options.get(
         CONF_UNTARIFICATED_DEVICES, DEFAULT_UNTARIFICATED_DEVICES
     )
@@ -364,7 +365,20 @@ class EnergySensor(IntegrationSensor):
             identifiers={(DOMAIN, self._device.identifier)},
         )
 
-        if Version(current_version) >= Version("2026.8"):
+        if Version(current_version) >= Version("2026.11"):
+            super().__init__(
+                integration_method=METHOD_LEFT,
+                device_class=SensorDeviceClass.ENERGY,
+                max_sub_interval=timedelta(seconds=MAX_SUB_INTERVAL),
+                name=self._attr_name,
+                round_digits=2,
+                source_entity=self._source,
+                unique_id=self._attr_unique_id,
+                unit_prefix="k",
+                unit_time="h",
+            )
+        # TODO: Remove once support for Home Assistant <2026.11 is dropped
+        elif Version(current_version) >= Version("2026.8"):
             super().__init__(
                 integration_method=METHOD_LEFT,
                 max_sub_interval=timedelta(seconds=MAX_SUB_INTERVAL),
@@ -828,8 +842,9 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
             return
 
         event = Event(**challenge).as_dict()
-        corresponding_season = self._events_to_poll[event["event_id"]]
-        del self._events_to_poll[event["event_id"]]
+        corresponding_season = self._events_to_poll.pop(event["event_id"], None)
+        if corresponding_season is None:
+            return
 
         for season in self._history:
             if season.get("season") == corresponding_season:
@@ -931,8 +946,8 @@ class HiloRewardSensor(HiloEntity, RestoreEntity, SensorEntity):
 
             self._history = new_history
             await self._save_history_debouncer.async_call()
-            for eventId in self._events_to_poll:
-                await self._hilo.subscribe_to_challenge(eventId)
+            for event_id in self._events_to_poll:
+                await self._hilo.subscribe_to_challenge(event_id)
 
     async def _load_history(self) -> list:
         history: list = []
@@ -1051,9 +1066,9 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
         for challenge in challenges:
             event_id = challenge.get("id")
             progress = challenge.get("progress")
-            baselinewH = challenge.get("baselineWh")
+            baseline_wh = challenge.get("baselineWh")
             LOG.debug("handle_challenge_list_update progress is %s", progress)
-            LOG.debug("handle_challenge_list_update baselineWh is %s", baselinewH)
+            LOG.debug("handle_challenge_list_update baselineWh is %s", baseline_wh)
             if event_id in self._events:
                 if challenge.get("progress") == "completed":
                     # Find the oldest event based on recovery_end datetime
@@ -1102,20 +1117,20 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
             consumption = challenge.get("consumption", {})
             baseline_points = consumption.get("cumulativeBaselinePoints", [])
         if baseline_points:
-            baselinewH = baseline_points[-1]["wh"]
+            baseline_wh = baseline_points[-1]["wh"]
         else:
-            baselinewH = 0
-        allowed_kwh = baselinewH / 1000 if baselinewH > 0 else 0
+            baseline_wh = 0
+        allowed_kwh = baseline_wh / 1000 if baseline_wh > 0 else 0
 
-        used_wH = challenge.get("currentWh", 0)
-        if used_wH is not None and used_wH > 0:
-            used_kWh = used_wH / 1000
+        used_wh = challenge.get("currentWh", 0)
+        if used_wh is not None and used_wh > 0:
+            used_kwh = used_wh / 1000
         else:
-            used_kWh = 0
+            used_kwh = 0
 
         LOG.debug("handle_challenge_details_update progress is %s", progress)
-        LOG.debug("handle_challenge_details_update baselineWh is %s", baselinewH)
-        LOG.debug("handle_challenge_details_update used_kwh is %s", used_kWh)
+        LOG.debug("handle_challenge_details_update baselineWh is %s", baseline_wh)
+        LOG.debug("handle_challenge_details_update used_kwh is %s", used_kwh)
         LOG.debug("handle_challenge_details_update allowed_kwh is %s", allowed_kwh)
 
         if event_id in self._events:
@@ -1125,11 +1140,11 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
                 self._events.pop(event_id, None)
 
             # Consumption update
-            elif used_wH is not None and used_wH > 0:
+            elif used_wh is not None and used_wh > 0:
                 current_event = self._events[event_id]
-                current_event.update_wh(used_wH)
-                if baselinewH > 0:
-                    current_event.update_allowed_wh(baselinewH)
+                current_event.update_wh(used_wh)
+                if baseline_wh > 0:
+                    current_event.update_allowed_wh(baseline_wh)
             # For non consumption updates, we need an event id
             elif event_has_id:
                 current_event = self._events[event_id]
@@ -1138,8 +1153,8 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
                     updated_event.appreciation(self._hilo.appreciation)
                 if self._hilo.pre_cold > 0:
                     updated_event.pre_cold(self._hilo.pre_cold)
-                if baselinewH > 0:
-                    updated_event.update_allowed_wh(baselinewH)
+                if baseline_wh > 0:
+                    updated_event.update_allowed_wh(baseline_wh)
                 elif current_event.allowed_kWh > 0:
                     updated_event.allowed_kWh = current_event.allowed_kWh
                 self._events[event_id] = updated_event
@@ -1444,10 +1459,8 @@ class HiloCostTotalSensor(HiloEntity, SensorEntity):
                     "unknown",
                     "unavailable",
                 ):
-                    try:
+                    with contextlib.suppress(ValueError, TypeError):
                         kwh = float(energy_state.state)
-                    except (ValueError, TypeError):
-                        pass
                 attrs[f"{tarif}_kwh"] = round(kwh, 3)
                 attrs[f"{tarif}_rate"] = rate
                 attrs[f"{tarif}_cost"] = round(kwh * rate, 2)

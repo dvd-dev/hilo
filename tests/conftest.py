@@ -149,6 +149,7 @@ def build_mock_api(device_fixture: str, location_id: int) -> MagicMock:
     api_mock.get_location_ids = AsyncMock(
         return_value=(location_id, f"urn:test:hilo:{location_id}")
     )
+    api_mock.get_rate_plan = AsyncMock(return_value="D")
     api_mock.get_gateway = AsyncMock(
         return_value=next(d for d in all_devices if d.get("type") == "Gateway")
     )

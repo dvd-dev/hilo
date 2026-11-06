@@ -34,7 +34,7 @@ class UtilityManager:
 
     def add_meter_entity(self, entity, tariff_list):
         """Add meter entity."""
-        if entity in self.hass.data.get("utility_meter_data", {}):
+        if entity in self.hass.data.get(DATA_UTILITY, {}):
             LOG.debug("Entity %s is already in the utility meters", entity)
             return
         self.new_entities += 1
@@ -87,10 +87,14 @@ class UtilityManager:
 
         # Filter out entities that already exist
         filtered_configs = OrderedDict()
-
         existing_meters = dict(self.hass.data.get(DATA_UTILITY, {}))
+
         for source_entity, config in self.meter_configs.items():
             if source_entity in existing_meters:
+                LOG.debug(
+                    "Entity %s already exists in utility meters, skipping config",
+                    source_entity,
+                )
                 continue
             # Check if any of the tariff entities for this source already exist
             name = config["name"]
@@ -130,10 +134,8 @@ class UtilityManager:
         # passed in so existing ones aren't set up twice, then the rest are put
         # back so their tariff selects and reset service keep working.
         await utility_setup(self.hass, config)
-        self.hass.data[DATA_UTILITY] = {
-            **existing_meters,
-            **self.hass.data[DATA_UTILITY],
-        }
+        for meter, meter_info in existing_meters.items():
+            self.hass.data[DATA_UTILITY].setdefault(meter, meter_info)
         self.new_entities = 0
         LOG.debug("=== UtilityManager.update() completed ===")
 

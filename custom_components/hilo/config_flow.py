@@ -12,7 +12,7 @@ from homeassistant.config_entries import SOURCE_REAUTH, ConfigEntry
 from homeassistant.const import CONF_SCAN_INTERVAL, __version__ as HAVERSION
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
-from homeassistant.helpers import config_validation as cv, selector
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.config_entry_oauth2_flow import AbstractOAuth2FlowHandler
 from homeassistant.util import slugify
 import jwt
@@ -23,16 +23,13 @@ from .const import (
     CONF_APPRECIATION_PHASE,
     CONF_CHALLENGE_LOCK,
     CONF_GENERATE_ENERGY_METERS,
-    CONF_HQ_PLAN_NAME,
     CONF_LOG_TRACES,
     CONF_PRE_COLD_PHASE,
-    CONF_TARIFF,
     CONF_TRACK_UNKNOWN_SOURCES,
     CONF_UNTARIFICATED_DEVICES,
     DEFAULT_APPRECIATION_PHASE,
     DEFAULT_CHALLENGE_LOCK,
     DEFAULT_GENERATE_ENERGY_METERS,
-    DEFAULT_HQ_PLAN_NAME,
     DEFAULT_LOG_TRACES,
     DEFAULT_PRE_COLD_PHASE,
     DEFAULT_TRACK_UNKNOWN_SOURCES,
@@ -64,11 +61,6 @@ STEP_OPTION_SCHEMA = vol.Schema(
             CONF_TRACK_UNKNOWN_SOURCES,
             default=DEFAULT_TRACK_UNKNOWN_SOURCES,
         ): cv.boolean,
-        vol.Optional(
-            CONF_HQ_PLAN_NAME, default=DEFAULT_HQ_PLAN_NAME
-        ): selector.SelectSelector(
-            selector.SelectSelectorConfig(options=list(CONF_TARIFF.keys()), mode="list")
-        ),
         vol.Optional(
             CONF_APPRECIATION_PHASE,
             default=DEFAULT_APPRECIATION_PHASE,

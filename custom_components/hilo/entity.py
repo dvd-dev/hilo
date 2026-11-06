@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import contextlib
+
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.light import LightEntity
 from homeassistant.components.sensor import SensorEntity
@@ -46,11 +48,9 @@ class HiloEntity(CoordinatorEntity):
             "model": device.model,
             "name": f"{hilo.name_prefix}{device.name}",
         }
-        try:
+        # If a device doesn't have a gateway_external_id, it's most likely the gateway itself.
+        with contextlib.suppress(AttributeError):
             device_info_args["via_device"] = (DOMAIN, device.gateway_external_id)
-        except AttributeError:
-            # If a device doesn't have a gateway_external_id, it's most likely the gateway itself.
-            pass  # Do nothing.
         self._attr_device_info = DeviceInfo(**device_info_args)
         try:
             mac_address = dr.format_mac(device.sdi)
@@ -59,10 +59,8 @@ class HiloEntity(CoordinatorEntity):
             }
         except AttributeError:
             pass
-        try:
+        with contextlib.suppress(AttributeError):
             self._attr_device_info["sw_version"] = device.sw_version
-        except AttributeError:
-            pass
         if not name:
             name = device.name
         self._attr_name = f"{hilo.name_prefix}{name}"

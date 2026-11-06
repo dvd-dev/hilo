@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timedelta
+import contextlib
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-import traceback
 from typing import TYPE_CHECKING
 
 from aiohttp import CookieJar, client_exceptions
@@ -47,6 +47,7 @@ from pyhilo.signalr import SignalREvent, signalr_event_from_payload
 from pyhilo.util import from_utc_timestamp, time_diff
 from pysignalr.exceptions import ServerError as SignalRServerError
 
+from .api import HiloAuth
 from .config_flow import STEP_OPTION_SCHEMA, HiloFlowHandler, account_email
 from .const import (
     ACCOUNT_FILES,
@@ -54,7 +55,6 @@ from .const import (
     CONF_APPRECIATION_PHASE,
     CONF_CHALLENGE_LOCK,
     CONF_GENERATE_ENERGY_METERS,
-    CONF_HQ_PLAN_NAME,
     CONF_LOG_TRACES,
     CONF_PRE_COLD_PHASE,
     CONF_TARIFF,
@@ -217,16 +217,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiloConfigEntry) -> bool
             session=async_create_clientsession(
                 hass, cookie_jar=CookieJar(quote_cookie=False)
             ),
-            oauth_session=config_entry_oauth2_flow.OAuth2Session(
-                hass, entry, implementation
+            auth=HiloAuth(
+                config_entry_oauth2_flow.OAuth2Session(hass, entry, implementation)
             ),
             log_traces=current_options.get(CONF_LOG_TRACES, DEFAULT_LOG_TRACES),
             state_yaml=hass.config.path(STATE_FILE.format(entry.entry_id)),
         )
 
-    except (TimeoutError, client_exceptions.ClientConnectorError):
+    except (TimeoutError, client_exceptions.ClientConnectorError) as err:
         LOG.debug("Timeout")
-        raise ConfigEntryNotReady
+        raise ConfigEntryNotReady from err
 
     except Exception as err:
         raise ConfigEntryAuthFailed(err) from err
@@ -340,30 +340,34 @@ async def async_unload_entry(hass: HomeAssistant, entry: HiloConfigEntry) -> boo
     for task in list(hilo._signalr_reconnect_tasks):
         if not task.done():
             task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await task
-            except asyncio.CancelledError:
-                pass
 
     for task in list(hilo.subscriptions):
         if task and not task.done():
             task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await task
-            except asyncio.CancelledError:
-                pass
 
-    try:
-        await hilo._api.signalr_devices.disconnect()
-    except Exception as err:
-        LOG.error("Error disconnecting device SignalR hub: %s", err)
-    try:
-        await hilo._api.signalr_challenges.disconnect()
-    except Exception as err:
-        LOG.error("Error disconnecting challenge SignalR hub: %s", err)
+    await hilo._api.signalr_devices.disconnect()
+    await hilo._api.signalr_challenges.disconnect()
 
     LOG.debug("Hilo Integration unloaded")
     return True
+
+
+async def async_remove_config_entry_device(
+    hass: HomeAssistant, entry: HiloConfigEntry, device_entry: dr.DeviceEntry
+) -> bool:
+    """Allow removing a device only once Hilo no longer reports it."""
+    hilo = entry.runtime_data
+    current = {device.identifier for device in hilo.devices.all}
+    if hilo.unknown_tracker_device:
+        current.add(hilo.unknown_tracker_device.identifier)
+    return not any(
+        domain == DOMAIN and identifier in current
+        for domain, identifier in device_entry.identifiers
+    )
 
 
 def _delete_account_files(hass: HomeAssistant, entry_id: str) -> None:
@@ -449,7 +453,7 @@ class Hilo:
         self._signalr_reconnect_tasks: list[asyncio.Task | None] = [None, None]
         self._update_task: list[asyncio.Task | None] = [None, None]
         self.subscriptions: list[asyncio.Task | None] = [None]
-        self.hq_plan_name = entry.options.get(CONF_HQ_PLAN_NAME, DEFAULT_HQ_PLAN_NAME)
+        self.hq_plan_name = DEFAULT_HQ_PLAN_NAME
         self.appreciation = entry.options.get(
             CONF_APPRECIATION_PHASE, DEFAULT_APPRECIATION_PHASE
         )
@@ -556,9 +560,8 @@ class Hilo:
                     else:
                         LOG.warning(f"SHOULD NOT HAPPEN: Not SignalREvent: {msg_data}")
                         await handler(msg_data)
-                except Exception as e:
-                    LOG.error("Error in SignalR handler %s: %s", handler_name, e)
-                    LOG.error(traceback.format_exc())
+                except Exception:  # noqa: BLE001
+                    LOG.exception("Error in SignalR handler %s", handler_name)
 
     async def _handle_challenge_events(self, event: SignalREvent) -> None:
         """Handle all challenge-related SignalR events."""
@@ -852,7 +855,7 @@ class Hilo:
     async def _fetch_legacy_gateway_dsn(self, new_mac: str) -> str | None:
         """This function looks up the Hilo gateway device in the device registry and
         returns its old DSN-based identifier if it exists. If it doesn't,
-        it returns Noneto use the MAC address instead."""
+        it returns None to use the MAC address instead."""
         device_registry = dr.async_get(self._hass)
         # Other accounts' gateways must never be mistaken for our legacy one.
         for device in dr.async_entries_for_config_entry(
@@ -875,6 +878,18 @@ class Hilo:
             new_unique_id = f"{new_mac.lower()}-{suffix}"
             self.async_migrate_unique_id(old_unique_id, new_unique_id, Platform.SENSOR)
 
+    async def _async_update_plan_name(self) -> None:
+        """Set the plan name from the rate plan reported by Hilo."""
+        try:
+            rate_plan = await self._api.get_rate_plan(self.devices.location_id)
+        except (HiloError, KeyError) as err:
+            LOG.warning(
+                "Unable to fetch rate plan, using %s: %s", self.hq_plan_name, err
+            )
+            return
+        self.hq_plan_name = "flex d" if rate_plan.lower() == "flex" else "rate d"
+        LOG.debug("Rate plan %s mapped to %s", rate_plan, self.hq_plan_name)
+
     async def async_init(self, scan_interval: int) -> None:
         """Initialize the Hilo "manager" class.
 
@@ -888,6 +903,7 @@ class Hilo:
         """
         # Step 1: Get location IDs (still REST)
         await self.devices.async_init()
+        await self._async_update_plan_name()
 
         # Step 2: Register SignalR callbacks and start connections
         self._api.signalr_devices.add_connect_callback(self._on_devices_connected)
@@ -986,7 +1002,7 @@ class Hilo:
                     backoff,
                     err,
                 )
-            except Exception as err:  # pylint: disable=broad-except
+            except Exception as err:  # noqa: BLE001
                 LOG.warning(
                     "SignalRHub[%s]: connection error; reconnecting in %ss — %s",
                     id,
@@ -1178,7 +1194,7 @@ class Hilo:
                 {
                     "deviceId": self.unknown_tracker_device.id,
                     "locationId": self.devices.location_id,
-                    "timeStampUTC": datetime.utcnow().isoformat(),
+                    "timeStampUTC": datetime.now(UTC).isoformat(),
                     "attribute": "Power",
                     "value": unknown_power,
                     "valueType": "Watt",
