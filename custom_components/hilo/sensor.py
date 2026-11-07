@@ -110,9 +110,8 @@ def generate_entities_from_device(device, hilo, scan_interval):
     """Generate the entities from the device description."""
     entities = []
     if device.type == "Gateway":
-        entities.append(
-            HiloChallengeSensor(hilo, device, scan_interval),
-        )
+        hilo.challenge_sensor = HiloChallengeSensor(hilo, device, scan_interval)
+        entities.append(hilo.challenge_sensor)
         entities.append(
             HiloRewardSensor(hilo, device, scan_interval),
         )
@@ -171,6 +170,8 @@ async def async_setup_entry(
         energy_manager = await EnergyManager().init(hass, energy_meter_period)
         utility_manager = UtilityManager(hass, energy_meter_period, default_tariff_list)
 
+    hilo.energy_meter_keys = []
+
     def create_energy_entity(hilo, device):
         device._energy_entity = EnergySensor(hilo, device, hass)
         new_entities.append(device._energy_entity)
@@ -187,6 +188,7 @@ async def async_setup_entry(
             tariff_list = validate_tariff_list(tariff_config)
         net_consumption = device.net_consumption
         utility_manager.add_meter(energy_entity, tariff_list, net_consumption)
+        hilo.energy_meter_keys.append(energy_entity)
 
     for d in hilo.devices.all:
         LOG.debug("Adding device %s", d)
@@ -1202,7 +1204,12 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
     @property
     def extra_state_attributes(self):
         """Return the next events attribute."""
-        return {"next_events": self._next_events}
+        return {"next_events": self.next_events}
+
+    @property
+    def next_events(self) -> list[dict]:
+        """Return the scheduled and ongoing challenges."""
+        return self._next_events
 
     async def async_added_to_hass(self):
         """Handle entity about to be added to hass event."""

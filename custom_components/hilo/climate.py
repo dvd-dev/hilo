@@ -265,10 +265,9 @@ class HiloClimate(HiloEntity, ClimateEntity):
 
     def _check_challenge_lock(self) -> None:
         """Block setpoint changes during a Hilo challenge reduction phase."""
-        if self._hilo.challenge_lock:
-            challenge = self._hilo._hass.states.get("sensor.defi_hilo")
+        if self._hilo.challenge_lock and self._hilo.challenge_sensor:
             validate_reduction_phase(
-                challenge.attributes.get("next_events", []), self._device._tag
+                self._hilo.challenge_sensor.next_events, self._device._tag
             )
 
     async def async_set_hvac_mode(self, hvac_mode):

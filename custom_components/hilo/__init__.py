@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import asyncio
-from collections import OrderedDict
 import contextlib
 from datetime import UTC, datetime, timedelta
+from typing import TYPE_CHECKING
 
 from aiohttp import CookieJar, client_exceptions
 from homeassistant.components.select import (
@@ -13,11 +13,8 @@ from homeassistant.components.select import (
     DOMAIN as SELECT_DOMAIN,
     SERVICE_SELECT_OPTION,
 )
-from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
-    ATTR_DEVICE_CLASS,
-    ATTR_UNIT_OF_MEASUREMENT,
     CONF_SCAN_INTERVAL,
     CONF_USERNAME,
     EVENT_HOMEASSISTANT_STOP,
@@ -39,6 +36,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.util import dt as dt_util
 from packaging.version import Version
 from pyhilo import API
+from pyhilo.const import UNMONITORED_DEVICES
 from pyhilo.device import HiloDevice
 from pyhilo.devices import Devices
 from pyhilo.event import Event
@@ -74,6 +72,9 @@ from .const import (
     MIN_SCAN_INTERVAL,
 )
 from .oauth2 import AuthCodeWithPKCEImplementation
+
+if TYPE_CHECKING:
+    from .sensor import HiloChallengeSensor
 
 DISPATCHER_TOPIC_SIGNALR_EVENT = "pyhilo_signalr_event"
 SIGNAL_UPDATE_ENTITY = "pyhilo_device_update_{}"
@@ -400,7 +401,6 @@ class Hilo:
         """Initialize."""
         self._api = api
         self._hass = hass
-        self.find_meter(self._hass)
         self.entry = entry
         self.devices: Devices = Devices(api)
         self.graphql_helper: GraphQlHelper = GraphQlHelper(api, self.devices)
@@ -427,6 +427,9 @@ class Hilo:
             CONF_GENERATE_ENERGY_METERS, DEFAULT_GENERATE_ENERGY_METERS
         )
         self.cost_sensors: dict = {}
+        # These get filled in by the sensor platform:
+        self.challenge_sensor: HiloChallengeSensor | None = None
+        self.energy_meter_keys: list[str] = []
         # This will get filled in by async_init:
         self.coordinator: DataUpdateCoordinator | None = None
         self.unknown_tracker_device: HiloDevice | None = None
@@ -995,76 +998,17 @@ class Hilo:
         if self.track_unknown_sources:
             self.handle_unknown_power()
 
-    def find_meter(self, hass):
-        """Find the smart meter entity in Home Assistant."""
-        entity_registry_dict = {}
-
-        registry = hass.data.get("entity_registry")
-
-        if registry is None:
-            return entity_registry_dict
-
-        # ic-dev21: Get names of all entities
-        for entity_id, entity_entry in registry.entities.items():
-            entity_registry_dict[entity_id] = {
-                "name": entity_entry.entity_id,
-            }
-
-        sorted_entity_registry_dict = OrderedDict(sorted(entity_registry_dict.items()))
-        LOG.debug("Entities Ordered dict is %s", sorted_entity_registry_dict)
-
-        # ic-dev21: Let's grab the meter from our dict
-        filtered_names = [
-            entity_data["name"]
-            for entity_data in sorted_entity_registry_dict.values()
-            if all(
-                substring in entity_data["name"] for substring in ["meter", "_power"]
-            )
-        ]
-
-        LOG.debug("Hilo Smart meter name is: %s", filtered_names)
-
-        # Format output to use in check_tarif
-        return ", ".join(filtered_names) if filtered_names else ""
-
-    def set_state(self, entity, state, new_attrs=None, keep_state=False, force=False):
-        """Set the state of an entity."""
-        if new_attrs is None:
-            new_attrs = {}
-        params = f"{entity=} {state=} {new_attrs=} {keep_state=}"
-        current = self._hass.states.get(entity)
-        if not current:
-            if not force:
-                LOG.warning(
-                    "Unable to set state because there's no current: %s", params
-                )
-                return
-            attrs = {}
-        else:
-            attrs = dict(current.as_dict()["attributes"])
-        attrs["last_update"] = datetime.now()
-        attrs["hilo_update"] = True
-        attrs = {**attrs, **new_attrs}
-        if keep_state and current:
-            state = current.state
-        if "Cost" in attrs:
-            attrs["Cost"] = state
-        LOG.debug("Setting state %s current=%s attrs=%s", params, current, attrs)
-        self._hass.states.async_set(entity, state, attrs, force_update=force)
-
     @property
-    def high_times(self):
+    def high_times(self) -> bool:
         """Check if the current time is within high tariff periods."""
-        challenge_sensor = self._hass.states.get("sensor.defi_hilo")
-
-        if challenge_sensor is None:
+        if self.challenge_sensor is None:
             LOG.warning("high_times check tarif challenge sensor not found")
             return False
 
         LOG.debug(
-            "high_times check tarif challenge sensor is %s", challenge_sensor.state
+            "high_times check tarif challenge sensor is %s", self.challenge_sensor.state
         )
-        return challenge_sensor.state == "reduction"
+        return self.challenge_sensor.state == "reduction"
 
     def check_season(self, current_time: datetime | None = None) -> bool:
         """Determine if we are using a winter or summer rate."""
@@ -1166,125 +1110,66 @@ class Hilo:
             self.high_times,
         )
 
-        # ic-dev21 : make sure the select for all meters still work by moving this here
-        for state in self._hass.states.async_all():
-            entity = state.entity_id
-            self.set_tarif(entity, state.state, tarif)
+        for meter_key in self.energy_meter_keys:
+            if self.untarificated_devices and meter_key != HILO_ENERGY_TOTAL:
+                continue
+            self.set_tarif(f"select.{meter_key}", tarif)
 
-    def handle_unknown_power(self):
+    def handle_unknown_power(self) -> None:
         """Take care of the unknown source meter."""
-        known_power = 0
-        smart_meter = self.find_meter(self._hass)
-        LOG.debug("Smart meter used currently is: %s", smart_meter)
-        unknown_source_tracker = "sensor.unknown_source_tracker_power"
-        for state in self._hass.states.async_all():
-            entity = state.entity_id
-            if entity.endswith("hilo_rate_current"):
-                continue
-
-            if entity.endswith("_power") and entity not in [
-                unknown_source_tracker,
-                smart_meter,
-            ]:
-                with contextlib.suppress(ValueError):
-                    known_power += int(float(state.state))
-            if not entity.endswith("_hilo_energy") or entity.endswith("_cost"):
-                continue
-            self.fix_utility_sensor(entity, state)
-        if self.track_unknown_sources:
-            total_power = self._hass.states.get(smart_meter)
-            try:
-                if known_power <= int(total_power.state):
-                    unknown_power = int(total_power.state) - known_power
-                else:
-                    unknown_power = 0
-            except ValueError:
-                unknown_power = known_power
-                LOG.warning(
-                    f"value of total_power ({total_power} not initialized correctly)"
-                )
-
-            self.devices.parse_values_received(
-                [
-                    {
-                        "deviceId": 69420,
-                        "locationId": self.devices.location_id,
-                        "timeStampUTC": datetime.now(UTC).isoformat(),
-                        "attribute": "Power",
-                        "value": unknown_power,
-                        "valueType": "Watt",
-                    }
-                ]
-            )
-            LOG.debug(
-                "Currently in use: Total: %s Known sources: %s Unknown sources: %s",
-                total_power.state,
-                known_power,
-                unknown_power,
-            )
-
-    @callback
-    def fix_utility_sensor(self, entity, state):
-        """Not sure why this doesn't get created with a proper device_class."""
-        current_state = state.as_dict()
-        attrs = current_state.get("attributes", {})
-        if entity.startswith("select.") or entity.find("hilo_rate") > 0:
+        smart_meter = next((d for d in self.devices.all if d.type == "Meter"), None)
+        if smart_meter is None or not smart_meter.available:
+            LOG.debug("No smart meter reading available to track unknown sources")
             return
-        if not attrs.get("source"):
-            LOG.debug("No source entity defined on %s: %s", entity, current_state)
-            return
-
-        parent_unit_state = self._hass.states.get(attrs.get("source"))
-        parent_unit = (
-            "kWh"
-            if parent_unit_state is None
-            else parent_unit_state.attributes.get("unit_of_measurement")
+        known_power = sum(
+            int(device.get_value("power", 0) or 0)
+            for device in self.devices.all
+            if device.has_attribute("power")
+            and device.available
+            and device.model not in UNMONITORED_DEVICES
+            and device not in (smart_meter, self.unknown_tracker_device)
         )
-        if not parent_unit:
-            LOG.warning("Unable to find state for parent unit: %s", current_state)
-            return
+        total_power = int(smart_meter.get_value("power", 0) or 0)
+        unknown_power = max(total_power - known_power, 0)
 
-        new_attrs = {
-            ATTR_UNIT_OF_MEASUREMENT: parent_unit,  # note ic-dev21: now uses parent_unit directly
-            ATTR_DEVICE_CLASS: SensorDeviceClass.ENERGY,
-        }
-        if not all(a in attrs for a in new_attrs):
-            LOG.warning(
-                f"Fixing utility sensor: {entity} {current_state} new_attrs: {new_attrs}"
-            )
-            self.set_state(entity, None, new_attrs=new_attrs, keep_state=True)
+        self.devices.parse_values_received(
+            [
+                {
+                    "deviceId": self.unknown_tracker_device.id,
+                    "locationId": self.devices.location_id,
+                    "timeStampUTC": datetime.now(UTC).isoformat(),
+                    "attribute": "Power",
+                    "value": unknown_power,
+                    "valueType": "Watt",
+                }
+            ]
+        )
+        LOG.debug(
+            "Currently in use: Total: %s Known sources: %s Unknown sources: %s",
+            total_power,
+            known_power,
+            unknown_power,
+        )
 
     @callback
-    def set_tarif(self, entity, current, new):
+    def set_tarif(self, entity_id: str, new: str) -> None:
         """Set the tarif on the select entity if needed."""
-        if self.untarificated_devices and entity != f"select.{HILO_ENERGY_TOTAL}":
+        if (current := self._hass.states.get(entity_id)) is None:
             return
-        if entity.startswith("select.hilo_energy") and current != new:
-            LOG.debug(
-                "check_tarif: Changing tarif of %s from %s to %s", entity, current, new
+        if current.state == new:
+            return
+        LOG.debug(
+            "check_tarif: Changing tarif of %s from %s to %s",
+            entity_id,
+            current.state,
+            new,
+        )
+        data = {ATTR_OPTION: new, "entity_id": entity_id}
+        self._hass.async_create_task(
+            self._hass.services.async_call(
+                SELECT_DOMAIN, SERVICE_SELECT_OPTION, data, context=Context()
             )
-            context = Context()
-            data = {ATTR_OPTION: new, "entity_id": entity}
-            self._hass.async_create_task(
-                self._hass.services.async_call(
-                    SELECT_DOMAIN, SERVICE_SELECT_OPTION, data, context=context
-                )
-            )
-        if (
-            entity.startswith("select.")
-            and entity.endswith("_hilo_energy")
-            and current != new
-        ):
-            LOG.debug(
-                "check_tarif: Changing tarif of %s from %s to %s", entity, current, new
-            )
-            context = Context()
-            data = {ATTR_OPTION: new, "entity_id": entity}
-            self._hass.async_create_task(
-                self._hass.services.async_call(
-                    SELECT_DOMAIN, SERVICE_SELECT_OPTION, data, context=context
-                )
-            )
+        )
 
     @callback
     def async_migrate_unique_id(
