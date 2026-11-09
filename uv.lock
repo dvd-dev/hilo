@@ -2538,7 +2538,7 @@ wheels = [
 
 [[package]]
 name = "hilo"
-version = "2026.11.1"
+version = "2026.11.2"
 source = { editable = "." }
 dependencies = [
     { name = "colorlog" },
@@ -2594,7 +2594,7 @@ test = [
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "pytest-homeassistant-custom-component", specifier = ">=0.13.0" },
-    { name = "python-hilo", specifier = "==2026.11.1" },
+    { name = "python-hilo", specifier = "==2026.11.2" },
     { name = "ruff", specifier = ">=0.17.2" },
 ]
 
@@ -5451,7 +5451,7 @@ wheels = [
 
 [[package]]
 name = "python-hilo"
-version = "2026.11.1"
+version = "2026.11.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -5466,9 +5466,9 @@ dependencies = [
     { name = "pyyaml", version = "6.0.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.13.2'" },
     { name = "pyyaml", version = "6.0.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.13.2'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/5b/0a/fd0e2164627c116ff5f103ec99b17de85ca5fb1e6ef1328ca14b66094ea4/python_hilo-2026.11.1.tar.gz", hash = "sha256:c570d2233d9e6bea5b1db55f60066e0e5c74e5fb1869c1588751233e2af53ab7", size = 144857, upload-time = "2026-11-02T00:41:49.704Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/fe/84/441b7348f003f205d4d859aec02bb1fe4e404a588e31be8155649bed0abc/python_hilo-2026.11.2.tar.gz", hash = "sha256:2e390d5a88f2d54a3921bf626e4df20def3cf217a633b6620f19aa47ba257a15", size = 144816, upload-time = "2026-11-09T00:20:58.575Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/01/fa/09aabb387b77b4f1cc9189141fe5911c893ac7a9b312eb28bdc7168c11b5/python_hilo-2026.11.1-py3-none-any.whl", hash = "sha256:1c4047b1d4abf0922282e7f557fdb8aaed6a68e009c2ebb0edbc69ed3e4f2bf9", size = 42947, upload-time = "2026-11-02T00:41:48.662Z" },
+    { url = "https://files.pythonhosted.org/packages/14/ef/6efd3c1c7495348c14e5fa8c02d3ccc771c1f86222f2470626950bd265fa/python_hilo-2026.11.2-py3-none-any.whl", hash = "sha256:a04111cb741c493e7e42d0f26a59805a7e17a1601bda6928589c7eb4e6238842", size = 42987, upload-time = "2026-11-09T00:20:57.492Z" },
 ]
 
 [[package]]
