@@ -228,7 +228,7 @@
     'last_changed': <ANY>,
     'last_reported': <ANY>,
     'last_updated': <ANY>,
-    'state': 'unavailable',
+    'state': '0.00',
   })
 # ---
 # name: test_energy_sensor_entities[sensor.wall_switch_hilo_energy-entry]
