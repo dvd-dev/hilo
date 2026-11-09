@@ -12,6 +12,8 @@ from . import Hilo, HiloConfigEntry
 from .const import LIGHT_CLASSES, LOG
 from .entity import HiloEntity
 
+PARALLEL_UPDATES = 0
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
