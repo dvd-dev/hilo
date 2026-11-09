@@ -3,10 +3,17 @@
 from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
+from homeassistant.components.select import (
+    DOMAIN as SELECT_DOMAIN,
+    SERVICE_SELECT_OPTION,
+)
 from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import HomeAssistant
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_mock_service,
+)
 
 from custom_components.hilo import Hilo
 from custom_components.hilo.const import (
@@ -37,6 +44,8 @@ def create_mock_hilo(hass: HomeAssistant, hq_plan_name: str = "flex d") -> Hilo:
     hilo.generate_energy_meters = True
     hilo.untarificated_devices = False
     hilo.track_unknown_sources = False
+    hilo.energy_meter_keys = []
+    hilo.challenge_sensor = None
     hilo.cost_sensors = {
         "low": DummyCostSensor(CONF_TARIFF["flex d"]["low"]),
         "medium": DummyCostSensor(CONF_TARIFF["flex d"]["medium"]),
@@ -148,12 +157,47 @@ def test_check_tarif_low_medium_selection(
 def test_check_tarif_high_tier_during_challenge(hass: HomeAssistant):
     """Test check_tarif selects high during a challenge reduction period."""
     hilo = create_mock_hilo(hass, "flex d")
-    hass.states.async_set("sensor.defi_hilo", "reduction")
+    hilo.challenge_sensor = MagicMock(state="reduction")
 
     with patch.object(hilo, "check_season", return_value=True):
         hilo.check_tarif()
 
     assert hilo.cost_sensors["current"]._cost == CONF_TARIFF["flex d"]["high"]
+
+
+@pytest.mark.parametrize(
+    ("untarificated_devices", "expected_selects"),
+    [
+        pytest.param(
+            False,
+            [f"select.{HILO_ENERGY_TOTAL}", "select.smart_plug_hilo_energy"],
+            id="all_meters",
+        ),
+        pytest.param(True, [f"select.{HILO_ENERGY_TOTAL}"], id="untarificated"),
+    ],
+)
+async def test_check_tarif_switches_own_meters(
+    hass: HomeAssistant, untarificated_devices: bool, expected_selects: list[str]
+) -> None:
+    """Test check_tarif only switches the tariff selects of the meters it created."""
+    hilo = create_mock_hilo(hass, "flex d")
+    hilo.untarificated_devices = untarificated_devices
+    hilo.energy_meter_keys = [HILO_ENERGY_TOTAL, "smart_plug_hilo_energy"]
+    for select in (
+        f"select.{HILO_ENERGY_TOTAL}",
+        "select.smart_plug_hilo_energy",
+        "select.unrelated_hilo_energy",
+    ):
+        hass.states.async_set(select, "medium")
+    calls = async_mock_service(hass, SELECT_DOMAIN, SERVICE_SELECT_OPTION)
+
+    with patch.object(hilo, "check_season", return_value=False):
+        hilo.check_tarif()
+    await hass.async_block_till_done()
+
+    assert [call.data for call in calls] == [
+        {"entity_id": select, "option": "low"} for select in expected_selects
+    ]
 
 
 async def test_check_tarif_season_change_transition(hass: HomeAssistant):
