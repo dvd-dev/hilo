@@ -4,11 +4,9 @@ rules:
     status: exempt
     comment: The integration does not register actions.
   appropriate-polling:
-    status: todo
-    comment: One coordinator polls everything at the same interval.
-  brands:
-    status: todo
-    comment: Not in home-assistant/brands; the HACS check ignores brands.
+    status: done
+    comment: Device state is pushed over SignalR; cloud-polled sensors set their own intervals (5 min to 2 h).
+  brands: done
   common-modules:
     status: todo
     comment: entity.py exists; coordinator.py does not.
