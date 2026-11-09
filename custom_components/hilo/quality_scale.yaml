@@ -18,7 +18,7 @@ rules:
     comment: The integration does not register actions.
   docs-high-level-description: done
   docs-installation-instructions: done
-  docs-removal-instructions: todo
+  docs-removal-instructions: done
   docs-triggers:
     status: exempt
     comment: The integration does not provide triggers.
