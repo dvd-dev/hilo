@@ -7,6 +7,7 @@ from homeassistant.components.energy.data import async_get_manager
 from homeassistant.components.utility_meter import async_setup as utility_setup
 from homeassistant.components.utility_meter.const import (
     CONF_TARIFFS,
+    DATA_UTILITY,
     DOMAIN as UTILITY_DOMAIN,
 )
 from homeassistant.helpers import entity_registry as er
@@ -33,7 +34,7 @@ class UtilityManager:
 
     def add_meter_entity(self, entity, tariff_list):
         """Add meter entity."""
-        if entity in self.hass.data.get("utility_meter_data", {}):
+        if entity in self.hass.data.get(DATA_UTILITY, {}):
             LOG.debug("Entity %s is already in the utility meters", entity)
             return
         self.new_entities += 1
@@ -86,8 +87,15 @@ class UtilityManager:
 
         # Filter out entities that already exist
         filtered_configs = OrderedDict()
+        existing_meters = dict(self.hass.data.get(DATA_UTILITY, {}))
 
         for source_entity, config in self.meter_configs.items():
+            if source_entity in existing_meters:
+                LOG.debug(
+                    "Entity %s already exists in utility meters, skipping config",
+                    source_entity,
+                )
+                continue
             # Check if any of the tariff entities for this source already exist
             name = config["name"]
             should_include = False
@@ -117,14 +125,14 @@ class UtilityManager:
 
         LOG.debug("Creating utility meter config for %d sources", len(filtered_configs))
         config = {
-            UTILITY_DOMAIN: OrderedDict(
-                {**self.hass.data.get("utility_meter_data", {}), **filtered_configs}
-            ),
+            UTILITY_DOMAIN: filtered_configs,
             CONF_TARIFFS: self.tariffs,
         }
 
         # Replaced utility_setup_platform call
         await utility_setup(self.hass, config)
+        for meter, meter_info in existing_meters.items():
+            self.hass.data[DATA_UTILITY].setdefault(meter, meter_info)
         self.new_entities = 0
         LOG.debug("=== UtilityManager.update() completed ===")
 

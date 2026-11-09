@@ -76,6 +76,8 @@ from .const import (
 from .entity import HiloEntity
 from .managers import EnergyManager, UtilityManager
 
+PARALLEL_UPDATES = 0
+
 WIFI_STRENGTH = {
     "Low": 1,
     "Medium": 2,

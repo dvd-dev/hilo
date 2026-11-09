@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.13"
 resolution-markers = [
     "python_full_version >= '3.14.2'",
@@ -2538,7 +2538,7 @@ wheels = [
 
 [[package]]
 name = "hilo"
-version = "2026.10.3"
+version = "2026.11.2"
 source = { editable = "." }
 dependencies = [
     { name = "colorlog" },
@@ -2594,7 +2594,7 @@ test = [
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "pytest-homeassistant-custom-component", specifier = ">=0.13.0" },
-    { name = "python-hilo", specifier = "==2026.10.2" },
+    { name = "python-hilo", specifier = "==2026.11.2" },
     { name = "ruff", specifier = ">=0.17.2" },
 ]
 
@@ -5451,7 +5451,7 @@ wheels = [
 
 [[package]]
 name = "python-hilo"
-version = "2026.10.2"
+version = "2026.11.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -5466,9 +5466,9 @@ dependencies = [
     { name = "pyyaml", version = "6.0.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.13.2'" },
     { name = "pyyaml", version = "6.0.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.13.2'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/5b/88/e6f4c7126053ef19773dd6281a05d687067a1df0b315c86b36a999f65836/python_hilo-2026.10.2.tar.gz", hash = "sha256:1b94d492c6330f6028f8b899bba1c16c7ddb2560be3aefb8e5215e064ec24a6f", size = 139070, upload-time = "2026-10-27T23:23:13.219Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/fe/84/441b7348f003f205d4d859aec02bb1fe4e404a588e31be8155649bed0abc/python_hilo-2026.11.2.tar.gz", hash = "sha256:2e390d5a88f2d54a3921bf626e4df20def3cf217a633b6620f19aa47ba257a15", size = 144816, upload-time = "2026-11-09T00:20:58.575Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/03/63/52b5b96a493c5580da58572ea49a386c34e4f0f5b963eeb6e9eee11c8309/python_hilo-2026.10.2-py3-none-any.whl", hash = "sha256:356707e875bf5a190ba07a3d4d697e011a781dbd3cec8ba4d3c865b64127887f", size = 40610, upload-time = "2026-10-27T23:23:12.14Z" },
+    { url = "https://files.pythonhosted.org/packages/14/ef/6efd3c1c7495348c14e5fa8c02d3ccc771c1f86222f2470626950bd265fa/python_hilo-2026.11.2-py3-none-any.whl", hash = "sha256:a04111cb741c493e7e42d0f26a59805a7e17a1601bda6928589c7eb4e6238842", size = 42987, upload-time = "2026-11-09T00:20:57.492Z" },
 ]
 
 [[package]]

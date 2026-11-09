@@ -6,7 +6,6 @@ import asyncio
 from collections import OrderedDict
 import contextlib
 from datetime import UTC, datetime, timedelta
-import traceback
 
 from aiohttp import CookieJar, client_exceptions
 from homeassistant.components.select import (
@@ -314,7 +313,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiloConfigEntry) -> bool
     log_traces = current_options.get(CONF_LOG_TRACES)
     if log_traces:
         LOG.debug("HILO_DEBUG: log_traces is %s", log_traces)
-        hass.bus.async_listen("hilo_debug", handle_debug_event)
+        entry.async_on_unload(hass.bus.async_listen("hilo_debug", handle_debug_event))
 
     async def async_reload_entry(
         _: HomeAssistant, updated_entry: HiloConfigEntry
@@ -360,14 +359,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: HiloConfigEntry) -> boo
             with contextlib.suppress(asyncio.CancelledError):
                 await task
 
-    try:
-        await hilo._api.signalr_devices.disconnect()
-    except Exception as err:
-        LOG.error("Error disconnecting device SignalR hub: %s", err)
-    try:
-        await hilo._api.signalr_challenges.disconnect()
-    except Exception as err:
-        LOG.error("Error disconnecting challenge SignalR hub: %s", err)
+    await hilo._api.signalr_devices.disconnect()
+    await hilo._api.signalr_challenges.disconnect()
 
     LOG.debug("Hilo Integration unloaded")
     return True
@@ -522,9 +515,8 @@ class Hilo:
                     else:
                         LOG.warning(f"SHOULD NOT HAPPEN: Not SignalREvent: {msg_data}")
                         await handler(msg_data)
-                except Exception as e:
-                    LOG.error("Error in SignalR handler %s: %s", handler_name, e)
-                    LOG.error(traceback.format_exc())
+                except Exception:  # noqa: BLE001
+                    LOG.exception("Error in SignalR handler %s", handler_name)
 
     async def _handle_challenge_events(self, event: SignalREvent) -> None:
         """Handle all challenge-related SignalR events."""
@@ -816,15 +808,11 @@ class Hilo:
     async def _fetch_legacy_gateway_dsn(self, new_mac: str) -> str | None:
         """This function looks up the Hilo gateway device in the device registry and
         returns its old DSN-based identifier if it exists. If it doesn't,
-        it returns Noneto use the MAC address instead."""
+        it returns None to use the MAC address instead."""
         device_registry = dr.async_get(self._hass)
-        devices = device_registry.devices
-        device_iter = (
-            devices
-            if Version(current_version) >= Version("2026.9")
-            else devices.values()
-        )
-        for device in device_iter:
+        for device in dr.async_entries_for_config_entry(
+            device_registry, self.entry.entry_id
+        ):
             if device.manufacturer != "Hilo" or device.model != "EQ000017":
                 continue
             for domain, identifier in device.identifiers:
@@ -961,7 +949,7 @@ class Hilo:
                     backoff,
                     err,
                 )
-            except Exception as err:  # pylint: disable=broad-except
+            except Exception as err:  # noqa: BLE001
                 LOG.warning(
                     "SignalRHub[%s]: connection error; reconnecting in %ss — %s",
                     id,
