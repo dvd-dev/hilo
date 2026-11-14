@@ -121,6 +121,25 @@ def device_fixture() -> str:
 
 
 @pytest.fixture
+def ambient_humidity() -> int:
+    """Return the GraphQL ambientHumidity reported for Thermostat 1.
+
+    0 is what thermostats without a humidity sensor, such as the HT402, report.
+    """
+    return 0
+
+
+@pytest.fixture
+def graphql_location(
+    ambient_humidity: int,
+) -> dict[str, dict[str, list[dict[str, object]]]]:
+    """Return a GraphQL getLocation result for Thermostat 1."""
+    location = json.loads(load_fixture("graphql_location.json"))
+    location["getLocation"]["devices"][0]["ambientHumidity"] = ambient_humidity
+    return location
+
+
+@pytest.fixture
 def mock_api(device_fixture: str) -> Generator[MagicMock]:
     """Return a mocked Hilo API"""
     with patch("pyhilo.API", autospec=True) as api_mock:

@@ -47,6 +47,7 @@ from homeassistant.util import Throttle, slugify
 import homeassistant.util.dt as dt_util
 from pyhilo.const import UNMONITORED_DEVICES
 from pyhilo.device import HiloDevice
+from pyhilo.device.climate import Climate
 from pyhilo.event import Event
 from pyhilo.util import from_utc_timestamp
 import yaml
@@ -54,6 +55,7 @@ from yaml.scanner import ScannerError
 
 from . import Hilo, HiloConfigEntry
 from .const import (
+    CLIMATE_CLASSES,
     CONF_ENERGY_METER_PERIOD,
     CONF_GENERATE_ENERGY_METERS,
     CONF_UNTARIFICATED_DEVICES,
@@ -125,6 +127,10 @@ def generate_entities_from_device(device, hilo, scan_interval):
         entities.append(Co2Sensor(hilo, device))
     if device.has_attribute("current_temperature"):
         entities.append(TemperatureSensor(hilo, device))
+    # The device list advertises Humidity even on models without a sensor
+    # (HT402), so only the GraphQL reading tells them apart.
+    if device.type in CLIMATE_CLASSES and device.current_humidity is not None:
+        entities.append(HumiditySensor(hilo, device))
     if device.type in HILO_SENSOR_CLASSES:
         entities.append(DeviceSensor(hilo, device))
     if device.has_attribute("noise"):
@@ -427,6 +433,27 @@ class EnergySensor(HiloEntity, RestoreSensor):
                 cancel_on_shutdown=True,
             )
         )
+
+
+class HumiditySensor(HiloEntity, SensorEntity):
+    """Define a Hilo thermostat humidity sensor entity."""
+
+    _attr_device_class = SensorDeviceClass.HUMIDITY
+    _attr_has_entity_name = True
+    _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_translation_key = "humidity"
+
+    def __init__(self, hilo: Hilo, device: Climate) -> None:
+        """Hilo Humidity sensor initialization."""
+        super().__init__(hilo, device=device)
+        self._attr_unique_id = f"{device.identifier.lower()}-humidity"
+        LOG.debug("Setting up HumiditySensor entity: %s", device.name)
+
+    @property
+    def native_value(self) -> int | None:
+        """Return the current humidity."""
+        return self._device.current_humidity
 
 
 class NoiseSensor(HiloEntity, SensorEntity):
