@@ -35,6 +35,7 @@ from homeassistant.helpers import (
 )
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from homeassistant.helpers.dispatcher import async_dispatcher_send
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.util import dt as dt_util, slugify
 from packaging.version import Version
 from pyhilo import API
@@ -72,7 +73,6 @@ from .const import (
     LOG,
     MIN_SCAN_INTERVAL,
 )
-from .coordinator import HiloCoordinator
 from .oauth2 import AuthCodeWithPKCEImplementation
 
 DISPATCHER_TOPIC_SIGNALR_EVENT = "pyhilo_signalr_event"
@@ -434,7 +434,7 @@ class Hilo:
         )
         self.cost_sensors: dict = {}
         # This will get filled in by async_init:
-        self.coordinator: HiloCoordinator | None = None
+        self.coordinator: DataUpdateCoordinator | None = None
         self.unknown_tracker_device: HiloDevice | None = None
         self._events: dict = {}
         if self.track_unknown_sources:
@@ -916,8 +916,12 @@ class Hilo:
                 EVENT_HOMEASSISTANT_STOP, signalr_disconnect_listener
             )
         )
-        self.coordinator = HiloCoordinator(
-            self._hass, self.entry, self, timedelta(seconds=scan_interval)
+        self.coordinator = DataUpdateCoordinator(
+            self._hass,
+            LOG,
+            name="hilo",
+            update_interval=timedelta(seconds=scan_interval),
+            update_method=self.async_update,
         )
 
     async def start_signalr_loop(self, hub, id) -> None:
