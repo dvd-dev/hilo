@@ -34,7 +34,10 @@ from homeassistant.helpers import (
     entity_registry as er,
 )
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
+from homeassistant.helpers.debounce import Debouncer
 from homeassistant.helpers.dispatcher import async_dispatcher_send
+from homeassistant.helpers.event import async_track_time_interval
+from homeassistant.helpers.update_coordinator import REQUEST_REFRESH_DEFAULT_COOLDOWN
 from homeassistant.util import dt as dt_util, slugify
 from packaging.version import Version
 from pyhilo import API
@@ -76,7 +79,6 @@ from .coordinator import HiloCoordinator
 from .oauth2 import AuthCodeWithPKCEImplementation
 
 DISPATCHER_TOPIC_SIGNALR_EVENT = "pyhilo_signalr_event"
-SIGNAL_UPDATE_ENTITY = "pyhilo_device_update_{}"
 COORDINATOR_AWARE_PLATFORMS = [Platform.SENSOR]
 PLATFORMS = COORDINATOR_AWARE_PLATFORMS + [
     Platform.CLIMATE,
@@ -433,8 +435,18 @@ class Hilo:
             CONF_GENERATE_ENERGY_METERS, DEFAULT_GENERATE_ENERGY_METERS
         )
         self.cost_sensors: dict = {}
+        self.coordinator = HiloCoordinator(hass, entry, self)
+        # Every push changes device power, which feeds tariff and unknown power.
+        self._derived_state_debouncer: Debouncer[None] = Debouncer(
+            hass,
+            LOG,
+            cooldown=REQUEST_REFRESH_DEFAULT_COOLDOWN,
+            immediate=True,
+            function=self._async_update_derived_state,
+        )
+        entry.async_on_unload(self._derived_state_debouncer.async_shutdown)
+        self._derived_state_ready = False
         # This will get filled in by async_init:
-        self.coordinator: HiloCoordinator | None = None
         self.unknown_tracker_device: HiloDevice | None = None
         self._events: dict = {}
         if self.track_unknown_sources:
@@ -444,6 +456,8 @@ class Hilo:
     async def _on_devices_connected(self) -> None:
         """Trigger device subscriptions after the device hub connects."""
         await self.subscribe_to_location()
+        # Clears a previous hub failure and logs the recovery.
+        await self.coordinator.async_refresh()
 
     async def _on_challenges_connected(self) -> None:
         """Trigger challenge subscriptions after the challenge hub connects."""
@@ -572,13 +586,8 @@ class Hilo:
                 )
                 # Device list will refresh on next SignalR reconnect/subscribe
 
-            updated_devices = self.devices.parse_values_received(event.arguments[0])
-            # NOTE(dvd): If we don't do this, we need to wait until the coordinator
-            # runs (scan_interval) to have updated data in the dashboard.
-            for device in updated_devices:
-                async_dispatcher_send(
-                    self._hass, SIGNAL_UPDATE_ENTITY.format(device.hilo_id)
-                )
+            self.devices.parse_values_received(event.arguments[0])
+            self._async_devices_updated()
 
         elif event.target == "DeviceListInitialValuesReceived":
             await self.devices.update_devicelist_from_signalr(event.arguments[0])
@@ -608,11 +617,8 @@ class Hilo:
                 gateway.id = event.arguments[0][0]["deviceId"]
                 LOG.debug("Updated Gateway's deviceId from default 1 to %s", gateway.id)
 
-            updated_devices = self.devices.parse_values_received(event.arguments[0])
-            for device in updated_devices:
-                async_dispatcher_send(
-                    self._hass, SIGNAL_UPDATE_ENTITY.format(device.hilo_id)
-                )
+            self.devices.parse_values_received(event.arguments[0])
+            self._async_devices_updated()
 
     @callback
     async def on_signalr_event(self, event: SignalREvent) -> None:
@@ -916,8 +922,13 @@ class Hilo:
                 EVENT_HOMEASSISTANT_STOP, signalr_disconnect_listener
             )
         )
-        self.coordinator = HiloCoordinator(
-            self._hass, self.entry, self, timedelta(seconds=scan_interval)
+        self._derived_state_ready = True
+        self.entry.async_on_unload(
+            async_track_time_interval(
+                self._hass,
+                self._async_schedule_derived_state_update,
+                timedelta(seconds=scan_interval),
+            )
         )
 
     async def start_signalr_loop(self, hub, id) -> None:
@@ -952,6 +963,8 @@ class Hilo:
                     backoff,
                     err,
                 )
+                if hub is self._api.signalr_devices:
+                    self.coordinator.async_set_update_error(err)
 
             if not self.should_signalr_reconnect:
                 return
@@ -990,12 +1003,34 @@ class Hilo:
         self._should_signalr_reconnect = value
 
     async def async_update(self) -> None:
-        """Update tarif periodically."""
+        """Recompute tariff and unknown power from current device values."""
         if self.generate_energy_meters:
             self.check_tarif()
 
         if self.track_unknown_sources:
             self.handle_unknown_power()
+
+    async def _async_update_derived_state(self) -> None:
+        """Recompute tariff and unknown power, then refresh entities."""
+        await self.async_update()
+        self.coordinator.async_update_listeners()
+
+    @callback
+    def _async_schedule_derived_state_update(
+        self, _now: datetime | None = None
+    ) -> None:
+        """Schedule a debounced tariff and unknown power update."""
+        # Pushes start arriving during async_init, before meters and entities exist.
+        if self._derived_state_ready:
+            self.entry.async_create_task(
+                self._hass, self._derived_state_debouncer.async_call()
+            )
+
+    @callback
+    def _async_devices_updated(self) -> None:
+        """Notify entities of pushed device values."""
+        self.coordinator.async_set_updated_data(self.devices)
+        self._async_schedule_derived_state_update()
 
     def find_meter(self, hass):
         """Find the smart meter entity in Home Assistant."""
@@ -1333,5 +1368,5 @@ class Hilo:
 
     @callback
     def handle_subscription_result(self, hilo_id: str) -> None:
-        """Handle subscription result by notifying entities."""
-        async_dispatcher_send(self._hass, SIGNAL_UPDATE_ENTITY.format(hilo_id))
+        """Handle a GraphQL device update python-hilo has already applied."""
+        self._async_devices_updated()

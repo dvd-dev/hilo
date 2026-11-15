@@ -396,12 +396,6 @@ class EnergySensor(HiloEntity, RestoreSensor):
         super()._handle_coordinator_update()
 
     @callback
-    def _update_callback(self) -> None:
-        """Handle real-time device updates from SignalR or GraphQL."""
-        self._integrate()
-        self.async_write_ha_state()
-
-    @callback
     def _async_integrate_on_timer(self, now: datetime) -> None:
         """Integrate periodically so constant loads flush within MAX_SUB_INTERVAL."""
         self._integrate(now)
@@ -1392,10 +1386,6 @@ class HiloCostTotalSensor(HiloEntity, SensorEntity):
             self._access_rate,
         )
 
-    def _update_callback(self):
-        """Gateway value updates don't need to trigger a cost refresh."""
-        return
-
     @property
     def tariff_config(self):
         """Return the active tariff configuration."""
@@ -1539,10 +1529,6 @@ class HiloOutdoorTempSensor(HiloEntity, SensorEntity):
             for key in self._weather
             if key not in ["temperature", "icon"]
         }
-
-    def _update_callback(self):
-        """Gateway value updates don't need to trigger a weather refresh."""
-        return
 
     async def async_added_to_hass(self):
         """Handle entity about to be added to hass event."""

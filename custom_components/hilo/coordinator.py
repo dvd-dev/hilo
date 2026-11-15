@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from datetime import timedelta
 from typing import TYPE_CHECKING
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from pyhilo.devices import Devices
 
 from .const import LOG
 
@@ -15,11 +15,11 @@ if TYPE_CHECKING:
     from . import Hilo
 
 
-class HiloCoordinator(DataUpdateCoordinator[None]):
-    """Periodically recompute tariff and unknown power state.
+class HiloCoordinator(DataUpdateCoordinator[Devices]):
+    """Notify entities when SignalR or GraphQL push new device values.
 
-    Device state is pushed into python-hilo by SignalR and GraphQL, so this
-    coordinator does not fetch it; entities only use it as a refresh tick.
+    python-hilo already holds the device state, so nothing is polled here.
+    A failure means the SignalR device hub is down and values are stale.
     """
 
     def __init__(
@@ -27,18 +27,11 @@ class HiloCoordinator(DataUpdateCoordinator[None]):
         hass: HomeAssistant,
         config_entry: ConfigEntry,
         hilo: Hilo,
-        update_interval: timedelta,
     ) -> None:
         """Initialize the coordinator."""
-        super().__init__(
-            hass,
-            LOG,
-            config_entry=config_entry,
-            name="hilo",
-            update_interval=update_interval,
-        )
+        super().__init__(hass, LOG, config_entry=config_entry, name="hilo")
         self._hilo = hilo
 
-    async def _async_update_data(self) -> None:
-        """Run the periodic tariff and unknown power updates."""
-        await self._hilo.async_update()
+    async def _async_update_data(self) -> Devices:
+        """Return the device state python-hilo keeps up to date."""
+        return self._hilo.devices

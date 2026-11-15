@@ -1,8 +1,8 @@
 """Test component setup."""
 
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, PropertyMock, patch
 
-from homeassistant.const import Platform
+from homeassistant.const import STATE_UNAVAILABLE, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.setup import async_setup_component
@@ -11,9 +11,12 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from pytest_homeassistant_custom_component.typing import WebSocketGenerator
 
+from custom_components.hilo import Hilo
 from custom_components.hilo.const import CONF_TRACK_UNKNOWN_SOURCES, DOMAIN
 
 from . import setup_with_selected_platforms
+
+THERMOSTAT_TEMPERATURE_ENTITY_ID = "sensor.thermostat_1_temperature"
 
 
 async def test_async_setup(hass):
@@ -135,3 +138,75 @@ async def test_signalr_device_values_update_entity_state(
     state = hass.states.get("sensor.thermostat_1_temperature")
     assert state is not None
     assert state.state == "21.5"
+
+
+async def _run_failing_signalr_hub(hilo: Hilo, hub: MagicMock) -> None:
+    """Run one iteration of the SignalR loop with a hub that fails to connect."""
+    hub.run.side_effect = ConnectionError("hub down")
+    with patch.object(
+        Hilo,
+        "should_signalr_reconnect",
+        new_callable=PropertyMock,
+        side_effect=[True, False],
+    ):
+        await hilo.start_signalr_loop(hub, 0)
+
+
+async def test_device_hub_error_marks_entities_unavailable(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_api: MagicMock,
+) -> None:
+    """Device values are stale while the device hub is down, so entities are unavailable."""
+    await setup_with_selected_platforms(
+        hass, mock_config_entry, [Platform.SENSOR], mock_api
+    )
+
+    await _run_failing_signalr_hub(
+        mock_config_entry.runtime_data, mock_api.signalr_devices
+    )
+    await hass.async_block_till_done()
+
+    state = hass.states.get(THERMOSTAT_TEMPERATURE_ENTITY_ID)
+    assert state is not None
+    assert state.state == STATE_UNAVAILABLE
+
+
+async def test_device_hub_reconnect_restores_entities(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_api: MagicMock,
+) -> None:
+    """Entities become available again once the device hub reconnects."""
+    await setup_with_selected_platforms(
+        hass, mock_config_entry, [Platform.SENSOR], mock_api
+    )
+    hilo = mock_config_entry.runtime_data
+    await _run_failing_signalr_hub(hilo, mock_api.signalr_devices)
+
+    await hilo._on_devices_connected()
+    await hass.async_block_till_done()
+
+    state = hass.states.get(THERMOSTAT_TEMPERATURE_ENTITY_ID)
+    assert state is not None
+    assert state.state != STATE_UNAVAILABLE
+
+
+async def test_challenge_hub_error_keeps_entities_available(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_api: MagicMock,
+) -> None:
+    """A challenge hub failure does not make device values stale."""
+    await setup_with_selected_platforms(
+        hass, mock_config_entry, [Platform.SENSOR], mock_api
+    )
+
+    await _run_failing_signalr_hub(
+        mock_config_entry.runtime_data, mock_api.signalr_challenges
+    )
+    await hass.async_block_till_done()
+
+    state = hass.states.get(THERMOSTAT_TEMPERATURE_ENTITY_ID)
+    assert state is not None
+    assert state.state != STATE_UNAVAILABLE

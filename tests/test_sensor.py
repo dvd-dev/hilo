@@ -15,7 +15,6 @@ from homeassistant.components.sensor import (
 from homeassistant.const import STATE_UNKNOWN, Platform, UnitOfEnergy
 from homeassistant.core import HomeAssistant, State
 from homeassistant.helpers import entity_registry as er
-from homeassistant.helpers.dispatcher import async_dispatcher_send
 import pytest
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
@@ -24,7 +23,6 @@ from pytest_homeassistant_custom_component.common import (
 )
 from syrupy.assertion import SnapshotAssertion
 
-from custom_components.hilo import SIGNAL_UPDATE_ENTITY
 from custom_components.hilo.const import (
     CONF_GENERATE_ENERGY_METERS,
     DOMAIN,
@@ -248,12 +246,13 @@ async def test_energy_sensor_left_riemann_accumulation(
     await setup_with_selected_platforms(
         hass, mock_config_entry, [Platform.SENSOR], mock_api
     )
-    device = mock_config_entry.runtime_data.devices.find_device(SMART_PLUG_DEVICE_ID)
+    hilo = mock_config_entry.runtime_data
+    device = hilo.devices.find_device(SMART_PLUG_DEVICE_ID)
     assert device is not None
 
     def push_power(watts: float) -> None:
         device.update(Power={"value": watts})
-        async_dispatcher_send(hass, SIGNAL_UPDATE_ENTITY.format(device.hilo_id))
+        hilo.coordinator.async_set_updated_data(hilo.devices)
 
     # Initialize baseline at 0 W, then step to 3600 W after 1h -> 0.00 kWh.
     push_power(0)
@@ -313,11 +312,12 @@ async def test_energy_sensor_max_sub_interval_timer(
     await setup_with_selected_platforms(
         hass, mock_config_entry, [Platform.SENSOR], mock_api
     )
-    device = mock_config_entry.runtime_data.devices.find_device(SMART_PLUG_DEVICE_ID)
+    hilo = mock_config_entry.runtime_data
+    device = hilo.devices.find_device(SMART_PLUG_DEVICE_ID)
     assert device is not None
     # 3600 W for 120s (MAX_SUB_INTERVAL) = 0.12 kWh.
     device.update(Power={"value": 3600})
-    async_dispatcher_send(hass, SIGNAL_UPDATE_ENTITY.format(device.hilo_id))
+    hilo.coordinator.async_set_updated_data(hilo.devices)
     await hass.async_block_till_done()
 
     freezer.tick(timedelta(seconds=MAX_SUB_INTERVAL))
