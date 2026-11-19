@@ -92,6 +92,24 @@ les cas ne sont pas traités encore.
 
 ---
 
+## 🗑️ Désinstallation
+### 1️⃣ Retirer l'intégration
+1. Allez à **Paramètres > Appareils et services > Intégrations** et sélectionnez **Hilo**.
+2. Cliquez sur le menu `⋮` à côté de votre compte et sélectionnez **Supprimer**.
+
+### 2️⃣ Supprimer les fichiers
+- **Via HACS** : dans HACS, ouvrez Hilo, cliquez sur le menu `⋮` et sélectionnez **Supprimer**.
+- **Manuellement** : supprimez le dossier `custom_components/hilo`.
+
+Redémarrez ensuite Home Assistant.
+
+### 3️⃣ Nettoyage (optionnel)
+- Supprimez `hilo_state.yaml` et `hilo_eventhistory_state.yaml` du dossier de configuration de Home Assistant. `hilo_state.yaml` contient vos jetons de connexion Hilo.
+- Si vous avez ajouté `utility_meter:` à `configuration.yaml` uniquement pour Hilo, retirez cette ligne.
+- Retirez les compteurs Hilo du tableau de bord **Énergie**.
+
+---
+
 ## 📌 Suivis de la consommation électrique
 Si vous souhaitez utiliser la génération automatique des capteurs de consommation électrique, suivez ces étapes :
 

@@ -92,6 +92,24 @@ This unofficial HACS integration allows you to use [Hilo](https://www.hiloenergi
 
 ---
 
+## 🗑️ Removal
+### 1️⃣ Remove the integration
+1. Go to **Settings > Devices & Services > Integrations** and select **Hilo**.
+2. Click the `⋮` menu next to your account and select **Delete**.
+
+### 2️⃣ Remove the files
+- **Via HACS**: in HACS, open Hilo, click the `⋮` menu and select **Remove**.
+- **Manually**: delete the `custom_components/hilo` folder.
+
+Then restart Home Assistant.
+
+### 3️⃣ Clean up (optional)
+- Delete `hilo_state.yaml` and `hilo_eventhistory_state.yaml` from the Home Assistant configuration folder. `hilo_state.yaml` contains your Hilo login tokens.
+- If you added `utility_meter:` to `configuration.yaml` only for Hilo, remove that line.
+- Remove the Hilo meters from the **Energy** dashboard.
+
+---
+
 ## 📌 Power Consumption Tracking
 If you want to use automatic generation of power consumption sensors, follow these steps:
 
