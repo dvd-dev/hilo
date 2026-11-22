@@ -6,6 +6,7 @@ import asyncio
 from collections import OrderedDict
 import contextlib
 from datetime import UTC, datetime, timedelta
+from typing import TYPE_CHECKING
 
 from aiohttp import CookieJar, client_exceptions
 from homeassistant.components.select import (
@@ -74,6 +75,9 @@ from .const import (
 )
 from .coordinator import HiloCoordinator
 from .oauth2 import AuthCodeWithPKCEImplementation
+
+if TYPE_CHECKING:
+    from .sensor import HiloChallengeSensor
 
 DISPATCHER_TOPIC_SIGNALR_EVENT = "pyhilo_signalr_event"
 SIGNAL_UPDATE_ENTITY = "pyhilo_device_update_{}"
@@ -434,6 +438,7 @@ class Hilo:
         )
         self.cost_sensors: dict = {}
         # This gets filled in by the sensor platform:
+        self.challenge_sensor: HiloChallengeSensor | None = None
         self.energy_meter_keys: list[str] = []
         # This will get filled in by async_init:
         self.coordinator: HiloCoordinator | None = None
@@ -1057,18 +1062,16 @@ class Hilo:
         self._hass.states.async_set(entity, state, attrs, force_update=force)
 
     @property
-    def high_times(self):
+    def high_times(self) -> bool:
         """Check if the current time is within high tariff periods."""
-        challenge_sensor = self._hass.states.get("sensor.defi_hilo")
-
-        if challenge_sensor is None:
+        if self.challenge_sensor is None:
             LOG.warning("high_times check tarif challenge sensor not found")
             return False
 
         LOG.debug(
-            "high_times check tarif challenge sensor is %s", challenge_sensor.state
+            "high_times check tarif challenge sensor is %s", self.challenge_sensor.state
         )
-        return challenge_sensor.state == "reduction"
+        return self.challenge_sensor.state == "reduction"
 
     def check_season(self, current_time: datetime | None = None) -> bool:
         """Determine if we are using a winter or summer rate."""
