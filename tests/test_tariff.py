@@ -37,6 +37,7 @@ def create_mock_hilo(hass: HomeAssistant, hq_plan_name: str = "flex d") -> Hilo:
     hilo.generate_energy_meters = True
     hilo.untarificated_devices = False
     hilo.track_unknown_sources = False
+    hilo.challenge_sensor = None
     hilo.cost_sensors = {
         "low": DummyCostSensor(CONF_TARIFF["flex d"]["low"]),
         "medium": DummyCostSensor(CONF_TARIFF["flex d"]["medium"]),
@@ -148,7 +149,7 @@ def test_check_tarif_low_medium_selection(
 def test_check_tarif_high_tier_during_challenge(hass: HomeAssistant):
     """Test check_tarif selects high during a challenge reduction period."""
     hilo = create_mock_hilo(hass, "flex d")
-    hass.states.async_set("sensor.defi_hilo", "reduction")
+    hilo.challenge_sensor = MagicMock(state="reduction")
 
     with patch.object(hilo, "check_season", return_value=True):
         hilo.check_tarif()

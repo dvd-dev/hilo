@@ -109,9 +109,8 @@ def generate_entities_from_device(device, hilo, scan_interval):
     """Generate the entities from the device description."""
     entities = []
     if device.type == "Gateway":
-        entities.append(
-            HiloChallengeSensor(hilo, device, scan_interval),
-        )
+        hilo.challenge_sensor = HiloChallengeSensor(hilo, device, scan_interval)
+        entities.append(hilo.challenge_sensor)
         entities.append(
             HiloRewardSensor(hilo, device, scan_interval),
         )
@@ -1214,7 +1213,12 @@ class HiloChallengeSensor(HiloEntity, SensorEntity):
     @property
     def extra_state_attributes(self):
         """Return the next events attribute."""
-        return {"next_events": self._next_events}
+        return {"next_events": self.next_events}
+
+    @property
+    def next_events(self) -> list[dict]:
+        """Return the scheduled and ongoing challenges."""
+        return self._next_events
 
     async def async_added_to_hass(self):
         """Handle entity about to be added to hass event."""
