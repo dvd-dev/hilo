@@ -433,6 +433,8 @@ class Hilo:
             CONF_GENERATE_ENERGY_METERS, DEFAULT_GENERATE_ENERGY_METERS
         )
         self.cost_sensors: dict = {}
+        # This gets filled in by the sensor platform:
+        self.energy_meter_keys: list[str] = []
         # This will get filled in by async_init:
         self.coordinator: HiloCoordinator | None = None
         self.unknown_tracker_device: HiloDevice | None = None
@@ -1168,10 +1170,10 @@ class Hilo:
             self.high_times,
         )
 
-        # ic-dev21 : make sure the select for all meters still work by moving this here
-        for state in self._hass.states.async_all():
-            entity = state.entity_id
-            self.set_tarif(entity, state.state, tarif)
+        for meter_key in self.energy_meter_keys:
+            if self.untarificated_devices and meter_key != HILO_ENERGY_TOTAL:
+                continue
+            self.set_tarif(f"select.{meter_key}", tarif)
 
     def handle_unknown_power(self):
         """Take care of the unknown source meter."""
@@ -1257,36 +1259,24 @@ class Hilo:
             self.set_state(entity, None, new_attrs=new_attrs, keep_state=True)
 
     @callback
-    def set_tarif(self, entity, current, new):
+    def set_tarif(self, entity_id: str, new: str) -> None:
         """Set the tarif on the select entity if needed."""
-        if self.untarificated_devices and entity != f"select.{HILO_ENERGY_TOTAL}":
+        if (current := self._hass.states.get(entity_id)) is None:
             return
-        if entity.startswith("select.hilo_energy") and current != new:
-            LOG.debug(
-                "check_tarif: Changing tarif of %s from %s to %s", entity, current, new
+        if current.state == new:
+            return
+        LOG.debug(
+            "check_tarif: Changing tarif of %s from %s to %s",
+            entity_id,
+            current.state,
+            new,
+        )
+        data = {ATTR_OPTION: new, "entity_id": entity_id}
+        self._hass.async_create_task(
+            self._hass.services.async_call(
+                SELECT_DOMAIN, SERVICE_SELECT_OPTION, data, context=Context()
             )
-            context = Context()
-            data = {ATTR_OPTION: new, "entity_id": entity}
-            self._hass.async_create_task(
-                self._hass.services.async_call(
-                    SELECT_DOMAIN, SERVICE_SELECT_OPTION, data, context=context
-                )
-            )
-        if (
-            entity.startswith("select.")
-            and entity.endswith("_hilo_energy")
-            and current != new
-        ):
-            LOG.debug(
-                "check_tarif: Changing tarif of %s from %s to %s", entity, current, new
-            )
-            context = Context()
-            data = {ATTR_OPTION: new, "entity_id": entity}
-            self._hass.async_create_task(
-                self._hass.services.async_call(
-                    SELECT_DOMAIN, SERVICE_SELECT_OPTION, data, context=context
-                )
-            )
+        )
 
     @callback
     def async_migrate_unique_id(

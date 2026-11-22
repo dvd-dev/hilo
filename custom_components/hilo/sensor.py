@@ -174,6 +174,8 @@ async def async_setup_entry(
         energy_manager = await EnergyManager().init(hass, energy_meter_period)
         utility_manager = UtilityManager(hass, energy_meter_period, default_tariff_list)
 
+    hilo.energy_meter_keys = []
+
     def create_energy_entity(hilo: Hilo, device: HiloDevice) -> None:
         device._energy_entity = EnergySensor(hilo, device)
         new_entities.append(device._energy_entity)
@@ -190,6 +192,7 @@ async def async_setup_entry(
             tariff_list = validate_tariff_list(tariff_config)
         net_consumption = device.net_consumption
         utility_manager.add_meter(energy_entity, tariff_list, net_consumption)
+        hilo.energy_meter_keys.append(energy_entity)
 
     for d in hilo.devices.all:
         LOG.debug("Adding device %s", d)
