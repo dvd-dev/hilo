@@ -170,7 +170,8 @@ Vous pouvez configurer des options supplémentaires en cliquant sur `Configurer`
 ### ✅ **Verrouiller les entités `climate` lors des défis Hilo**
 - Empêche toute modification des consignes de température **pendant un défi** Hilo.
 
-### ✅ **Suivre des sources de consommation inconnues dans un compteur séparé**
+### ⚠️ **Suivre des sources de consommation inconnues dans un compteur séparé (Obsolète)**
+- **Obsolète** : Cette option sera supprimée dans une future version. Utilisez plutôt la consommation non suivie intégrée du tableau de bord Énergie de Home Assistant ou un capteur Template.
 - Toutes les sources **non Hilo** sont regroupées dans un capteur dédié.
 - Utilise la lecture du **compteur intelligent** de la maison.
 

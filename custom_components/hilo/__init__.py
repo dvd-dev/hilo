@@ -36,6 +36,7 @@ from homeassistant.helpers import (
 )
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from homeassistant.helpers.dispatcher import async_dispatcher_send
+from homeassistant.helpers.start import async_at_started
 from homeassistant.util import dt as dt_util, slugify
 from packaging.version import Version
 from pyhilo import API
@@ -72,9 +73,14 @@ from .const import (
     HILO_ENERGY_TOTAL,
     LOG,
     MIN_SCAN_INTERVAL,
+    UNKNOWN_SOURCE_TRACKER_IDENTIFIER,
 )
 from .coordinator import HiloCoordinator
 from .oauth2 import AuthCodeWithPKCEImplementation
+from .repairs import (
+    async_delete_unknown_source_tracker_deprecation_issue,
+    async_manage_unknown_source_tracker_deprecation_issue,
+)
 
 if TYPE_CHECKING:
     from .sensor import HiloChallengeSensor
@@ -305,6 +311,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiloConfigEntry) -> bool
         entity_registry.async_update_entity(old_id, new_entity_id=new_id)
         LOG.info("Migrated entity ID %s -> %s", old_id, new_id)
 
+    @callback
+    def _async_check_unknown_source_tracker_deprecation(_: HomeAssistant) -> None:
+        async_manage_unknown_source_tracker_deprecation_issue(hass, entry)
+
+    entry.async_on_unload(
+        async_at_started(hass, _async_check_unknown_source_tracker_deprecation)
+    )
+
     async def handle_debug_event(event: Event):
         """Handle an event."""
         LOG.debug("HILO_DEBUG: Event received: %s", event)
@@ -368,6 +382,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: HiloConfigEntry) -> boo
 
     LOG.debug("Hilo Integration unloaded")
     return True
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: HiloConfigEntry) -> None:
+    """Clean up repair issues when a Hilo config entry is removed."""
+    async_delete_unknown_source_tracker_deprecation_issue(hass, entry.entry_id)
 
 
 async def async_remove_config_entry_device(
@@ -766,7 +785,7 @@ class Hilo:
             "settableAttributes": "",
             "id": 69420,
             "hilo_id": "AB-A2025",
-            "identifier": "hass-hilo-unknown_source_tracker",
+            "identifier": UNKNOWN_SOURCE_TRACKER_IDENTIFIER,
             "provider": 0,
             "model_number": "Hass-hilo-2025.5",
             "sw_version": "0.0.1",

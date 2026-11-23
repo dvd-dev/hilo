@@ -170,7 +170,8 @@ You can configure additional options by clicking `Configure` in Home Assistant:
 ### ✅ **Lock `climate` entities during Hilo challenges**
 - Prevents any modification of temperature setpoints **during a challenge** Hilo.
 
-### ✅ **Track unknown consumption sources in a separate meter**
+### ⚠️ **Track unknown consumption sources in a separate meter (Deprecated)**
+- **Deprecated**: This option will be removed in a future release. Use Home Assistant's built-in Energy dashboard untracked consumption or a Template sensor instead.
 - All **non-Hilo** sources are grouped in a dedicated sensor.
 - Uses the house's **smart meter** reading.
 

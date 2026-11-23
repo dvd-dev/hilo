@@ -39,7 +39,7 @@
           "scan_interval": "Minimum: 60 seconds",
           "log_traces": "Requires debug log level on both the integration and pyhilo",
           "challenge_lock": "Prevents any changes when a challenge is in progress",
-          "track_unknown_sources": "This is a round approximation calculated when we get a reading from the Smart Energy Meter",
+          "track_unknown_sources": "Deprecated and will be removed in a future release. Use Home Assistant's built-in Energy dashboard untracked consumption or a Template sensor instead.",
           "appreciation_phase": "Add an appreciation phase of X hours before the preheat phase. Hilo uses 3 hours for AM events, 2 for PM events, chose a value you would like to automatically add and adjust your automations accordingly.",
           "pre_cold_phase": "Add a cooldown phase of X hours to reduce temperatures before the appreciation phase"
         }
@@ -50,6 +50,30 @@
     "sensor": {
       "humidity": {
         "name": "Humidity"
+      }
+    }
+  },
+  "issues": {
+    "deprecated_unknown_source_tracker": {
+      "title": "Unknown Source Tracker is deprecated",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Disable Unknown Source Tracker",
+            "description": "The Unknown Source Tracker option (`Track unknown power sources`) is deprecated and will be removed in a future release.\n\nUse Home Assistant's built-in [Energy dashboard](/config/energy) untracked consumption or a Template sensor instead.\n\nUpdate any dashboards (including Energy), templates, groups, automations, or scripts that reference the Unknown Source Tracker entities, then select **Submit** to disable the option and remove its entities and device. If energy meters were enabled, any generated utility meter sensors will disappear after restarting Home Assistant."
+          }
+        }
+      }
+    },
+    "deprecated_unknown_source_tracker_used": {
+      "title": "Unknown Source Tracker is deprecated",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Disable Unknown Source Tracker",
+            "description": "The Unknown Source Tracker option (`Track unknown power sources`) is deprecated and will be removed in a future release.\n\nUse Home Assistant's built-in [Energy dashboard](/config/energy) untracked consumption or a Template sensor instead.\n\nIt is still used in the following automations or scripts:\n{items}\n\nUpdate them, along with any dashboards (including Energy), templates, or groups, then select **Submit** to disable the option and remove its entities and device. If energy meters were enabled, any generated utility meter sensors will disappear after restarting Home Assistant."
+          }
+        }
       }
     }
   }
