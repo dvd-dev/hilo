@@ -30,7 +30,7 @@
           "untarificated_devices": "Générer seulement les compteurs totaux",
           "scan_interval": "Intervalle de mise à jour (secondes)",
           "log_traces": "Enregistrer requêtes et messages websocket",
-          "challenge_lock": "Vérouiller les entités climate lors de défis",
+          "challenge_lock": "Verrouiller les entités climate lors de défis",
           "track_unknown_sources": "Suivre les sources de consommation inconnues",
           "appreciation_phase": "Période d'ancrage (heures)",
           "pre_cold_phase": "Période de refroidissement (heures)"
