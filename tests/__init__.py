@@ -1,11 +1,53 @@
 """Tests for the Hilo custom integration."""
 
+from collections.abc import Iterator
+from contextlib import contextmanager
 from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+
+@contextmanager
+def patch_hilo_setup(
+    platforms: list[Platform],
+    mock_api: MagicMock,
+    graphql_location: dict[str, dict[str, list[dict[str, object]]]] | None = None,
+) -> Iterator[None]:
+    """Patch Hilo network and platform dependencies for setup and reload."""
+
+    async def _create_api(**_kwargs: object) -> MagicMock:
+        mock_api._get_device_callbacks = []
+        return mock_api
+
+    graphql_init = (
+        patch(
+            "custom_components.hilo.GraphQlHelper.async_init",
+            autospec=True,
+            side_effect=lambda helper: helper._handle_query_result(graphql_location),
+        )
+        if graphql_location is not None
+        else patch(
+            "custom_components.hilo.GraphQlHelper.async_init", new_callable=AsyncMock
+        )
+    )
+    with (
+        patch("custom_components.hilo.PLATFORMS", platforms),
+        patch("custom_components.hilo.API.async_create", side_effect=_create_api),
+        patch(
+            "custom_components.hilo.Hilo.should_signalr_reconnect",
+            new_callable=PropertyMock,
+            return_value=False,
+        ),
+        graphql_init,
+        patch(
+            "custom_components.hilo.GraphQlHelper.subscribe_to_device_updated",
+            new_callable=AsyncMock,
+        ),
+    ):
+        yield
 
 
 @pytest.mark.usefixtures("mock_api")
@@ -23,30 +65,6 @@ async def setup_with_selected_platforms(
     """
     if not hass.config_entries.async_get_entry(entry.entry_id):
         entry.add_to_hass(hass)
-    graphql_init = (
-        patch(
-            "custom_components.hilo.GraphQlHelper.async_init",
-            autospec=True,
-            side_effect=lambda helper: helper._handle_query_result(graphql_location),
-        )
-        if graphql_location is not None
-        else patch(
-            "custom_components.hilo.GraphQlHelper.async_init", new_callable=AsyncMock
-        )
-    )
-    with (
-        patch("custom_components.hilo.PLATFORMS", platforms),
-        patch("custom_components.hilo.API.async_create", return_value=mock_api),
-        patch(
-            "custom_components.hilo.Hilo.should_signalr_reconnect",
-            new_callable=PropertyMock,
-        ) as mock_should_signalr_reconnect,
-        graphql_init,
-        patch(
-            "custom_components.hilo.GraphQlHelper.subscribe_to_device_updated",
-            new_callable=AsyncMock,
-        ),
-    ):
-        mock_should_signalr_reconnect.return_value = False
+    with patch_hilo_setup(platforms, mock_api, graphql_location):
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()

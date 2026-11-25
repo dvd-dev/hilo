@@ -32,6 +32,9 @@ DEFAULT_PRE_COLD_PHASE = 0
 
 CONF_TRACK_UNKNOWN_SOURCES = "track_unknown_sources"
 DEFAULT_TRACK_UNKNOWN_SOURCES = False
+UNKNOWN_SOURCE_TRACKER_IDENTIFIER = "hass-hilo-unknown_source_tracker"
+UNKNOWN_SOURCE_TRACKER_UTILITY_METER = "unknown_source_tracker_hilo_energy"
+ISSUE_DEPRECATED_UNKNOWN_SOURCE_TRACKER = "deprecated_unknown_source_tracker"
 
 CONF_UNTARIFICATED_DEVICES = "untarificated_devices"
 DEFAULT_UNTARIFICATED_DEVICES = False
