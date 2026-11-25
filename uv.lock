@@ -2594,7 +2594,7 @@ test = [
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "pytest-homeassistant-custom-component", specifier = ">=0.13.0" },
-    { name = "python-hilo", specifier = "==2026.11.2" },
+    { name = "python-hilo", specifier = "==2026.11.3" },
     { name = "ruff", specifier = ">=0.17.5" },
 ]
 
@@ -5451,7 +5451,7 @@ wheels = [
 
 [[package]]
 name = "python-hilo"
-version = "2026.11.2"
+version = "2026.11.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -5466,9 +5466,9 @@ dependencies = [
     { name = "pyyaml", version = "6.0.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.13.2'" },
     { name = "pyyaml", version = "6.0.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.13.2'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/fe/84/441b7348f003f205d4d859aec02bb1fe4e404a588e31be8155649bed0abc/python_hilo-2026.11.2.tar.gz", hash = "sha256:2e390d5a88f2d54a3921bf626e4df20def3cf217a633b6620f19aa47ba257a15", size = 144816, upload-time = "2026-11-09T00:20:58.575Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c3/47/1b22bd77d9a91eb23c653aed6eb3ef4223172b085463f36d4c043d6de0e8/python_hilo-2026.11.3.tar.gz", hash = "sha256:ed0fdb69635bba98d7ecfcbd49bc0bcacfc676f08184baf6008b343d4ec90073", size = 147271, upload-time = "2026-11-25T01:38:50.286Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/14/ef/6efd3c1c7495348c14e5fa8c02d3ccc771c1f86222f2470626950bd265fa/python_hilo-2026.11.2-py3-none-any.whl", hash = "sha256:a04111cb741c493e7e42d0f26a59805a7e17a1601bda6928589c7eb4e6238842", size = 42987, upload-time = "2026-11-09T00:20:57.492Z" },
+    { url = "https://files.pythonhosted.org/packages/e3/12/f9843128e39afcacdd84fb9b3aeacc49ecba70338bb945b1596bbcbeda06/python_hilo-2026.11.3-py3-none-any.whl", hash = "sha256:976453112310de4177886e5d2bd8bce86d10591aa99f8fd18832b8cb07fa9f7e", size = 43223, upload-time = "2026-11-25T01:38:49.156Z" },
 ]
 
 [[package]]
