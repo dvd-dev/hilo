@@ -1,7 +1,7 @@
 ---
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.9
+    rev: v0.17.5
     hooks:
       - id: ruff-format
         args: [--quiet]
@@ -41,11 +41,11 @@ repos:
 #    hooks:
 #      - id: pydocstyle
 #        files: ^custom_components/hilo/.+\.py$
-  - repo: https://github.com/gruntwork-io/pre-commit
-    rev: v0.1.30
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1
     hooks:
       - id: shellcheck
-        files: ^script/.+
+        files: ^scripts/
   - repo: https://github.com/jorisroovers/gitlint
     rev: v0.19.1
     hooks:

@@ -1,6 +1,4 @@
 #!/bin/bash
-git log --oneline | while read l;do
-  CID=$(echo $l | cut -f 1 -d " ")
-  MSG=$(echo $l | cut -f 2- -d " ")
-  echo "* [$MSG](https://github.com/dvd-dev/hilo/commit/$CID)"
+git log --oneline | while read -r cid msg; do
+  echo "* [$msg](https://github.com/dvd-dev/hilo/commit/$cid)"
 done
