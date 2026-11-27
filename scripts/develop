@@ -5,6 +5,7 @@ set -e
 cd "$(dirname "$0")/.."
 
 # Activate the virtual environment
+# shellcheck source=/dev/null
 source "${VIRTUAL_ENV}/bin/activate"
 
 # Create config dir if not present
@@ -20,11 +21,11 @@ export PYTHONPATH="${PWD}${PYTHONPATH:+:${PYTHONPATH}}"
 if [[ -d "/workspaces/python-hilo/pyhilo" ]]; then
     echo "Installing custom version of python-hilo (editable)..."
     uv pip install -e "/workspaces/python-hilo"
-    SKIP_PACKAGES="--skip-pip-packages python-hilo"
+    skip_packages=(--skip-pip-packages python-hilo)
 else
     echo "Using PyPI version of python-hilo..."
-    SKIP_PACKAGES=""
+    skip_packages=()
 fi
 
 # Start Home Assistant
-hass --config "${PWD}/config" --debug ${SKIP_PACKAGES}
+hass --config "${PWD}/config" --debug "${skip_packages[@]}"
