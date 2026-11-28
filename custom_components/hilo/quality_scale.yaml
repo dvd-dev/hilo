@@ -42,7 +42,7 @@ rules:
   # Silver
   action-exceptions:
     status: todo
-    comment: Climate raises HomeAssistantError; light and switch let library errors propagate.
+    comment: Climate and switch raise HomeAssistantError; light let library errors propagate.
   config-entry-unloading: done
   docs-configuration-parameters: done
   docs-installation-parameters:

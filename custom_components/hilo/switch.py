@@ -3,9 +3,11 @@
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import slugify
 from pyhilo.device.switch import Switch
+from pyhilo.exceptions import HiloError
 
 from . import Hilo, HiloConfigEntry
 from .const import LOG, SWITCH_CLASSES
@@ -70,11 +72,21 @@ class HiloSwitch(HiloEntity, SwitchEntity):
     async def async_turn_off(self, **kwargs):
         """Turn the switch off."""
         LOG.info("%s Turning off", self._device._tag)
-        await self._device.set_attribute("is_on", False)
+        try:
+            await self._device.set_attribute("is_on", False)
+        except HiloError as err:
+            raise HomeAssistantError(
+                f"Unable to turn off {self._device.name}: {err}"
+            ) from err
         self.async_schedule_update_ha_state(True)
 
     async def async_turn_on(self, **kwargs):
         """Turn the switch on."""
         LOG.info("%s Turning on", self._device._tag)
-        await self._device.set_attribute("is_on", True)
+        try:
+            await self._device.set_attribute("is_on", True)
+        except HiloError as err:
+            raise HomeAssistantError(
+                f"Unable to turn on {self._device.name}: {err}"
+            ) from err
         self.async_schedule_update_ha_state(True)
