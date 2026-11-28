@@ -12,7 +12,9 @@ from homeassistant.const import (
     Platform,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_registry as er
+from pyhilo.exceptions import HiloError
 import pytest
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
@@ -127,3 +129,33 @@ async def test_switch_unique_id_migration(
     migrated_entry = entity_registry.async_get(entry.entity_id)
     assert migrated_entry is not None
     assert migrated_entry.unique_id == expected_unique_id
+
+
+@pytest.mark.parametrize(
+    ("service", "expected_message"),
+    [
+        (SERVICE_TURN_ON, "Unable to turn on"),
+        (SERVICE_TURN_OFF, "Unable to turn off"),
+    ],
+)
+@pytest.mark.usefixtures("entity_registry_enabled_by_default", "mock_api")
+async def test_switch_action_raises_on_api_error(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_api: MagicMock,
+    service: str,
+    expected_message: str,
+) -> None:
+    """Test that a Hilo API failure is surfaced as a HomeAassistantError."""
+    await setup_with_selected_platforms(
+        hass, mock_config_entry, [Platform.SWITCH], mock_api
+    )
+    mock_api._set_device_attribute.side_effect = HiloError("API unavailable")
+
+    with pytest.raises(HomeAssistantError, match=expected_message):
+        await hass.services.async_call(
+            SWITCH_DOMAIN,
+            service,
+            {ATTR_ENTITY_ID: "switch.smart_plug"},
+            blocking=True,
+        )
